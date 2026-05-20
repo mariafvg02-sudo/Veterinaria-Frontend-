@@ -1,0 +1,188 @@
+<div class="forgot-wrapper">
+
+    <div class="login-card">
+
+        <!-- ICON -->
+        <div class="header-icon">
+
+            <div class="circle">
+                <i class="fa-solid fa-shield-security"></i>
+            </div>
+
+        </div>
+
+        <!-- HEADER -->
+        <header>
+
+            <h1>Recuperar contraseña</h1>
+
+            <p>
+                Completa los pasos para restablecer tu contraseña
+            </p>
+
+        </header>
+
+        <!-- FORM -->
+        <form
+            [formGroup]="forgotForm"
+            (ngSubmit)="onSubmit()">
+
+            <!-- MENSAJE -->
+            <div
+                class="form-message success"
+                *ngIf="mensaje">
+
+                {{ mensaje }}
+
+            </div>
+
+            <div
+                class="form-message error"
+                *ngIf="error">
+
+                {{ error }}
+
+            </div>
+
+            <!-- EMAIL -->
+            <div class="form-group">
+
+                <label>Correo electrónico</label>
+
+                <div class="input-row">
+
+                    <div class="input-with-icon-left">
+
+                        <i class="fa-regular fa-envelope field-icon"></i>
+
+                        <input
+                            type="email"
+                            formControlName="email"
+                            placeholder="correo@ejemplo.com">
+
+                    </div>
+
+                    <button
+                        type="button"
+                        class="btn-inline btn-brown"
+                        (click)="sendCode()"
+                        [disabled]="emailControl?.invalid || cargando">
+
+                        <i class="fa-solid fa-paper-plane"></i>
+
+                        Enviar
+
+                    </button>
+
+                </div>
+
+            </div>
+
+            <!-- CODE -->
+            <div
+                class="form-group"
+                *ngIf="codeSent">
+
+                <label>Código de verificación</label>
+
+                <div class="input-row">
+
+                    <input
+                        type="text"
+                        formControlName="code"
+                        placeholder="Ingresa el código">
+
+                    <button
+                        type="button"
+                        class="btn-inline btn-tan-inline"
+                        (click)="verifyCode()">
+
+                        Verificar
+
+                    </button>
+
+                </div>
+
+            </div>
+
+            <!-- PASSWORD -->
+            <div
+                class="form-group"
+                *ngIf="codeVerified">
+
+                <label>Nueva contraseña</label>
+
+                <div class="input-with-icons-double">
+
+                    <i class="fa-solid fa-lock left-icon"></i>
+
+                    <input
+                        [type]="showPassword.password ? 'text' : 'password'"
+                        formControlName="password"
+                        placeholder="••••••••">
+
+                    <i
+                        class="fa-regular eye-icon"
+                        [ngClass]="showPassword.password ? 'fa-eye-slash' : 'fa-eye'"
+                        (click)="togglePassword('password')">
+                    </i>
+
+                </div>
+
+            </div>
+
+            <!-- CONFIRM PASSWORD -->
+            <div
+                class="form-group"
+                *ngIf="codeVerified">
+
+                <label>Confirmar nueva contraseña</label>
+
+                <div class="input-with-icons-double">
+
+                    <i class="fa-solid fa-lock left-icon"></i>
+
+                    <input
+                        [type]="showPassword.confirmPassword ? 'text' : 'password'"
+                        formControlName="confirmPassword"
+                        placeholder="••••••••">
+
+                    <i
+                        class="fa-regular eye-icon"
+                        [ngClass]="showPassword.confirmPassword ? 'fa-eye-slash' : 'fa-eye'"
+                        (click)="togglePassword('confirmPassword')">
+                    </i>
+
+                </div>
+
+            </div>
+
+            <!-- BUTTONS -->
+            <div
+                class="buttons-stack"
+                *ngIf="codeVerified">
+
+                <button
+                    type="submit"
+                    class="btn-main-tan">
+
+                    Cambiar contraseña
+
+                </button>
+
+                <button
+                    type="button"
+                    class="btn-outline"
+                    (click)="goToLogin()">
+
+                    Volver al inicio de sesión
+
+                </button>
+
+            </div>
+
+        </form>
+
+    </div>
+
+</div>

@@ -1,0 +1,263 @@
+:host {
+  --primary: #8d775f;
+  --primary-light: #f7f3ef;
+  --bg-main: #fcfaf8;
+  --text-dark: #4a3c31;
+  --text-muted: #9e8e81;
+  --border: #e8e1d9;
+  --white: #ffffff;
+
+  display: block;
+  min-height: 100vh;
+  background-color: var(--bg-main);
+  color: var(--text-dark);
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+}
+
+.cliente-container {
+  display: flex;
+  min-height: 100vh;
+
+  .sidebar {
+    width: 275px;
+    background: var(--white);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+
+    .sidebar-header {
+      padding: 30px 25px;
+      border-bottom: 2px solid var(--primary-light);
+
+      h1 {
+        margin: 0;
+        font-size: 19px;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        color: var(--primary);
+        text-transform: uppercase;
+        letter-spacing: 1px;
+      }
+    }
+
+    .nav-menu {
+      flex: 1;
+      padding: 20px 0;
+
+      .nav-btn {
+        width: 100%;
+        background: none;
+        border: none;
+        padding: 12px 25px;
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        color: var(--text-dark);
+        font-size: 14px;
+        cursor: pointer;
+        transition: 0.3s;
+        text-align: left;
+
+        i { width: 20px; color: var(--primary); font-size: 16px; }
+        
+        &:hover { background: var(--primary-light); color: var(--primary); }
+        
+        &.active {
+          background: var(--primary);
+          color: var(--white);
+          margin: 0 15px;
+          border-radius: 12px;
+          width: calc(100% - 30px);
+          i { color: var(--white); }
+        }
+
+        &.logout {
+          margin-top: 50px; // Espacio extra para el botón de salir
+          color: #d9534f;
+          font-weight: 600;
+          border-top: 1px solid var(--primary-light);
+          padding-top: 20px;
+          i { color: #d9534f; }
+          &:hover { background: #fff5f5; }
+        }
+      }
+    }
+  }
+
+  .main-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+
+    .header {
+      height: 75px;
+      background: var(--white);
+      padding: 0 35px;
+      display: flex;
+      align-items: center;
+      border-bottom: 1px solid var(--border);
+      h2 { font-size: 18px; color: var(--text-dark); margin: 0; }
+    }
+
+    .view-section {
+      padding: 40px;
+      overflow-y: auto;
+    }
+  }
+}
+
+/* Cabeceras de vista */
+.view-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+  h3 { font-size: 22px; font-weight: 600; margin: 0; }
+}
+
+/* Tarjetas de Dashboard (Estadísticas) */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 25px;
+  margin-top: 20px;
+}
+
+.stat-card {
+  background: var(--white);
+  border-radius: 20px;
+  padding: 25px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  box-shadow: 0 5px 20px rgba(0,0,0,0.02);
+  border-left: 5px solid var(--primary);
+
+  i { font-size: 35px; color: var(--primary); }
+  .stat-label { color: var(--text-muted); font-size: 13px; margin: 0; }
+  .stat-value { font-size: 24px; font-weight: 700; color: var(--text-dark); margin: 5px 0 0; }
+}
+
+/* Listado de Citas */
+.cita-item {
+  background: var(--white);
+  padding: 20px;
+  border-radius: 15px;
+  margin-bottom: 15px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.02);
+  border: 1px solid var(--border);
+  
+  .cita-info {
+    strong { font-size: 16px; color: var(--primary); }
+    p { margin: 5px 0; font-size: 14px; }
+    small { color: var(--text-muted); }
+  }
+}
+
+/* Badge de Estado */
+.badge {
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  &.badge-pendiente { background: #fdf6ec; color: #e67e22; }
+  &.badge-confirmada { background: #f0fdf4; color: #27ae60; }
+  &.badge-cancelada { background: #fef2f2; color: #d9534f; }
+}
+
+/* Grid de Mascotas (Tarjetas tipo carnet) */
+.mascotas-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 25px;
+}
+
+.mascota-card {
+  background: var(--white);
+  border-radius: 20px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.03);
+  transition: 0.3s;
+
+  &:hover { transform: translateY(-5px); }
+
+  .mascota-header {
+    background: var(--primary-light);
+    padding: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px dashed var(--border);
+    h4 { margin: 0; color: var(--text-dark); font-size: 18px; }
+  }
+
+  .mascota-details {
+    padding: 20px;
+    p { margin: 8px 0; font-size: 14px; }
+    strong { color: var(--primary); min-width: 80px; display: inline-block; }
+  }
+}
+
+/* Botones */
+.btn-primary {
+  background: var(--primary);
+  color: var(--white);
+  border: none;
+  padding: 10px 20px;
+  border-radius: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.3s;
+  &:hover { background: #7a6652; }
+  &:disabled { opacity: 0.6; cursor: not-allowed; }
+}
+
+.btn-small {
+  background: var(--white);
+  border: 1px solid var(--border);
+  color: var(--primary);
+  padding: 6px;
+  border-radius: 8px;
+  cursor: pointer;
+  &.danger { color: #d9534f; &:hover { background: #fef2f2; } }
+  &:hover { background: var(--primary-light); }
+}
+
+.btn-danger { background: #d9534f; color: white; border: none; padding: 8px 15px; border-radius: 8px; cursor: pointer; }
+.btn-back { background: none; border: none; color: var(--primary); cursor: pointer; font-weight: 600; margin-bottom: 15px; }
+
+/* Formularios */
+.form {
+  background: var(--white);
+  padding: 30px;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  max-width: 650px;
+  
+  .form-group {
+    margin-bottom: 20px;
+    label { display: block; margin-bottom: 8px; font-weight: 600; font-size: 14px; }
+    input, select, textarea {
+      width: 100%;
+      padding: 12px 15px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: var(--bg-main);
+      font-family: inherit;
+      &:focus { outline: none; border-color: var(--primary); background: var(--white); }
+    }
+  }
+  
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+}
+
+.no-data { text-align: center; color: var(--text-muted); padding: 40px; font-style: italic; }

@@ -1,0 +1,90 @@
+<div class="admin-container">
+  <header class="admin-header">
+    <h1>Panel de Administrador</h1>
+    <p>Gestiona usuarios y controla el sistema veterinario</p>
+  </header>
+
+  <div class="admin-content">
+    <nav class="admin-nav">
+      <button
+        class="nav-tab"
+        [class.active]="activeTab === 'users'"
+        (click)="setActiveTab('users')">
+        Gestionar Usuarios
+      </button>
+      <button
+        class="nav-tab"
+        [class.active]="activeTab === 'system'"
+        (click)="setActiveTab('system')">
+        Control del Sistema
+      </button>
+    </nav>
+
+    <div class="tab-content">
+      <!-- Gestionar Usuarios -->
+      <div *ngIf="activeTab === 'users'" class="users-section">
+        <h2>Crear Nuevo Usuario</h2>
+        <form [formGroup]="userForm" (ngSubmit)="onSubmitUser()" class="user-form">
+          <div class="form-row">
+            <div class="form-group">
+              <label>Nombre completo</label>
+              <input type="text" formControlName="nombre" placeholder="Ingresa el nombre completo">
+            </div>
+            <div class="form-group">
+              <label>Rol</label>
+              <select formControlName="rol">
+                <option value="recepcionista">Recepcionista</option>
+                <option value="veterinario">Veterinario</option>
+                <option value="jefe_inventario">Jefe de Inventario</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>Correo electrónico</label>
+              <input type="email" formControlName="email" placeholder="correo@ejemplo.com">
+            </div>
+            <div class="form-group">
+              <label>Teléfono</label>
+              <input type="tel" formControlName="telefono" placeholder="+57 300 123 4567">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Contraseña</label>
+            <input type="password" formControlName="password" placeholder="••••••••">
+          </div>
+
+          <button type="submit" class="btn-primary" [disabled]="!userForm.valid || loading">
+            {{ loading ? 'Creando...' : 'Crear Usuario' }}
+          </button>
+
+          <div *ngIf="message" class="message" [class.error]="message.includes('Error')">
+            {{ message }}
+          </div>
+        </form>
+      </div>
+
+      <!-- Control del Sistema -->
+      <div *ngIf="activeTab === 'system'" class="system-section">
+        <h2>Control del Sistema</h2>
+        <div class="system-controls">
+          <div class="control-card">
+            <h3>Estadísticas del Sistema</h3>
+            <p>Total de usuarios: <strong>150</strong></p>
+            <p>Veterinarios activos: <strong>10</strong></p>
+            <p>Recepcionistas: <strong>5</strong></p>
+          </div>
+
+          <div class="control-card">
+            <h3>Acciones del Sistema</h3>
+            <button class="btn-secondary">Generar Reporte</button>
+            <button class="btn-secondary">Backup de Datos</button>
+            <button class="btn-secondary">Configurar Sistema</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

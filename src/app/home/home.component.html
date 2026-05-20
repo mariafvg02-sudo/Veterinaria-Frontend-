@@ -1,52 +1,62 @@
 <div class="home-container">
-  <!-- Header -->
+  <!-- HEADER -->
   <header class="home-header">
-    <div class="logo-section">
-      <div class="logo">
-        <i class="fa-solid fa-paw"></i>
+    <div class="logo-group">
+      <div class="paw-icons">
+        <i class="fa-solid fa-paw paw-dog"></i>
+        <i class="fa-solid fa-paw paw-cat"></i>
       </div>
-      <div class="brand">
-        <h1>VET APP</h1>
-        <span class="tagline">Cuidado Veterinario Integral</span>
+      <h1 class="brand-name">VET<span>APP</span></h1>
+    </div>
+
+    <div class="user-section">
+      <button class="user-btn" (click)="toggleDropdown()">
+        <i class="fa-solid fa-circle-user"></i>
+      </button>
+      
+      <div class="dropdown-menu" [class.show]="isDropdownOpen">
+        <a routerLink="/login" (click)="isDropdownOpen = false" class="dropdown-link">
+          <i class="fa-solid fa-right-to-bracket"></i> Iniciar sesión
+        </a>
+        <a routerLink="/register" (click)="isDropdownOpen = false" class="dropdown-link">
+          <i class="fa-solid fa-user-plus"></i> Registrarse
+        </a>
       </div>
     </div>
   </header>
 
-  <!-- Body -->
+  <!-- BODY -->
   <main class="home-body">
-    <div class="welcome-card">
-      <div class="welcome-icon">
-        <i class="fa-solid fa-stethoscope"></i>
+    <div class="hero-container">
+      <div class="hero-image">
+        <img src="https://images.unsplash.com/photo-1599443015574-be5fe8a05783?q=80&w=1000" alt="Veterinario con mascotas">
       </div>
-      <h2>Bienvenido a VET APP</h2>
-      <p>Tu sistema de gestión veterinaria</p>
-      
-      <div class="quick-actions">
-        <a routerLink="/veterinario" class="action-btn primary">
-          <i class="fa-solid fa-user-md"></i>
-          <span>Veterinarios</span>
-        </a>
-        <button class="action-btn secondary">
-          <i class="fa-solid fa-calendar"></i>
-          <span>Citas</span>
-        </button>
-        <button class="action-btn secondary">
-          <i class="fa-solid fa-paw"></i>
-          <span>Pacientes</span>
-        </button>
+      <div class="hero-text">
+        <h2>Cuidamos a tus mejores amigos</h2>
+        <p>
+          En <strong>VETAPP</strong>, nos apasiona el bienestar de tus perritos y gatitos. 
+          Nuestro equipo médico ofrece servicios integrales de salud, desde chequeos 
+          preventivos hasta cirugías especializadas, siempre con un trato lleno de amor y paciencia.
+        </p>
+        <button class="cta-button">Ver servicios</button>
       </div>
     </div>
   </main>
 
-  <!-- Footer -->
+  <!-- FOOTER -->
   <footer class="home-footer">
-    <p>&copy; {{ currentYear }} VET APP. Todos los derechos reservados.</p>
-    <div class="footer-links">
-      <a href="#">Términos</a>
-      <span class="divider">|</span>
-      <a href="#">Privacidad</a>
-      <span class="divider">|</span>
-      <a href="#">Contacto</a>
+    <div class="footer-content">
+      <div class="contact-info">
+        <p><i class="fa-solid fa-envelope"></i> info&#64;vetapp.com</p>
+        <p><i class="fa-solid fa-phone"></i> +57 300 123 4567</p>
+      </div>
+      <div class="social-media">
+        <a href="#"><i class="fa-brands fa-facebook"></i></a>
+        <a href="#"><i class="fa-brands fa-instagram"></i></a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      &copy; {{ currentYear }} VETAPP - Tu veterinaria de confianza
     </div>
   </footer>
 </div>

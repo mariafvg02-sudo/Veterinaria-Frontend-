@@ -1,146 +1,31 @@
-<div class="app-container">
-  <!-- Sidebar -->
-  <aside class="sidebar">
-    <div class="sidebar-header">
-      <div class="header-title">
-        <i class="fa-solid fa-stethoscope"></i>
-        <h1>Veterinario</h1>
+<div class="veterinario-container">
+  <div class="header">
+    <h1><i class="fa-solid fa-user-md"></i> Veterinarios</h1>
+    <p>Total de veterinarios registrados: {{ veterinarios.length }}</p>
+  </div>
+
+  <div *ngIf="error" class="alert alert-danger">{{ error }}</div>
+  
+  <div *ngIf="cargando" class="loading">
+    <p>Cargando veterinarios...</p>
+  </div>
+
+  <div *ngIf="!cargando && veterinarios.length === 0" class="no-data">
+    <p>No hay veterinarios registrados</p>
+  </div>
+
+  <div class="veterinarios-grid">
+    <div *ngFor="let vet of veterinarios" class="card-vet">
+      <div class="card-header">
+        <h3>{{ vet.nombre }}</h3>
+        <span class="especialidad">{{ vet.especialidad }}</span>
+      </div>
+      <div class="card-body">
+        <p><strong>Documento:</strong> {{ vet.documentoIdentidad }}</p>
+        <p><strong>Correo:</strong> {{ vet.correo }}</p>
+        <p><strong>Teléfono:</strong> {{ vet.telefono }}</p>
       </div>
     </div>
-
-    <nav class="nav-menu">
-      <p class="section-title">CLÍNICA</p>
-      <a routerLink="/home" class="nav-link"><i class="fa-solid fa-house"></i> Inicio</a>
-      <a href="#" class="nav-link active"><i class="fa-solid fa-calendar-check"></i> Citas Asignadas</a>
-      <a href="#" class="nav-link"><i class="fa-solid fa-notes-medical"></i> Iniciar Consulta</a>
-
-      <p class="section-title">PACIENTES</p>
-      <a href="#" class="nav-link"><i class="fa-solid fa-file-medical"></i> Historias Clínicas</a>
-
-      <p class="section-title">MÉDICO</p>
-      <a href="#" class="nav-link"><i class="fa-solid fa-prescription-bottle"></i> Stock Medicamentos</a>
-
-      <p class="section-title">SISTEMA</p>
-      <a href="#" class="nav-link"><i class="fa-solid fa-user-md"></i> Perfil</a>
-      <div class="sidebar-footer">
-        <a routerLink="/home" class="nav-link logout"><i class="fa-solid fa-right-from-bracket"></i> Cerrar sesión</a>
-      </div>
-    </nav>
-  </aside>
-
-  <!-- Main Panel -->
-  <main class="main-panel">
-    <!-- Top Navigation -->
-    <header class="top-nav">
-      <div class="search-bar">
-        <i class="fa-solid fa-magnifying-glass"></i>
-        <input type="text" placeholder="Buscar citas, dueños o mascotas..." (input)="onSearch($event)">
-      </div>
-      <div class="top-actions">
-        <div class="status-indicator">
-          <span class="dot pulse"></span> Disponible para consultas
-        </div>
-        <div class="profile-pill">
-          <img src="https://ui-avatars.com/api/?name=Dr+Franco&background=8d775f&color=fff" alt="Médico">
-          <strong>Dr. Andrea Franco</strong>
-        </div>
-      </div>
-    </header>
-
-    <!-- Dashboard Body -->
-    <section class="dashboard-body">
-      <div class="welcome-header">
-        <h2>Agenda del Día</h2>
-        <p>Tienes {{ veterinarios.length }} veterinarios registrados.</p>
-      </div>
-
-      <div class="medical-grid">
-        <!-- Tabla de Veterinarios -->
-        <div class="card table-card">
-          <div class="card-header">
-            <h3><i class="fa-solid fa-user-md"></i> Veterinarios Registrados</h3>
-            <button class="btn-add" (click)="mostrarFormulario()">
-              <i class="fa-solid fa-plus"></i> Nuevo
-            </button>
-          </div>
-          
-          <div *ngIf="error" class="alert alert-danger">{{ error }}</div>
-          <div *ngIf="mensaje" class="alert alert-success">{{ mensaje }}</div>
-
-          <!-- Formulario inline -->
-          <div *ngIf="mostrarForm" class="form-panel">
-            <h4>{{ editandoId ? 'Editar' : 'Nuevo' }} Veterinario</h4>
-            <form [formGroup]="veterinarioForm" (ngSubmit)="guardar()">
-              <div class="form-row">
-                <input formControlName="nombre" placeholder="Nombre completo">
-                <input formControlName="especialidad" placeholder="Especialidad">
-              </div>
-              <div class="form-row">
-                <input formControlName="telefono" placeholder="Teléfono">
-                <input formControlName="correo" placeholder="Correo electrónico">
-              </div>
-              <div class="form-row">
-                <input formControlName="documentoIdentidad" type="number" placeholder="Documento Identidad">
-                <input formControlName="clave" type="password" placeholder="Contraseña">
-              </div>
-              <div class="form-actions">
-                <button type="submit" class="btn-save">{{ editandoId ? 'Actualizar' : 'Guardar' }}</button>
-                <button type="button" (click)="ocultarFormulario()" class="btn-cancel">Cancelar</button>
-              </div>
-            </form>
-          </div>
-
-          <table *ngIf="!cargando && veterinarios.length > 0">
-            <thead>
-              <tr>
-                <th>Nombre</th>
-                <th>Especialidad</th>
-                <th>Teléfono</th>
-                <th>Correo</th>
-                <th>Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr *ngFor="let v of veterinarios">
-                <td><strong>{{ v.nombre }}</strong></td>
-                <td>{{ v.especialidad }}</td>
-                <td>{{ v.telefono }}</td>
-                <td>{{ v.correo }}</td>
-                <td>
-                  <button (click)="iniciarEdicion(v)" class="btn-edit"><i class="fa-solid fa-pen"></i></button>
-                  <button (click)="eliminar(v.idVeterinario!)" class="btn-delete"><i class="fa-solid fa-trash"></i></button>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-          
-          <div *ngIf="cargando" class="loading">
-            <i class="fa-solid fa-spinner fa-spin"></i> Cargando...
-          </div>
-          
-          <div *ngIf="!cargando && veterinarios.length === 0" class="empty-state">
-            <i class="fa-solid fa-user-md"></i>
-            <p>No hay veterinarios registrados</p>
-          </div>
-        </div>
-
-        <!-- Widgets -->
-        <div class="widgets">
-          <div class="card widget-card reminder">
-            <h4><i class="fa-solid fa-bell"></i> Recordatorios</h4>
-            <ul class="clean-list">
-              <li>Revisar labs de pacientes</li>
-              <li>Actualizar stock de medicamentos</li>
-            </ul>
-          </div>
-          <div class="card widget-card stock">
-            <h4><i class="fa-solid fa-flask"></i> Estado del Sistema</h4>
-            <p>Total Veterinarios: <strong>{{ veterinarios.length }}</strong></p>
-          </div>
-        </div>
-      </div>
-    </section>
-  </main>
+  </div>
 </div>
-
 

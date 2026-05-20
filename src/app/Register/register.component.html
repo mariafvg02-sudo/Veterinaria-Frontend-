@@ -1,0 +1,59 @@
+<div class="login-card">
+
+    <!-- Icono -->
+    <div class="header-icon">
+        <div class="circle">
+            <i class="fa-solid fa-paw"></i>
+        </div>
+    </div>
+
+    <!-- Encabezado -->
+    <header>
+        <h1>Crear cuenta</h1>
+        <p>Únete al sistema de gestión veterinaria</p>
+    </header>
+
+    <!-- Formulario -->
+    <form [formGroup]="registerForm" (ngSubmit)="onSubmit()">
+
+        <!-- Nombre -->
+        <div class="form-group">
+            <label>Nombre completo</label>
+            <input type="text" formControlName="nombre" placeholder="Ingresa tu nombre completo" required>
+        </div>
+
+        <!-- Email -->
+        <div class="form-group">
+            <label>Correo electrónico</label>
+            <input type="email" formControlName="email" placeholder="correo@ejemplo.com" required>
+        </div>
+
+        <!-- Contraseña -->
+        <div class="form-group">
+            <label>Contraseña</label>
+            <div class="input-with-icon">
+                <input [type]="showPassword ? 'text' : 'password'" formControlName="password" placeholder="••••••••" required>
+                <i class="fa-regular fa-eye eye-icon" (click)="togglePassword()"></i>
+            </div>
+        </div>
+
+        <!-- Teléfono -->
+        <div class="form-group">
+            <label>Número de teléfono</label>
+            <input type="tel" formControlName="telefono" placeholder="+57 300 123 4567">
+        </div>
+
+        <!-- Botones -->
+        <div class="buttons">
+            <button type="submit" class="btn-ingresar" [disabled]="!registerForm.valid">Registrarse</button>
+            <button type="button" class="btn-crear" (click)="onCancel()">Cancelar</button>
+        </div>
+
+        <!-- Footer -->
+        <div class="login-footer">
+            <p>¿Ya tienes una cuenta? <a routerLink="/login">Inicia sesión</a></p>
+        </div>
+
+    </form>
+
+</div>

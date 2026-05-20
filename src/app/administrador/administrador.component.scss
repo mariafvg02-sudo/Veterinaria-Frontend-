@@ -1,0 +1,223 @@
+:host {
+  --primary: #8d775f;
+  --primary-light: #f7f3ef;
+  --bg-main: #fcfaf8;
+  --text-dark: #4a3c31;
+  --text-muted: #9e8e81;
+  --border: #e8e1d9;
+  --white: #ffffff;
+
+  display: block;
+  min-height: 100vh;
+  background: var(--bg-main);
+  font-family: 'Segoe UI', Roboto, sans-serif;
+  color: var(--text-dark);
+}
+
+.admin-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.admin-header {
+  text-align: center;
+  margin-bottom: 2rem;
+
+  h1 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: var(--text-dark);
+    margin: 0;
+  }
+
+  p {
+    color: var(--text-muted);
+    font-size: 1.1rem;
+  }
+}
+
+.admin-content {
+  background: var(--white);
+  border-radius: 16px;
+  border: 1px solid var(--border);
+  box-shadow: 0 4px 20px rgba(74, 60, 49, 0.08);
+  overflow: hidden;
+}
+
+.admin-nav {
+  display: flex;
+  background: var(--primary-light);
+  border-bottom: 1px solid var(--border);
+
+  .nav-tab {
+    flex: 1;
+    padding: 1rem;
+    background: none;
+    border: none;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.3s ease;
+
+    &:hover {
+      background: var(--white);
+      color: var(--text-dark);
+    }
+
+    &.active {
+      background: var(--white);
+      color: var(--primary);
+      border-bottom: 3px solid var(--primary);
+    }
+  }
+}
+
+.tab-content {
+  padding: 2rem;
+}
+
+.users-section, .system-section {
+  h2 {
+    font-size: 1.8rem;
+    font-weight: 600;
+    color: var(--text-dark);
+    margin-bottom: 1.5rem;
+  }
+}
+
+.user-form {
+  .form-row {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1rem;
+
+    .form-group {
+      flex: 1;
+    }
+  }
+
+  .form-group {
+    margin-bottom: 1rem;
+
+    label {
+      display: block;
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--text-dark);
+      margin-bottom: 0.5rem;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 0.75rem;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 1rem;
+      background: var(--white);
+      color: var(--text-dark);
+      transition: border-color 0.3s ease;
+
+      &:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px var(--primary-light);
+      }
+
+      &::placeholder {
+        color: var(--text-muted);
+      }
+    }
+
+    select {
+      cursor: pointer;
+    }
+  }
+
+  .btn-primary {
+    width: 100%;
+    padding: 0.75rem;
+    background: var(--primary);
+    color: var(--white);
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.3s ease;
+
+    &:hover:not(:disabled) {
+      background: #75624d;
+    }
+
+    &:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+  }
+
+  .message {
+    margin-top: 1rem;
+    padding: 0.75rem;
+    border-radius: 8px;
+    font-weight: 500;
+
+    &.error {
+      background: #fee;
+      color: #c33;
+      border: 1px solid #fcc;
+    }
+
+    &:not(.error) {
+      background: #efe;
+      color: #363;
+      border: 1px solid #cfc;
+    }
+  }
+}
+
+.system-section {
+  .system-controls {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+  }
+
+  .control-card {
+    background: var(--primary-light);
+    padding: 1.5rem;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+
+    h3 {
+      font-size: 1.2rem;
+      font-weight: 600;
+      color: var(--text-dark);
+      margin: 0 0 1rem 0;
+    }
+
+    p {
+      margin: 0.5rem 0;
+      color: var(--text-muted);
+    }
+
+    .btn-secondary {
+      margin: 0.5rem 0.5rem 0 0;
+      padding: 0.5rem 1rem;
+      background: var(--white);
+      color: var(--primary);
+      border: 1px solid var(--primary);
+      border-radius: 6px;
+      font-size: 0.9rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.3s ease;
+
+      &:hover {
+        background: var(--primary);
+        color: var(--white);
+      }
+    }
+  }
+}

@@ -1,0 +1,61 @@
+<div class="login-card">
+
+    <!-- Icono -->
+    <div class="header-icon">
+        <div class="circle">
+            <i class="fa-solid fa-paw"></i>
+        </div>
+    </div>
+
+    <!-- Encabezado -->
+    <header>
+        <h1>Iniciar sesión</h1>
+        <p>Accede a tu cuenta veterinaria</p>
+    </header>
+
+    <!-- Formulario -->
+    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+
+        <div class="form-message" *ngIf="error">
+            <p>{{ error }}</p>
+        </div>
+
+        <!-- Email -->
+        <div class="form-group">
+            <label>Correo electrónico</label>
+            <input type="email" formControlName="email" placeholder="correo@ejemplo.com" required>
+            <div class="error-message" *ngIf="loginForm.get('email')?.invalid && loginForm.get('email')?.touched">
+                <p *ngIf="loginForm.get('email')?.hasError('required')">El correo electrónico es requerido.</p>
+                <p *ngIf="loginForm.get('email')?.hasError('email')">Ingresa un correo electrónico válido.</p>
+            </div>
+        </div>
+
+        <!-- Contraseña -->
+        <div class="form-group">
+            <label>Contraseña</label>
+            <div class="input-with-icon">
+                <input [type]="showPassword ? 'text' : 'password'" formControlName="password" placeholder="••••••••" required>
+                <i class="fa-regular fa-eye eye-icon" (click)="togglePassword()"></i>
+            </div>
+            <div class="error-message" *ngIf="loginForm.get('password')?.invalid && loginForm.get('password')?.touched">
+                <p *ngIf="loginForm.get('password')?.hasError('required')">La contraseña es requerida.</p>
+            </div>
+        </div>
+
+        <!-- Botones -->
+        <div class="buttons">
+            <button type="submit" class="btn-ingresar" [disabled]="!loginForm.valid || cargando">
+                <span *ngIf="!cargando">Iniciar sesión</span>
+                <span *ngIf="cargando">Cargando...</span>
+            </button>
+        </div>
+
+        <!-- Footer -->
+        <div class="login-footer">
+            <p>¿No tienes cuenta? <a (click)="goToRegister()" style="cursor: pointer;">Regístrate</a></p>
+            <p><a (click)="goToForgotPassword()" style="cursor: pointer;">¿Olvidaste tu contraseña?</a></p>
+        </div>
+
+    </form>
+
+</div>

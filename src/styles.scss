@@ -1,1 +1,31 @@
 /* You can add global styles to this file, and also import other style files */
+@import "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css";
+
+:root {
+    --primary: #8d775f;
+    --primary-light: #f7f3ef;
+    --bg-main: #fcfaf8;
+    --text-dark: #4a3c31;
+    --text-muted: #9e8e81;
+    --text-light: #a09081;
+    --bg-input: #f3eee9;
+    --bg-body: #f8f8f8;
+    --border: #e8e1d9;
+    --white: #ffffff;
+}
+
+/* BODY */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: var(--bg-body);
+    min-height: 100vh;
+    color: var(--text-dark);
+    line-height: 1.5;
+}

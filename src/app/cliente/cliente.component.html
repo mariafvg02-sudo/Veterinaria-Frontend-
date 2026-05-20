@@ -1,0 +1,224 @@
+<div class="cliente-container" *ngIf="usuario">
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <h1><i class="fa-solid fa-paw"></i> VETAPP</h1>
+    </div>
+    <nav class="nav-menu">
+      <button (click)="setView('dashboard')" [class.active]="currentView === 'dashboard'" class="nav-btn">
+        <i class="fa-solid fa-house"></i> Dashboard
+      </button>
+      <button (click)="setView('citas')" [class.active]="currentView === 'citas'" class="nav-btn">
+        <i class="fa-solid fa-calendar"></i> Mis Citas
+      </button>
+      <button (click)="setView('mascotas')" [class.active]="currentView === 'mascotas'" class="nav-btn">
+        <i class="fa-solid fa-paw"></i> Mis Mascotas
+      </button>
+      <button (click)="logout()" class="nav-btn logout">
+        <i class="fa-solid fa-right-from-bracket"></i> Salir
+      </button>
+    </nav>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <main class="main-content">
+    <header class="header">
+      <h2>Bienvenido(a), {{ usuario.nombre || usuario.correo }}</h2>
+    </header>
+
+    <!-- DASHBOARD VIEW -->
+    <section *ngIf="currentView === 'dashboard'" class="view-section">
+      <h3>Dashboard</h3>
+      <div class="stats-grid">
+        <div class="stat-card">
+          <i class="fa-solid fa-dog"></i>
+          <div>
+            <p class="stat-label">Mis Mascotas</p>
+            <p class="stat-value">{{ mascotas?.length || 0 }}</p>
+          </div>
+        </div>
+        <div class="stat-card">
+          <i class="fa-solid fa-calendar-check"></i>
+          <div>
+            <p class="stat-label">Próxima Cita</p>
+            <p class="stat-value">{{ proximaCita?.fecha || 'Sin citas' }}</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CITAS VIEW -->
+    <section *ngIf="currentView === 'citas'" class="view-section">
+      <div class="view-header">
+        <h3>Mis Citas</h3>
+        <button (click)="setView('nueva-cita')" class="btn-primary">
+          <i class="fa-solid fa-plus"></i> Nueva Cita
+        </button>
+      </div>
+
+      <div *ngIf="citas && citas.length > 0; else noCitas" class="citas-list">
+        <div *ngFor="let cita of citas" class="cita-item">
+          <div class="cita-info">
+            <strong>{{ getMascotaNombre(cita.mascotaId) }}</strong>
+            <p>{{ cita.fecha }} - {{ cita.hora }}</p>
+            <small>{{ cita.motivo }}</small>
+          </div>
+          <div class="cita-actions">
+            <span class="badge" [ngClass]="'badge-' + cita.estado">{{ cita.estado }}</span>
+            <button *ngIf="cita.idCita" (click)="cancelarCita(cita.idCita)" class="btn-danger" [disabled]="cita.estado === 'cancelada'">
+              Cancelar
+            </button>
+          </div>
+        </div>
+      </div>
+      <ng-template #noCitas>
+        <p class="no-data">No tienes citas agendadas</p>
+      </ng-template>
+    </section>
+
+    <!-- NUEVA CITA VIEW -->
+    <section *ngIf="currentView === 'nueva-cita'" class="view-section">
+      <div class="view-header">
+        <button (click)="setView('citas')" class="btn-back">← Volver</button>
+        <h3>Agendar Nueva Cita</h3>
+      </div>
+
+      <form [formGroup]="citaForm" (ngSubmit)="crearCita()" class="form">
+        <div class="form-group">
+          <label>Mascota</label>
+          <select formControlName="mascotaId" class="form-control">
+            <option value="">Seleccionar mascota</option>
+            <option *ngFor="let mascota of mascotas" [value]="mascota.idMascota">
+              {{ mascota.nombre }}
+            </option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Fecha</label>
+          <input type="date" formControlName="fecha" class="form-control">
+        </div>
+
+        <div class="form-group">
+          <label>Hora</label>
+          <input type="time" formControlName="hora" class="form-control">
+        </div>
+
+        <div class="form-group">
+          <label>Motivo de la Cita</label>
+          <textarea formControlName="motivo" class="form-control" placeholder="Ej: Vacunación, revisión, etc."></textarea>
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" [disabled]="citaForm.invalid" class="btn-primary">
+            <i class="fa-solid fa-check"></i> Agendar Cita
+          </button>
+        </div>
+      </form>
+    </section>
+
+    <!-- MASCOTAS VIEW -->
+    <section *ngIf="currentView === 'mascotas'" class="view-section">
+      <div class="view-header">
+        <h3>Mis Mascotas</h3>
+        <button (click)="setView('nueva-mascota')" class="btn-primary">
+          <i class="fa-solid fa-plus"></i> Agregar Mascota
+        </button>
+      </div>
+
+      <div *ngIf="mascotas && mascotas.length > 0; else noMascotas" class="mascotas-grid">
+        <div *ngFor="let mascota of mascotas" class="mascota-card">
+          <div class="mascota-header">
+            <h4>{{ mascota.nombre }}</h4>
+            <div class="mascota-actions">
+              <button (click)="editarMascota(mascota)" class="btn-small" title="Editar">
+                <i class="fa-solid fa-edit"></i>
+              </button>
+              <button *ngIf="mascota.idMascota" (click)="eliminarMascota(mascota.idMascota)" class="btn-small danger" title="Eliminar">
+                <i class="fa-solid fa-trash"></i>
+              </button>
+            </div>
+          </div>
+          <div class="mascota-details">
+            <p><strong>Especie:</strong> {{ mascota.especie }}</p>
+            <p><strong>Raza:</strong> {{ mascota.raza }}</p>
+            <p><strong>Edad:</strong> {{ mascota.edad }} años</p>
+            <p><strong>Peso:</strong> {{ mascota.peso }} kg</p>
+            <p><strong>Sexo:</strong> {{ mascota.sexo }}</p>
+          </div>
+        </div>
+      </div>
+      <ng-template #noMascotas>
+        <p class="no-data">No tienes mascotas registradas</p>
+      </ng-template>
+    </section>
+
+    <!-- NUEVA/EDITAR MASCOTA VIEW -->
+    <section *ngIf="currentView === 'nueva-mascota' || currentView === 'editar-mascota'" class="view-section">
+      <div class="view-header">
+        <button (click)="setView('mascotas')" class="btn-back">← Volver</button>
+        <h3>{{ currentView === 'nueva-mascota' ? 'Agregar Mascota' : 'Editar Mascota' }}</h3>
+      </div>
+
+      <form [formGroup]="mascotaForm" (ngSubmit)="guardarMascota()" class="form">
+        <div class="form-group">
+          <label>Nombre</label>
+          <input type="text" formControlName="nombre" class="form-control" placeholder="Nombre de la mascota">
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Especie</label>
+            <select formControlName="especie" class="form-control">
+        
+              <option value="Canino">Canino</option>
+              <option value="Felino">Felino</option>
+        
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Raza</label>
+            <input type="text" formControlName="raza" class="form-control" placeholder="Raza">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Edad (años)</label>
+            <input type="number" formControlName="edad" class="form-control" min="0">
+          </div>
+          <div class="form-group">
+            <label>Peso (kg)</label>
+            <input type="number" formControlName="peso" class="form-control" min="0" step="0.1">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Sexo</label>
+            <select formControlName="sexo" class="form-control">
+              <option value="">Seleccionar</option>
+              <option value="Macho">Macho</option>
+              <option value="Hembra">Hembra</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>¿Esterilizado?</label>
+            <input type="checkbox" formControlName="esterilizado" class="form-checkbox">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Descripción</label>
+          <textarea formControlName="descripcion" class="form-control" placeholder="Información adicional"></textarea>
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" [disabled]="mascotaForm.invalid" class="btn-primary">
+            <i class="fa-solid fa-save"></i> Guardar
+          </button>
+        </div>
+      </form>
+    </section>
+  </main>
+</div>
