@@ -22,6 +22,12 @@
             <input type="text" formControlName="nombre" placeholder="Ingresa tu nombre completo" required>
         </div>
 
+        <div class="form-group">
+            <label>Documento de identidad</label>
+            <input type="text" formControlName="documentoIdentidad" placeholder="Ingresa tu documento de identidad
+            " required>
+        </div>
+
         <!-- Email -->
         <div class="form-group">
             <label>Correo electrónico</label>
@@ -48,6 +54,8 @@
             <button type="submit" class="btn-ingresar" [disabled]="!registerForm.valid">Registrarse</button>
             <button type="button" class="btn-crear" (click)="onCancel()">Cancelar</button>
         </div>
+
+        <p class="register-note">Nota: el registro público crea solamente cuentas de cliente.</p>
 
         <!-- Footer -->
         <div class="login-footer">

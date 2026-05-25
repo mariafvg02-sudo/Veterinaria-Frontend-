@@ -1,39 +1,29 @@
-import { Component, OnInit } from '@angular/core';
+import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Veterinario } from '../Models/veterinario.model';
-import { VeterinarioService } from '../Service/veterinario.service';
+import { RouterModule } from '@angular/router';
 
 @Component({
   selector: 'app-veterinario',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, RouterModule],
   templateUrl: './veterinario.component.html',
-  styleUrls: ['./veterinario.component.scss']
+  styleUrls: ['../administrador/administrador.component.scss'] // Reutilizamos estilos
 })
-export class VeterinarioComponent implements OnInit {
-  veterinarios: Veterinario[] = [];
-  cargando = false;
-  error: string | null = null;
+export class VeterinarioComponent {
+  activeTab: string = 'agenda';
 
-  constructor(private veterinarioService: VeterinarioService) {}
+  citasHoy = [
+    { hora: '08:00 AM', paciente: 'Firulais', dueno: 'Juan Pérez', motivo: 'Vacunación', estado: 'Pendiente' },
+    { hora: '09:30 AM', paciente: 'Misi', dueno: 'Maria G.', motivo: 'Control', estado: 'En consulta' },
+    { hora: '11:00 AM', paciente: 'Rex', dueno: 'Carlos R.', motivo: 'Cirugía', estado: 'Pendiente' }
+  ];
 
-  ngOnInit(): void {
-    this.cargarVeterinarios();
+  setActiveTab(tab: string) {
+    this.activeTab = tab;
   }
 
-  cargarVeterinarios(): void {
-    this.cargando = true;
-    this.error = null;
-    this.veterinarioService.obtenerTodos().subscribe({
-      next: (data) => {
-        this.veterinarios = data || [];
-        this.cargando = false;
-      },
-      error: () => {
-        this.error = 'Error al cargar veterinarios. Verifica que el backend esté corriendo en http://localhost:8080';
-        this.cargando = false;
-        this.veterinarios = [];
-      }
-    });
+  atenderCita(cita: any) {
+    alert(`Iniciando consulta para ${cita.paciente}`);
+    cita.estado = 'Completada';
   }
 }

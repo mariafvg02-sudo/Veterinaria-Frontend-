@@ -2,17 +2,18 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, BehaviorSubject } from 'rxjs';
 import { tap } from 'rxjs/operators';
-import { Login } from '../Models/login.model';
-import { Register } from '../Models/register.model';
+import { Login } from '../../Models/login.model';
+import { Register } from '../../Models/register.model';
 
 export interface Usuario {
   id?: number;
-  Userid?: number; // Agregado para coincidir con el modelo de la DB
+  Userid?: number; 
   nombre?: string;
+  documentoIdentidad: number;
   correo: string;
   clave?: string;
   telefono?: string;
-  rol?: string;
+  rol?: 'ADMINISTRADOR' | 'VETERINARIO' | 'RECEPCIONISTA' | 'JEFE_INVENTARIO' | 'CLIENTE';
 }
 
 export interface LoginResponse {
@@ -51,6 +52,12 @@ export class AuthService {
       })
     );
   }
+
+  // Nuevo método para que el Admin cree usuarios sin perder su sesión
+  adminCrearUsuario(usuario: Register): Observable<LoginResponse> {
+    return this.http.post<LoginResponse>(`${this.apiUrl}/register`, usuario);
+  }
+
 login(correo: string, clave: string): Observable<LoginResponse> {
 
   return this.http.post<LoginResponse>(

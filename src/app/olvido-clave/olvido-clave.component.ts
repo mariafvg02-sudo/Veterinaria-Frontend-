@@ -11,7 +11,7 @@ import {
 
 import { Router } from '@angular/router';
 
-import { AuthService } from '../Service/auth.service';
+import { AuthService } from '../Core/Service/auth.service';
 
 /* =========================
    VALIDADOR PERSONALIZADO

@@ -1,90 +1,130 @@
-<div class="admin-container">
-  <header class="admin-header">
-    <h1>Panel de Administrador</h1>
-    <p>Gestiona usuarios y controla el sistema veterinario</p>
-  </header>
-
-  <div class="admin-content">
-    <nav class="admin-nav">
-      <button
-        class="nav-tab"
-        [class.active]="activeTab === 'users'"
-        (click)="setActiveTab('users')">
-        Gestionar Usuarios
+<div class="admin-dashboard">
+  <!-- SIDEBAR -->
+  <aside class="sidebar client-theme-sidebar">
+    <div class="sidebar-header">
+      <i class="fa-solid fa-paw"></i>
+      <span>VET APP</span>
+    </div>
+    <nav class="sidebar-nav">
+      <button [class.active]="currentView === 'stats'" (click)="setView('stats')">
+        <i class="fa-solid fa-chart-line"></i> Estadísticas
       </button>
-      <button
-        class="nav-tab"
-        [class.active]="activeTab === 'system'"
-        (click)="setActiveTab('system')">
-        Control del Sistema
+      <button [class.active]="currentView === 'users'" (click)="setView('users')">
+        <i class="fa-solid fa-users-gear"></i> Gestión Usuarios
+      </button>
+      <button [class.active]="currentView === 'create'" (click)="setView('create')">
+        <i class="fa-solid fa-user-plus"></i> Nuevo Usuario
       </button>
     </nav>
+    <div class="sidebar-footer">
+      <button routerLink="/home" class="btn-back">
+        <i class="fa-solid fa-arrow-left"></i> Volver al Inicio
+      </button>
+    </div>
+  </aside>
 
-    <div class="tab-content">
-      <!-- Gestionar Usuarios -->
-      <div *ngIf="activeTab === 'users'" class="users-section">
-        <h2>Crear Nuevo Usuario</h2>
-        <form [formGroup]="userForm" (ngSubmit)="onSubmitUser()" class="user-form">
-          <div class="form-row">
+  <!-- MAIN CONTENT -->
+  <main class="main-content">
+    <header class="content-header client-theme-header">
+      <h1>{{ currentView === 'users' ? 'Gestión de Personal' : currentView === 'create' ? 'Crear Nuevo Miembro' : 'Resumen General' }}</h1>
+      <div class="user-info">
+        <span class="welcome-text">Hola, <strong>{{ usuario?.nombre || 'Admin' }}</strong></span>
+        <button (click)="logout()" class="btn-logout" title="Cerrar Sesión"><i class="fa-solid fa-right-from-bracket"></i></button>
+      </div>
+    </header>
+
+    <!-- SECCIÓN: ESTADÍSTICAS -->
+    <section *ngIf="currentView === 'stats'" class="stats-grid">
+      <div *ngFor="let item of stats" class="stat-card">
+        <div class="stat-icon"><i class="fa-solid" [ngClass]="item.icon"></i></div>
+        <div class="stat-data">
+          <span class="stat-label">{{ item.label }}</span>
+          <span class="stat-value">{{ item.value }}</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECCIÓN: TABLA DE USUARIOS -->
+    <section *ngIf="currentView === 'users'" class="table-card fade-in">
+      <div class="card-header">
+        <h2>Personal Registrado</h2>
+        <button class="btn-client-primary" (click)="setView('create')"><i class="fa-solid fa-plus"></i> Nuevo Registro</button>
+      </div>
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>Nombre</th>
+            <th>Correo</th>
+            <th>Teléfono</th>
+            <th>Rol</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let user of usuariosRegistrados">
+            <td>{{ user.nombre }}</td>
+            <td>{{ user.correo }}</td>
+            <td>{{ user.telefono }}</td>
+            <td><span class="role-badge" [ngClass]="user.rol">{{ user.rol }}</span></td>
+            <td class="actions">
+              <button class="btn-icon edit" (click)="onEditUser(user)"><i class="fa-solid fa-pen"></i></button>
+              <button class="btn-icon delete" (click)="onDeleteUser(user.id)"><i class="fa-solid fa-trash"></i></button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- SECCIÓN: FORMULARIO (Tu código original mejorado) -->
+    <section *ngIf="currentView === 'create'" class="form-card-container fade-in">
+      <div class="form-card">
+        <div class="form-header">
+          <h2>{{ editingUserId ? 'Editar miembro' : 'Registro de nuevo personal' }}</h2>
+          <p>Complete los datos para dar de alta a un nuevo recepcionista o administrador.</p>
+        </div>
+        
+        <form [formGroup]="userForm" (ngSubmit)="onSubmitUser()">
+          <div class="form-grid">
             <div class="form-group">
-              <label>Nombre completo</label>
-              <input type="text" formControlName="nombre" placeholder="Ingresa el nombre completo">
+              <label><i class="fa-solid fa-user"></i> Nombre Completo</label>
+              <input type="text" formControlName="nombre" placeholder="Ej. Juan Pérez">
             </div>
             <div class="form-group">
-              <label>Rol</label>
+              <label><i class="fa-solid fa-fingerprint"></i> Documento Identidad</label>
+              <input type="text" formControlName="documentoIdentidad" placeholder="Solo números">
+            </div>
+            <div class="form-group">
+              <label><i class="fa-solid fa-envelope"></i> Correo Electrónico</label>
+              <input type="email" formControlName="email" placeholder="correo@vetapp.com">
+            </div>
+            <div class="form-group">
+              <label><i class="fa-solid fa-lock"></i> Contraseña Provisional</label>
+              <input type="password" formControlName="password" placeholder="Min. 6 caracteres">
+            </div>
+            <div class="form-group">
+              <label><i class="fa-solid fa-phone"></i> Teléfono</label>
+              <input type="text" formControlName="telefono" placeholder="Ej. 3001234567">
+            </div>
+            <div class="form-group">
+              <label><i class="fa-solid fa-id-card"></i> Rol del Usuario</label>
               <select formControlName="rol">
-                <option value="recepcionista">Recepcionista</option>
-                <option value="veterinario">Veterinario</option>
-                <option value="jefe_inventario">Jefe de Inventario</option>
+                <option value="RECEPCIONISTA">Recepcionista</option>
+                <option value="ADMINISTRADOR">Administrador</option>
+                <option value="VETERINARIO">Veterinario</option>
+                <option value="JEFEINVENTARIO">Jefe de Inventario</option>
               </select>
             </div>
           </div>
-
-          <div class="form-row">
-            <div class="form-group">
-              <label>Correo electrónico</label>
-              <input type="email" formControlName="email" placeholder="correo@ejemplo.com">
-            </div>
-            <div class="form-group">
-              <label>Teléfono</label>
-              <input type="tel" formControlName="telefono" placeholder="+57 300 123 4567">
-            </div>
-          </div>
-
-          <div class="form-group">
-            <label>Contraseña</label>
-            <input type="password" formControlName="password" placeholder="••••••••">
-          </div>
-
-          <button type="submit" class="btn-primary" [disabled]="!userForm.valid || loading">
-            {{ loading ? 'Creando...' : 'Crear Usuario' }}
-          </button>
-
-          <div *ngIf="message" class="message" [class.error]="message.includes('Error')">
-            {{ message }}
+          <div style="display:flex;gap:12px;align-items:center">
+            <button type="submit" class="btn-submit" [disabled]="!userForm.valid || cargando">
+              {{ cargando ? (editingUserId ? 'Actualizando...' : 'Creando...') : (editingUserId ? 'Actualizar Miembro' : 'Registrar Miembro') }}
+            </button>
+            <button type="button" class="btn-submit" style="background:#999;" *ngIf="editingUserId" (click)="onCancelEdit()">Cancelar</button>
           </div>
         </form>
+        <p *ngIf="exito" class="alert-msg success">{{ exito }}</p>
+        <p *ngIf="error" class="alert-msg error">{{ error }}</p>
       </div>
-
-      <!-- Control del Sistema -->
-      <div *ngIf="activeTab === 'system'" class="system-section">
-        <h2>Control del Sistema</h2>
-        <div class="system-controls">
-          <div class="control-card">
-            <h3>Estadísticas del Sistema</h3>
-            <p>Total de usuarios: <strong>150</strong></p>
-            <p>Veterinarios activos: <strong>10</strong></p>
-            <p>Recepcionistas: <strong>5</strong></p>
-          </div>
-
-          <div class="control-card">
-            <h3>Acciones del Sistema</h3>
-            <button class="btn-secondary">Generar Reporte</button>
-            <button class="btn-secondary">Backup de Datos</button>
-            <button class="btn-secondary">Configurar Sistema</button>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
+    </section>
+  </main>
 </div>

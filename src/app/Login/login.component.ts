@@ -2,7 +2,7 @@ import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
-import { AuthService } from '../Service/auth.service';
+import { AuthService } from '../Core/Service/auth.service';
 
 @Component({
   selector: 'app-login',
@@ -23,8 +23,8 @@ export class LoginComponent {
     private authService: AuthService
   ) {
     this.loginForm = this.fb.group({
-      email: ['', [Validators.required, Validators.email]],
-      password: ['', [Validators.required]]
+      correo: ['', [Validators.required, Validators.email]],
+      clave: ['', [Validators.required]]
     });
   }
 
@@ -41,21 +41,38 @@ export class LoginComponent {
     this.cargando = true;
     this.error = null;
     
-    const { email, password } = this.loginForm.value;
+    const correo = this.loginForm.value.correo?.trim();
+    const clave = this.loginForm.value.clave;
     
-    this.authService.login(email, password).subscribe({
+    console.log('Intentando login con:', { correo, clave });
+
+    this.authService.login(correo, clave).subscribe({
       next: (response) => {
-        console.log('Login exitoso:', response);
+        console.log('Login exitoso, respuesta del servidor:', response);
         this.cargando = false;
         
-        // Obtener el usuario actual después del login
-        const usuarioActual = this.authService.obtenerUsuarioActual();
+        // Usamos el rol tal cual viene del Backend (Mayúsculas y guiones bajos)
+        const rolUsuario = response.usuario?.rol?.toUpperCase();
         
-        // Redirigir según el rol del usuario
-        if (usuarioActual?.rol?.toLowerCase() === 'cliente') {
-          this.router.navigate(['/cliente']);
-        } else {
-          this.router.navigate(['/home']);
+        switch (rolUsuario) {
+          case 'ADMINISTRADOR':
+            this.router.navigate(['/administrador']);
+            break;
+          case 'VETERINARIO':
+            this.router.navigate(['/veterinario']);
+            break;
+          case 'RECEPCIONISTA':
+            this.router.navigate(['/recepcionista']);
+            break;
+          case 'JEFEINVENTARIO':
+            this.router.navigate(['/inventario']);
+            break;
+          case 'CLIENTE':
+            this.router.navigate(['/cliente']);
+            break;
+          default:
+            this.router.navigate(['/home']);
+            break;
         }
       },
       error: (err) => {

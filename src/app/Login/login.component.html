@@ -23,10 +23,10 @@
         <!-- Email -->
         <div class="form-group">
             <label>Correo electrónico</label>
-            <input type="email" formControlName="email" placeholder="correo@ejemplo.com" required>
-            <div class="error-message" *ngIf="loginForm.get('email')?.invalid && loginForm.get('email')?.touched">
-                <p *ngIf="loginForm.get('email')?.hasError('required')">El correo electrónico es requerido.</p>
-                <p *ngIf="loginForm.get('email')?.hasError('email')">Ingresa un correo electrónico válido.</p>
+            <input type="email" formControlName="correo" placeholder="correo@ejemplo.com" required>
+            <div class="error-message" *ngIf="loginForm.get('correo')?.invalid && loginForm.get('correo')?.touched">
+                <p *ngIf="loginForm.get('correo')?.hasError('required')">El correo electrónico es requerido.</p>
+                <p *ngIf="loginForm.get('correo')?.hasError('email')">Ingresa un correo electrónico válido.</p>
             </div>
         </div>
 
@@ -34,11 +34,11 @@
         <div class="form-group">
             <label>Contraseña</label>
             <div class="input-with-icon">
-                <input [type]="showPassword ? 'text' : 'password'" formControlName="password" placeholder="••••••••" required>
+                <input [type]="showPassword ? 'text' : 'password'" formControlName="clave" placeholder="••••••••" required>
                 <i class="fa-regular fa-eye eye-icon" (click)="togglePassword()"></i>
             </div>
-            <div class="error-message" *ngIf="loginForm.get('password')?.invalid && loginForm.get('password')?.touched">
-                <p *ngIf="loginForm.get('password')?.hasError('required')">La contraseña es requerida.</p>
+            <div class="error-message" *ngIf="loginForm.get('clave')?.invalid && loginForm.get('clave')?.touched">
+                <p *ngIf="loginForm.get('clave')?.hasError('required')">La contraseña es requerida.</p>
             </div>
         </div>
 

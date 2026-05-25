@@ -1,0 +1,48 @@
+<div class="admin-dashboard">
+  <aside class="sidebar">
+    <div class="sidebar-header"><i class="fa-solid fa-boxes-stacked"></i> <span>Inventarios</span></div>
+    <nav class="sidebar-nav">
+      <button [class.active]="activeTab === 'productos'" (click)="setActiveTab('productos')">
+        <i class="fa-solid fa-list-check"></i> Stock de Productos
+      </button>
+      <button [class.active]="activeTab === 'pedidos'" (click)="setActiveTab('pedidos')">
+        <i class="fa-solid fa-truck-ramp-box"></i> Pedidos
+      </button>
+    </nav>
+    <div class="sidebar-footer">
+      <button routerLink="/home" class="btn-back"><i class="fa-solid fa-arrow-left"></i> Salir</button>
+    </div>
+  </aside>
+
+  <main class="main-content">
+    <header class="content-header">
+      <h1>Gestión de Suministros</h1>
+    </header>
+
+    <section *ngIf="activeTab === 'productos'" class="table-container fade-in">
+      <div class="table-header"><h2>Catálogo de Existencias</h2></div>
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>Producto</th>
+            <th>Categoría</th>
+            <th>Stock</th>
+            <th>Estado</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let prod of productos">
+            <td>{{ prod.nombre }}</td>
+            <td>{{ prod.categoria }}</td>
+            <td>{{ prod.stock }}</td>
+            <td>
+              <span class="role-badge" [ngClass]="prod.alerta ? 'administrador' : 'veterinario'">
+                {{ prod.alerta ? 'STOCK BAJO' : 'OK' }}
+              </span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+  </main>
+</div>

@@ -1,31 +1,52 @@
-<div class="veterinario-container">
-  <div class="header">
-    <h1><i class="fa-solid fa-user-md"></i> Veterinarios</h1>
-    <p>Total de veterinarios registrados: {{ veterinarios.length }}</p>
-  </div>
-
-  <div *ngIf="error" class="alert alert-danger">{{ error }}</div>
-  
-  <div *ngIf="cargando" class="loading">
-    <p>Cargando veterinarios...</p>
-  </div>
-
-  <div *ngIf="!cargando && veterinarios.length === 0" class="no-data">
-    <p>No hay veterinarios registrados</p>
-  </div>
-
-  <div class="veterinarios-grid">
-    <div *ngFor="let vet of veterinarios" class="card-vet">
-      <div class="card-header">
-        <h3>{{ vet.nombre }}</h3>
-        <span class="especialidad">{{ vet.especialidad }}</span>
-      </div>
-      <div class="card-body">
-        <p><strong>Documento:</strong> {{ vet.documentoIdentidad }}</p>
-        <p><strong>Correo:</strong> {{ vet.correo }}</p>
-        <p><strong>Teléfono:</strong> {{ vet.telefono }}</p>
-      </div>
+<div class="admin-dashboard">
+  <aside class="sidebar">
+    <div class="sidebar-header"><i class="fa-solid fa-user-doctor"></i> <span>Área Médica</span></div>
+    <nav class="sidebar-nav">
+      <button [class.active]="activeTab === 'agenda'" (click)="setActiveTab('agenda')">
+        <i class="fa-solid fa-calendar-day"></i> Agenda de Hoy
+      </button>
+      <button [class.active]="activeTab === 'pacientes'" (click)="setActiveTab('pacientes')">
+        <i class="fa-solid fa-file-medical"></i> Historias Clínicas
+      </button>
+    </nav>
+    <div class="sidebar-footer">
+      <button routerLink="/home" class="btn-back"><i class="fa-solid fa-arrow-left"></i> Cerrar Sesión</button>
     </div>
-  </div>
-</div>
+  </aside>
 
+  <main class="main-content">
+    <header class="content-header">
+      <h1>Bienvenido, Dr. Veterinario</h1>
+    </header>
+
+    <section *ngIf="activeTab === 'agenda'" class="table-container fade-in">
+      <div class="table-header"><h2>Citas del Día</h2></div>
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>Hora</th>
+            <th>Paciente</th>
+            <th>Motivo</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let cita of citasHoy">
+            <td>{{ cita.hora }}</td>
+            <td>{{ cita.paciente }} <span>({{ cita.dueno }})</span></td>
+            <td>{{ cita.motivo }}</td>
+            <td><span class="role-badge" [ngClass]="cita.estado === 'En consulta' ? 'veterinario' : 'recepcionista'">{{ cita.estado }}</span></td>
+            <td>
+              <button class="btn-submit" style="padding: 5px 10px;" (click)="atenderCita(cita)">Atender</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section *ngIf="activeTab === 'pacientes'" class="fade-in">
+      <div class="stat-card"><p>Buscador de pacientes e historias clínicas en desarrollo...</p></div>
+    </section>
+  </main>
+</div>

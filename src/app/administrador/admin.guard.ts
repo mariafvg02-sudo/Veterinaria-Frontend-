@@ -2,26 +2,23 @@ import { inject } from '@angular/core';
 import { Router, CanActivateFn } from '@angular/router';
 import { AuthService } from '../Core/Service/auth.service';
 
-export const clienteGuard: CanActivateFn = (route, state) => {
+export const adminGuard: CanActivateFn = (route, state) => {
   const authService = inject(AuthService);
   const router = inject(Router);
   const usuario = authService.obtenerUsuarioActual();
 
-  console.log('Verificando acceso para:', usuario);
-
-  // Si hay usuario y su rol es cliente, permitir acceso
-  if (usuario && usuario.rol?.toLowerCase() === 'cliente') {
+  // Permitir sólo si el usuario existe y su rol es 'administrador'
+  if (usuario && usuario.rol?.toLowerCase() === 'administrador') {
     return true;
   }
 
-  // Si hay usuario autenticado pero no es cliente, rechazar
+  // Si está autenticado pero no es admin, redirigir a home
   if (usuario) {
-    console.warn('Usuario autenticado pero no es cliente. Rol:', usuario.rol);
     router.navigate(['/home']);
     return false;
   }
 
-  // Si no hay usuario, ir a login
+  // Si no está autenticado, ir a login
   router.navigate(['/login']);
   return false;
 };

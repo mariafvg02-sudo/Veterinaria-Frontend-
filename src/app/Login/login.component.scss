@@ -6,6 +6,7 @@
     --text-muted: #9e8e81;
     --border: #e8e1d9;
     --white: #ffffff;
+    --bg-input: #fcfaf8;
 
     display: flex;
     justify-content: center;
@@ -28,7 +29,7 @@
     border-radius: 24px; /* More rounded corners */
     width: 360px;
     border: 1px solid var(--border); /* Added border */
-    box-shadow: 0 10px 30px rgba(var(--text-dark), 0.08); /* Corrected and refined shadow */
+    box-shadow: 0 10px 30px rgba(74, 60, 49, 0.08); /* Usando valores RGB directos */
 }
 
 /* ICONO SUPERIOR */
@@ -129,8 +130,19 @@ input {
     margin-top: 5px;
 }
 
+.form-message {
+    background-color: #fde8e8;
+    border: 1px solid #f8b4b4;
+    border-radius: 8px;
+    padding: 10px;
+    margin-bottom: 20px;
+    text-align: center;
+    color: #dc3545 !important;
+    font-size: 14px;
+}
+
 .error-message p {
-    color: #dc3545;
+    color: #dc3545 !important;
     font-size: 12px;
     margin: 0;
 }

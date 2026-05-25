@@ -1,1 +1,38 @@
-<p>recepcionista works!</p>
+<div class="admin-dashboard">
+  <aside class="sidebar">
+    <div class="sidebar-header"><i class="fa-solid fa-concierge-bell"></i> <span>Recepción</span></div>
+    <nav class="sidebar-nav">
+      <button [class.active]="activeTab === 'agenda'" (click)="setActiveTab('agenda')">
+        <i class="fa-solid fa-clock"></i> Sala de Espera
+      </button>
+      <button [class.active]="activeTab === 'registro'" (click)="setActiveTab('registro')">
+        <i class="fa-solid fa-plus"></i> Nueva Cita
+      </button>
+    </nav>
+    <div class="sidebar-footer">
+      <button routerLink="/home" class="btn-back"><i class="fa-solid fa-arrow-left"></i> Salir</button>
+    </div>
+  </aside>
+
+  <main class="main-content">
+    <header class="content-header">
+      <h1>Módulo de Atención al Cliente</h1>
+    </header>
+
+    <section *ngIf="activeTab === 'agenda'" class="fade-in">
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon"><i class="fa-solid fa-user-plus"></i></div>
+          <div class="stat-data">
+            <span class="stat-label">En espera</span>
+            <span class="stat-value">4</span>
+          </div>
+        </div>
+      </div>
+      <div class="table-container">
+         <p>Lista de pacientes esperando ser atendidos...</p>
+         <button class="btn-submit" (click)="registrarLlegada()">Registrar llegada de paciente</button>
+      </div>
+    </section>
+  </main>
+</div>

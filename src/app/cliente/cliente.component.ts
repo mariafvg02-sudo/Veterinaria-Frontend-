@@ -2,9 +2,9 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { RouterModule, Router } from '@angular/router';
-import { AuthService, Usuario } from '../Service/auth.service';
-import { MascotaService } from '../Service/mascota.service';
-import { CitaService } from '../Service/cita.service';
+import { AuthService, Usuario } from '../Core/Service/auth.service';
+import { MascotaService } from '../Core/Service/mascota.service';
+import { CitaService } from '../Core/Service/cita.service';
 import { Mascota } from '../Models/mascota.model';
 import { Cita } from '../Models/cita.model';
 

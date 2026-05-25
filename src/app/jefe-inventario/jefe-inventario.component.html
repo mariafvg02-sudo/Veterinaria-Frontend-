@@ -1,1 +1,126 @@
-<p>jefe-inventario works!</p>
+<div class="inventario-dashboard">
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <i class="fa-solid fa-boxes-stacked"></i>
+      <span>VET INVENTARIO</span>
+    </div>
+    <nav class="sidebar-nav">
+      <button [class.active]="currentView === 'stats'" (click)="setView('stats')">
+        <i class="fa-solid fa-chart-pie"></i> Resumen
+      </button>
+      <button [class.active]="currentView === 'list'" (click)="setView('list')">
+        <i class="fa-solid fa-list-check"></i> Stock Actual
+      </button>
+      <button [class.active]="currentView === 'add'" (click)="setView('add')">
+        <i class="fa-solid fa-circle-plus"></i> Nuevo Producto
+      </button>
+    </nav>
+    <div class="sidebar-footer">
+      <button routerLink="/home" class="btn-back">
+        <i class="fa-solid fa-arrow-left"></i> Volver al Inicio
+      </button>
+    </div>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <main class="main-content">
+    <header class="content-header">
+      <h1>{{ currentView === 'stats' ? 'Panel de Control' : currentView === 'list' ? 'Gestión de Productos' : 'Registro de Mercancía' }}</h1>
+      <div class="user-info">
+        <span class="welcome-text">Hola, <strong>{{ usuario?.nombre || 'Jefe de Inventario' }}</strong></span>
+        <button (click)="logout()" class="btn-logout" title="Cerrar Sesión"><i class="fa-solid fa-right-from-bracket"></i></button>
+      </div>
+    </header>
+
+    <!-- SECCIÓN: ESTADÍSTICAS -->
+    <section *ngIf="currentView === 'stats'" class="stats-grid">
+      <div *ngFor="let item of stats" class="stat-card">
+        <div class="stat-icon"><i class="fa-solid" [ngClass]="item.icon"></i></div>
+        <div class="stat-data">
+          <span class="stat-label">{{ item.label }}</span>
+          <span class="stat-value">{{ item.value }}</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECCIÓN: TABLA DE INVENTARIO -->
+    <section *ngIf="currentView === 'list'" class="table-container fade-in">
+      <div class="card-header">
+        <h2>Inventario en Tiempo Real</h2>
+        <button class="btn-client-primary" (click)="setView('add')"><i class="fa-solid fa-plus"></i> Añadir Item</button>
+      </div>
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>Producto</th>
+            <th>Categoría</th>
+            <th>Existencias</th>
+            <th>Precio</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let prod of productos">
+            <td>{{ prod.nombre }}</td>
+            <td>{{ prod.categoria }}</td>
+            <td>{{ prod.cantidad }}</td>
+            <td>{{ prod.precio | currency }}</td>
+            <td>
+              <span class="role-badge" [ngClass]="prod.cantidad === 0 ? 'administrador' : (prod.cantidad < 10 ? 'veterinario' : 'recepcionista')">
+                {{ prod.cantidad === 0 ? 'Agotado' : (prod.cantidad < 10 ? 'Stock Bajo' : 'Normal') }}
+              </span>
+            </td>
+            <td class="actions">
+              <button class="btn-icon edit" (click)="onEdit(prod)"><i class="fa-solid fa-pen"></i></button>
+              <button class="btn-icon delete" (click)="onDelete(prod.id)"><i class="fa-solid fa-trash"></i></button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- SECCIÓN: FORMULARIO PRODUCTO -->
+    <section *ngIf="currentView === 'add'" class="form-card-container fade-in">
+      <div class="form-card">
+        <div class="form-header">
+          <h2>{{ editingId ? 'Editar Item' : 'Registrar Nuevo Item' }}</h2>
+          <p>Complete los datos para actualizar el stock.</p>
+        </div>
+        
+        <form [formGroup]="productForm" (ngSubmit)="onSubmit()">
+          <div class="form-grid">
+            <div class="form-group">
+              <label><i class="fa-solid fa-tag"></i> Nombre</label>
+              <input type="text" formControlName="nombre">
+            </div>
+            <div class="form-group">
+              <label><i class="fa-solid fa-folder"></i> Categoría</label>
+              <select formControlName="categoria">
+                <option value="ALIMENTOS">Alimentos</option>
+                <option value="MEDICAMENTOS">Medicamentos</option>
+                <option value="ACCESORIOS">Accesorios</option>
+                <option value="HIGIENE">Higiene</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label><i class="fa-solid fa-hashtag"></i> Cantidad</label>
+              <input type="number" formControlName="cantidad">
+            </div>
+            <div class="form-group">
+              <label><i class="fa-solid fa-dollar-sign"></i> Precio</label>
+              <input type="number" formControlName="precio">
+            </div>
+          </div>
+          <div style="display:flex;gap:12px;margin-top:20px">
+            <button type="submit" class="btn-submit" [disabled]="productForm.invalid">
+              {{ editingId ? 'Guardar Cambios' : 'Registrar Producto' }}
+            </button>
+            <button type="button" class="btn-submit" style="background:#9e8e81;" *ngIf="editingId" (click)="cancelEdit()">Cancelar</button>
+          </div>
+        </form>
+      </div>
+    </section>
+  </main>
+</div>
