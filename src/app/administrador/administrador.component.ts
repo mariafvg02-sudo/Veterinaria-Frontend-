@@ -27,6 +27,8 @@ export class AdministradorComponent implements OnInit {
     { id: 3, nombre: 'Dra. Marta', correo: 'marta@vetapp.com', rol: 'VETERINARIO', telefono: '3007778899', documentoIdentidad: 3030303 }
   ];
 
+  filterText: string = '';
+
   // Estadísticas rápidas
   stats = [
     { label: 'Total Usuarios', value: '45', icon: 'fa-users' },
@@ -77,7 +79,7 @@ export class AdministradorComponent implements OnInit {
 
       const usuarioData = {
         nombre: this.userForm.value.nombre,
-        correo: this.userForm.value.email,
+        correo: this.userForm.value.email.trim().toLowerCase(),
         clave: this.userForm.value.password,
         telefono: this.userForm.value.telefono,
         documentoIdentidad: Number(this.userForm.value.documentoIdentidad),
@@ -85,36 +87,58 @@ export class AdministradorComponent implements OnInit {
         rol: rolFinal
       };
 
-      this.authService.adminCrearUsuario(usuarioData).subscribe({
-        next: (response) => {
-          this.cargando = false;
-          this.exito = 'Usuario registrado correctamente en la base de datos';
-          
-          // Actualizamos la tabla local con el nuevo usuario que viene del servidor
-          if (response.usuario) {
-            this.usuariosRegistrados.push({
-              id: response.usuario.id || 0,
-              nombre: response.usuario.nombre || '',
-              correo: response.usuario.correo,
-              rol: response.usuario.rol?.toUpperCase() || 'RECEPCIONISTA',
-              telefono: response.usuario.telefono || '',
-              documentoIdentidad: response.usuario.documentoIdentidad
-            });
-          }
-          
-          this.userForm.reset({ rol: 'RECEPCIONISTA' });
-          this.setView('users');
-        },
-        error: (err) => {
-          this.cargando = false;
-          this.error = err.error?.mensaje || err.error?.message || 'Error 400: Datos inválidos. Revisa el formato del documento o correo.';
-          console.error('Error creando usuario:', err);
+      if (this.editingUserId) {
+        // Lógica de actualización (Local, ya que AuthService no tiene update)
+        const index = this.usuariosRegistrados.findIndex(u => u.id === this.editingUserId);
+        if (index !== -1) {
+          this.usuariosRegistrados[index] = {
+            ...usuarioData,
+            id: this.editingUserId,
+            correo: usuarioData.correo
+          };
         }
-      });
+        this.cargando = false;
+        this.exito = 'Usuario actualizado correctamente';
+        this.finalizarOperacion();
+      } else {
+        // Lógica de creación
+        this.authService.adminCrearUsuario(usuarioData).subscribe({
+          next: (response) => {
+            this.cargando = false;
+            this.exito = 'Usuario registrado correctamente';
+            
+            if (response.usuario) {
+              this.usuariosRegistrados.push({
+                id: response.usuario.userId || 0,
+                nombre: response.usuario.nombre || '',
+                correo: response.usuario.correo,
+                rol: response.usuario.rol?.toUpperCase() || 'RECEPCIONISTA',
+                telefono: response.usuario.telefono || '',
+                documentoIdentidad: response.usuario.documentoIdentidad
+              });
+            }
+            this.finalizarOperacion();
+          },
+          error: (err) => {
+            this.cargando = false;
+            this.error = err.error?.mensaje || 'Error al procesar el usuario. Verifica los datos.';
+            console.error('Error en operación de usuario:', err);
+          }
+        });
+      }
     }
   }
 
-  onEditUser(user: any) {
+  private finalizarOperacion() {
+    this.cargando = false;
+    this.editingUserId = null;
+    this.userForm.reset({ rol: 'RECEPCIONISTA' });
+    setTimeout(() => {
+      this.setView('users');
+    }, 1500);
+  }
+
+  onEditUser(user: any): void {
     this.editingUserId = user.id;
     this.setView('create');
     this.userForm.patchValue({
@@ -125,6 +149,14 @@ export class AdministradorComponent implements OnInit {
       telefono: user.telefono,
       rol: (user.rol || '').toUpperCase()
     });
+  }
+
+  get filteredUsuarios() {
+    const q = (this.filterText || '').trim().toLowerCase();
+    if (!q) return this.usuariosRegistrados;
+    return this.usuariosRegistrados.filter(u => (
+      (u.nombre || '') + ' ' + (u.correo || '') + ' ' + (u.telefono || '') + ' ' + (u.rol || '')
+    ).toLowerCase().includes(q));
   }
 
   onDeleteUser(id: number) {

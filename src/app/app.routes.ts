@@ -43,6 +43,11 @@ export const routes: Routes = [
     loadComponent: () => import('./jefe-inventario/jefe-inventario.component').then(m => m.JefeInventarioComponent)
   },
   {
+    path: 'inventario',
+    redirectTo: 'jefe-inventario',
+    pathMatch: 'full'
+  },
+  {
     path: 'veterinario',
     loadComponent: () => import('./Veterinario/veterinario.component').then(m => m.VeterinarioComponent)
   }

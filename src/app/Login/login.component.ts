@@ -41,7 +41,7 @@ export class LoginComponent {
     this.cargando = true;
     this.error = null;
     
-    const correo = this.loginForm.value.correo?.trim();
+    const correo = this.loginForm.value.correo?.trim().toLowerCase();
     const clave = this.loginForm.value.clave;
     
     console.log('Intentando login con:', { correo, clave });
@@ -51,8 +51,10 @@ export class LoginComponent {
         console.log('Login exitoso, respuesta del servidor:', response);
         this.cargando = false;
         
-        // Usamos el rol tal cual viene del Backend (Mayúsculas y guiones bajos)
-        const rolUsuario = response.usuario?.rol?.toUpperCase();
+        // Normalizamos el rol para aceptar respuestas con o sin guion bajo.
+        const rolUsuario = response.usuario?.rol
+          ?.toUpperCase()
+          .replace(/[_\s-]/g, '');
         
         switch (rolUsuario) {
           case 'ADMINISTRADOR':
@@ -65,7 +67,7 @@ export class LoginComponent {
             this.router.navigate(['/recepcionista']);
             break;
           case 'JEFEINVENTARIO':
-            this.router.navigate(['/inventario']);
+            this.router.navigate(['/jefe-inventario']);
             break;
           case 'CLIENTE':
             this.router.navigate(['/cliente']);

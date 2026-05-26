@@ -1,11 +1,6 @@
 export interface Cita {
   idCita?: number;
-  usuarioId: number;
-  mascotaId: number;
-  veterinarioId: number;
-  fecha: string; // formato YYYY-MM-DD
-  hora: string; // formato HH:MM
+  fecha: string; // formato LocalDateTime ISO-like
   motivo: string;
   estado: 'pendiente' | 'confirmada' | 'cancelada' | 'completada';
-  notas?: string;
 }

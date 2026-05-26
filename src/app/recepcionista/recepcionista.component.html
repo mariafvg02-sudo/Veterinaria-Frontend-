@@ -2,37 +2,123 @@
   <aside class="sidebar">
     <div class="sidebar-header"><i class="fa-solid fa-concierge-bell"></i> <span>Recepción</span></div>
     <nav class="sidebar-nav">
-      <button [class.active]="activeTab === 'agenda'" (click)="setActiveTab('agenda')">
-        <i class="fa-solid fa-clock"></i> Sala de Espera
+      <button [class.active]="activeTab === 'citas'" (click)="setActiveTab('citas')">
+        <i class="fa-solid fa-calendar-check"></i> Citas del día
       </button>
       <button [class.active]="activeTab === 'registro'" (click)="setActiveTab('registro')">
-        <i class="fa-solid fa-plus"></i> Nueva Cita
+        <i class="fa-solid fa-plus"></i> Nueva cita
       </button>
     </nav>
     <div class="sidebar-footer">
-      <button routerLink="/home" class="btn-back"><i class="fa-solid fa-arrow-left"></i> Salir</button>
+      <button type="button" (click)="logout()" class="btn-back"><i class="fa-solid fa-arrow-left"></i> Salir</button>
     </div>
   </aside>
 
   <main class="main-content">
     <header class="content-header">
-      <h1>Módulo de Atención al Cliente</h1>
+      <h1>Módulo de Recepción y Citas</h1>
+      <div class="user-info"><i class="fa-solid fa-calendar-days"></i> Agenda de la veterinaria</div>
     </header>
 
-    <section *ngIf="activeTab === 'agenda'" class="fade-in">
+    <section *ngIf="activeTab === 'citas'" class="fade-in">
       <div class="stats-grid">
         <div class="stat-card">
-          <div class="stat-icon"><i class="fa-solid fa-user-plus"></i></div>
+          <div class="stat-icon"><i class="fa-solid fa-clock"></i></div>
+          <div class="stat-data">
+            <span class="stat-label">Pendientes</span>
+            <span class="stat-value">{{ citasPendientes }}</span>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon"><i class="fa-solid fa-circle-check"></i></div>
+          <div class="stat-data">
+            <span class="stat-label">Confirmadas</span>
+            <span class="stat-value">{{ citasConfirmadas }}</span>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon"><i class="fa-solid fa-hourglass-half"></i></div>
           <div class="stat-data">
             <span class="stat-label">En espera</span>
-            <span class="stat-value">4</span>
+            <span class="stat-value">{{ citasEnEspera }}</span>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon"><i class="fa-solid fa-ban"></i></div>
+          <div class="stat-data">
+            <span class="stat-label">Canceladas</span>
+            <span class="stat-value">{{ citasCanceladas }}</span>
           </div>
         </div>
       </div>
+
       <div class="table-container">
-         <p>Lista de pacientes esperando ser atendidos...</p>
-         <button class="btn-submit" (click)="registrarLlegada()">Registrar llegada de paciente</button>
+        <div class="card-header">
+          <div>
+            <h2>Citas del día</h2>
+            <p>Agenda principal con servicios, paciente y estado de cada cita.</p>
+          </div>
+          <button class="btn-client-primary" type="button" (click)="setActiveTab('registro')">Programar cita</button>
+        </div>
+
+        <div *ngIf="loading" class="stat-card" style="margin-bottom: 12px;">
+          <p>Cargando citas...</p>
+        </div>
+
+        <div *ngIf="error && !loading" class="stat-card" style="margin-bottom: 12px;">
+          <p>{{ error }}</p>
+        </div>
+
+        <table class="admin-table" aria-describedby="agenda-desc">
+          <caption id="agenda-desc">Listado de citas registradas para hoy</caption>
+          <thead>
+            <tr>
+              <th>ID Cita</th>
+              <th>Fecha y hora</th>
+              <th>Motivo</th>
+              <th>Estado</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let cita of citasHoy">
+              <td>{{ cita.id }}</td>
+              <td>{{ formatearFechaCita(cita.fecha) }}</td>
+              <td>{{ cita.motivo }}</td>
+              <td><span class="role-badge" [ngClass]="getEstadoClase(cita.estado)">{{ cita.estado }}</span></td>
+              <td>
+                <button class="btn-client-primary" type="button" (click)="confirmarCita(cita.id)" [disabled]="cita.estado === 'Confirmada'">Confirmar</button>
+                <button class="btn-icon delete" type="button" title="Cancelar cita" (click)="cancelarCita(cita.id)">
+                  <i class="fa-solid fa-xmark"></i>
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
       </div>
     </section>
+
+    <section *ngIf="activeTab === 'registro'" class="fade-in form-card-container">
+      <form class="form-card" [formGroup]="citaForm" (ngSubmit)="agendarCita()">
+        <div class="form-header">
+          <h2>Registrar nueva cita</h2>
+          <p>Completa los datos del paciente para ubicarlo en la agenda.</p>
+        </div>
+
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="fecha">Fecha y hora</label>
+            <input id="fecha" type="datetime-local" formControlName="fecha">
+          </div>
+          <div class="form-group" style="grid-column: 1 / -1;">
+            <label for="motivo">Motivo</label>
+            <input id="motivo" type="text" formControlName="motivo" placeholder="Describe brevemente la cita">
+          </div>
+        </div>
+
+        <button type="submit" class="btn-submit">Guardar cita</button>
+      </form>
+    </section>
+
   </main>
 </div>

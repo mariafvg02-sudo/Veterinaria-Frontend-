@@ -6,8 +6,7 @@ import { Login } from '../../Models/login.model';
 import { Register } from '../../Models/register.model';
 
 export interface Usuario {
-  id?: number;
-  Userid?: number; 
+  userId?: number;
   nombre?: string;
   documentoIdentidad: number;
   correo: string;

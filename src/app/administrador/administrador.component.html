@@ -48,9 +48,13 @@
     <section *ngIf="currentView === 'users'" class="table-card fade-in">
       <div class="card-header">
         <h2>Personal Registrado</h2>
-        <button class="btn-client-primary" (click)="setView('create')"><i class="fa-solid fa-plus"></i> Nuevo Registro</button>
+        <div style="display:flex;gap:12px;align-items:center">
+          <input type="search" placeholder="Buscar usuario" (input)="filterText = $any($event.target).value" aria-label="Buscar usuarios">
+          <button class="btn-client-primary" (click)="setView('create')"><i class="fa-solid fa-plus"></i> Nuevo Registro</button>
+        </div>
       </div>
-      <table class="admin-table">
+      <table class="admin-table" role="table" aria-describedby="users-desc">
+        <caption id="users-desc">Tabla de personal registrado con acciones de edición y eliminación</caption>
         <thead>
           <tr>
             <th>Nombre</th>
@@ -61,7 +65,7 @@
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let user of usuariosRegistrados">
+          <tr *ngFor="let user of filteredUsuarios">
             <td>{{ user.nombre }}</td>
             <td>{{ user.correo }}</td>
             <td>{{ user.telefono }}</td>
@@ -80,7 +84,7 @@
       <div class="form-card">
         <div class="form-header">
           <h2>{{ editingUserId ? 'Editar miembro' : 'Registro de nuevo personal' }}</h2>
-          <p>Complete los datos para dar de alta a un nuevo recepcionista o administrador.</p>
+          <p>Complete los datos para dar de alta a un nuevo Recepcionista, Jefe de Inventario o Veterinario.</p>
         </div>
         
         <form [formGroup]="userForm" (ngSubmit)="onSubmitUser()">
@@ -88,28 +92,32 @@
             <div class="form-group">
               <label><i class="fa-solid fa-user"></i> Nombre Completo</label>
               <input type="text" formControlName="nombre" placeholder="Ej. Juan Pérez">
+              <small *ngIf="userForm.get('nombre')?.invalid && (userForm.get('nombre')?.touched || userForm.get('nombre')?.dirty)" class="field-error">Nombre requerido (min 2 caracteres)</small>
             </div>
             <div class="form-group">
               <label><i class="fa-solid fa-fingerprint"></i> Documento Identidad</label>
               <input type="text" formControlName="documentoIdentidad" placeholder="Solo números">
+              <small *ngIf="userForm.get('documentoIdentidad')?.invalid && (userForm.get('documentoIdentidad')?.touched || userForm.get('documentoIdentidad')?.dirty)" class="field-error">Documento inválido</small>
             </div>
             <div class="form-group">
               <label><i class="fa-solid fa-envelope"></i> Correo Electrónico</label>
               <input type="email" formControlName="email" placeholder="correo@vetapp.com">
+              <small *ngIf="userForm.get('email')?.invalid && (userForm.get('email')?.touched || userForm.get('email')?.dirty)" class="field-error">Correo inválido</small>
             </div>
             <div class="form-group">
               <label><i class="fa-solid fa-lock"></i> Contraseña Provisional</label>
               <input type="password" formControlName="password" placeholder="Min. 6 caracteres">
+              <small *ngIf="userForm.get('password')?.invalid && (userForm.get('password')?.touched || userForm.get('password')?.dirty)" class="field-error">Contraseña mínima 6 caracteres</small>
             </div>
             <div class="form-group">
               <label><i class="fa-solid fa-phone"></i> Teléfono</label>
               <input type="text" formControlName="telefono" placeholder="Ej. 3001234567">
+              <small *ngIf="userForm.get('telefono')?.invalid && (userForm.get('telefono')?.touched || userForm.get('telefono')?.dirty)" class="field-error">Teléfono requerido</small>
             </div>
             <div class="form-group">
               <label><i class="fa-solid fa-id-card"></i> Rol del Usuario</label>
               <select formControlName="rol">
                 <option value="RECEPCIONISTA">Recepcionista</option>
-                <option value="ADMINISTRADOR">Administrador</option>
                 <option value="VETERINARIO">Veterinario</option>
                 <option value="JEFEINVENTARIO">Jefe de Inventario</option>
               </select>
