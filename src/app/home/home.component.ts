@@ -2,6 +2,15 @@ import { Component, HostListener, ElementRef, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 
+interface HomeSlide {
+  image: string;
+  title: string;
+  description: string;
+  badge: string;
+  services: string[];
+  discount: string;
+}
+
 @Component({
   selector: 'app-home',
   standalone: true,
@@ -15,24 +24,30 @@ export class HomeComponent implements OnInit {
   readonly currentYear = new Date().getFullYear();
 
   // Datos para el carrusel
-  slides = [
+  slides: HomeSlide[] = [
     {
       image: 'https://images.unsplash.com/photo-1583337130417-3346a1be7dee?q=80&w=2070',
       title: 'Servicios de Alta Especialidad',
-      description: 'Contamos con tecnología de vanguardia y un equipo médico apasionado por la salud de tus mascotas.',
-      badge: 'Servicios'
+      description: 'Atendemos a tu mascota con un enfoque completo, cálido y profesional en cada visita.',
+      badge: 'Servicios',
+      services: ['Consulta general', 'Vacunación', 'Desparasitación'],
+      discount: '15% de descuento en chequeo preventivo y control anual.'
     },
     {
       image: 'https://images.unsplash.com/photo-1516734212186-a967f81ad0d7?q=80&w=2071',
       title: 'Ofertas Especiales del Mes',
-      description: 'Aprovecha descuentos exclusivos en planes de vacunación y chequeos preventivos para tus peluditos.',
-      badge: 'Ofertas'
+      description: 'Promociones pensadas para mantener la salud de perritos y gatitos sin descuidar tu bolsillo.',
+      badge: 'Ofertas',
+      services: ['Paquetes de vacunación', 'Chequeo preventivo', 'Desparasitación interna'],
+      discount: 'Combo de vacunación y desparasitación con tarifa especial este mes.'
     },
     {
       image: 'https://images.unsplash.com/photo-1444212477490-ca407925329e?q=80&w=2128',
       title: 'Ayudando a Quienes nos Necesitan',
-      description: 'Estamos comprometidos con el rescate y bienestar animal. Juntos construimos una comunidad más humana.',
-      badge: 'Labor Social'
+      description: 'Atención enfocada en bienestar animal, rescate y seguimiento de pacientes que lo necesitan.',
+      badge: 'Labor Social',
+      services: ['Apoyo a rescates', 'Valoración clínica', 'Seguimiento post-atención'],
+      discount: 'Descuento solidario en atención básica para rescates y adopciones.'
     }
   ];
 

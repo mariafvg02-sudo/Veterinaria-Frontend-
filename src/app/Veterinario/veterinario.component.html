@@ -10,7 +10,7 @@
       </button>
     </nav>
     <div class="sidebar-footer">
-      <button routerLink="/home" class="btn-back"><i class="fa-solid fa-arrow-left"></i> Cerrar Sesión</button>
+      <button type="button" (click)="logout()" class="btn-back"><i class="fa-solid fa-arrow-left"></i> Cerrar Sesión</button>
     </div>
   </aside>
 
@@ -21,24 +21,61 @@
 
     <section *ngIf="activeTab === 'agenda'" class="table-container fade-in">
       <div class="table-header"><h2>Citas del Día</h2></div>
+      <div class="stats-grid" style="margin-bottom: 12px;">
+        <div class="stat-card">
+          <div class="stat-icon"><i class="fa-solid fa-clock"></i></div>
+          <div class="stat-data">
+            <span class="stat-label">Pendientes</span>
+            <span class="stat-value">{{ citasPendientes }}</span>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon"><i class="fa-solid fa-stethoscope"></i></div>
+          <div class="stat-data">
+            <span class="stat-label">En consulta</span>
+            <span class="stat-value">{{ citasEnConsulta }}</span>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon"><i class="fa-solid fa-circle-check"></i></div>
+          <div class="stat-data">
+            <span class="stat-label">Completadas</span>
+            <span class="stat-value">{{ citasCompletadas }}</span>
+          </div>
+        </div>
+      </div>
+      <div style="display:flex;gap:12px;align-items:center;margin-bottom:8px">
+        <input type="search" placeholder="Buscar cita por paciente, dueño o motivo" (input)="filterText = $any($event.target).value" aria-label="Buscar citas">
+      </div>
+
+      <div *ngIf="loading" class="stat-card" style="margin-bottom: 12px;">
+        <p>Cargando citas desde el servidor...</p>
+      </div>
+
+      <div *ngIf="error && !loading" class="stat-card" style="margin-bottom: 12px;">
+        <p>{{ error }}</p>
+      </div>
+
       <table class="admin-table">
         <thead>
           <tr>
-            <th>Hora</th>
-            <th>Paciente</th>
+            <th>ID Cita</th>
+            <th>Fecha y hora</th>
             <th>Motivo</th>
             <th>Estado</th>
             <th>Acciones</th>
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let cita of citasHoy">
-            <td>{{ cita.hora }}</td>
-            <td>{{ cita.paciente }} <span>({{ cita.dueno }})</span></td>
+          <tr *ngFor="let cita of filteredCitas">
+            <td>{{ cita.idCita }}</td>
+            <td>{{ cita.fecha }}</td>
             <td>{{ cita.motivo }}</td>
-            <td><span class="role-badge" [ngClass]="cita.estado === 'En consulta' ? 'veterinario' : 'recepcionista'">{{ cita.estado }}</span></td>
+            <td><span class="role-badge" [ngClass]="cita.estado === 'En consulta' ? 'veterinario' : (cita.estado === 'Completada' ? 'administrador' : 'recepcionista')">{{ cita.estado }}</span></td>
             <td>
-              <button class="btn-submit" style="padding: 5px 10px;" (click)="atenderCita(cita)">Atender</button>
+              <button class="btn-submit" style="padding: 5px 10px;" (click)="atenderCita(cita)" [disabled]="cita.estado === 'Completada'">Atender</button>
+              <button class="btn-icon" title="Marcar como Pendiente" (click)="cambiarEstado(cita,'Pendiente')">P</button>
+              <button class="btn-icon" title="Marcar como Cancelada" (click)="cambiarEstado(cita,'Cancelada')">C</button>
             </td>
           </tr>
         </tbody>
@@ -46,7 +83,35 @@
     </section>
 
     <section *ngIf="activeTab === 'pacientes'" class="fade-in">
-      <div class="stat-card"><p>Buscador de pacientes e historias clínicas en desarrollo...</p></div>
+      <div class="stat-card" style="margin-bottom: 12px;">
+        <p>Pacientes e historias clínicas disponibles desde la agenda.</p>
+      </div>
+
+      <div class="table-header"><h2>Pacientes atendidos</h2></div>
+      <table class="admin-table" *ngIf="citasCompletadas > 0; else noPacientes">
+        <thead>
+          <tr>
+            <th>Paciente</th>
+            <th>Dueño</th>
+            <th>Motivo</th>
+            <th>Estado</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let cita of filteredCitas" [hidden]="cita.estado !== 'Completada'">
+            <td>{{ cita.paciente }}</td>
+            <td>{{ cita.dueno }}</td>
+            <td>{{ cita.motivo }}</td>
+            <td><span class="role-badge veterinario">{{ cita.estado }}</span></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <ng-template #noPacientes>
+        <div class="stat-card">
+          <p>Aún no hay consultas completadas para mostrar.</p>
+        </div>
+      </ng-template>
     </section>
   </main>
 </div>

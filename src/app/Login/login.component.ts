@@ -41,7 +41,7 @@ export class LoginComponent {
     this.cargando = true;
     this.error = null;
     
-    const correo = this.loginForm.value.correo?.trim();
+    const correo = this.loginForm.value.correo?.trim().toLowerCase();
     const clave = this.loginForm.value.clave;
     
     console.log('Intentando login con:', { correo, clave });
@@ -66,9 +66,12 @@ export class LoginComponent {
         console.log('Login exitoso, respuesta del servidor:', response);
         this.cargando = false;
         
+<<<<<<< HEAD
         // Guardamos también un rol general por si tus otros guardians lo necesitan
         localStorage.setItem('userRole', response.usuario?.rol?.toUpperCase() || 'CLIENTE');
 
+=======
+>>>>>>> 83ec02c7e79424b96afa4ac46cfe360d34cef925
         // Normalizamos el rol para aceptar respuestas con o sin guion bajo.
         const rolUsuario = response.usuario?.rol
           ?.toUpperCase()
