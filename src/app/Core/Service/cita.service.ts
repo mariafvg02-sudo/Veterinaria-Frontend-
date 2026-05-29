@@ -5,9 +5,13 @@ import { Cita } from '../../Models/cita.model';
 
 @Injectable({ providedIn: 'root' })
 export class CitaService {
-  private apiUrl = 'http://localhost:8080/api/citas';
+  private apiUrl = '/api/citas';
 
   constructor(private http: HttpClient) {}
+
+  obtenerTodas(): Observable<Cita[]> {
+    return this.http.get<Cita[]>(this.apiUrl);
+  }
 
   obtenerCitasPorUsuario(usuarioId: number): Observable<Cita[]> {
     return this.http.get<Cita[]>(`${this.apiUrl}/usuario/${usuarioId}`);

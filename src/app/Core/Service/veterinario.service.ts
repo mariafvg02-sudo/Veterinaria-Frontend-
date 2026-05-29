@@ -5,7 +5,7 @@ import { Veterinario } from '../../Models/veterinario.model';
 
 @Injectable({ providedIn: 'root' })
 export class VeterinarioService {
-  private url = 'http://localhost:8080/api/veterinarios'; // Ajusta tu puerto
+  private url = '/api/veterinarios'; // Ajusta tu puerto
 
   constructor(private http: HttpClient) {}
 

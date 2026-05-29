@@ -8,7 +8,7 @@ import { HistorialMedico } from '../Models/historial-medico.model';
 })
 export class HistorialMedicoService {
   // Asegúrate de que este puerto coincida con tu Server de Spring Boot
-  private apiUrl = 'http://localhost:8080/api/historiales'; 
+  private apiUrl = '/api/historiales'; 
 
   constructor(private http: HttpClient) { }
 

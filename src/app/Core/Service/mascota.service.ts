@@ -5,7 +5,7 @@ import { Mascota } from '../../Models/mascota.model';
 
 @Injectable({ providedIn: 'root' })
 export class MascotaService {
-  private apiUrl = 'http://localhost:8080/api/mascotas';
+  private apiUrl = '/api/mascotas';
 
   constructor(private http: HttpClient) {}
 
