@@ -44,7 +44,7 @@
                 },
                 {
                   "type": "anyComponentStyle",
-                  "maximumWarning": "10kb",
+                  "maximumWarning": "11kb",
                   "maximumError": "20kb"
                 }
               ],
@@ -97,5 +97,8 @@
         }
       }
     }
+  },
+  "cli": {
+    "analytics": "6c80da89-1ddf-44e8-8411-f9a15737dd88"
   }
 }

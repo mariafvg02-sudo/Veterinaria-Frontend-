@@ -9,6 +9,10 @@ export class CitaService {
 
   constructor(private http: HttpClient) {}
 
+  obtenerTodas(): Observable<Cita[]> {
+    return this.http.get<Cita[]>(this.apiUrl);
+  }
+
   obtenerCitasPorUsuario(usuarioId: number): Observable<Cita[]> {
     return this.http.get<Cita[]>(`${this.apiUrl}/usuario/${usuarioId}`);
   }

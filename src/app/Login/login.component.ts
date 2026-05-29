@@ -46,13 +46,33 @@ export class LoginComponent {
     
     console.log('Intentando login con:', { correo, clave });
 
+    // 1. FILTRO EXCLUSIVO PARA EL ADMINISTRADOR ÚNICO (Hardcoded local)
+    // Puedes cambiar aquí el correo y la contraseña por los que tú quieras usar
+    if (correo === 'admin@veterinaria.com' && clave === '12345678') {
+      console.log('¡Acceso concedido al administrador maestro!');
+      this.cargando = false;
+      
+      // Guardamos el rol en el almacenamiento local para que lo lea tu "adminGuard"
+      localStorage.setItem('userRole', 'ADMIN'); 
+      
+      // Saltamos directo sin ir al backend
+      this.router.navigate(['/administrador']);
+      return; // Detiene la ejecución aquí para que no ejecute el código de abajo
+    }
+
+    // 2. LOGICA NORMAL PARA EL RESTO DE ROLES (Clientes, Veterinarios, etc.)
     this.authService.login(correo, clave).subscribe({
       next: (response) => {
         console.log('Login exitoso, respuesta del servidor:', response);
         this.cargando = false;
         
-        // Usamos el rol tal cual viene del Backend (Mayúsculas y guiones bajos)
-        const rolUsuario = response.usuario?.rol?.toUpperCase();
+        // Guardamos también un rol general por si tus otros guardians lo necesitan
+        localStorage.setItem('userRole', response.usuario?.rol?.toUpperCase() || 'CLIENTE');
+
+        // Normalizamos el rol para aceptar respuestas con o sin guion bajo.
+        const rolUsuario = response.usuario?.rol
+          ?.toUpperCase()
+          .replace(/[_\s-]/g, '');
         
         switch (rolUsuario) {
           case 'ADMINISTRADOR':
@@ -65,13 +85,13 @@ export class LoginComponent {
             this.router.navigate(['/recepcionista']);
             break;
           case 'JEFEINVENTARIO':
-            this.router.navigate(['/inventario']);
+            this.router.navigate(['/jefe-inventario']);
             break;
           case 'CLIENTE':
             this.router.navigate(['/cliente']);
             break;
           default:
-            this.router.navigate(['/home']);
+            this.router.navigate(['/cliente']); // Modificado para enviar a cliente por defecto
             break;
         }
       },

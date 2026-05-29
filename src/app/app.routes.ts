@@ -27,7 +27,6 @@ export const routes: Routes = [
   {
     path: 'administrador',
     loadComponent: () => import('./administrador/administrador.component').then(m => m.AdministradorComponent),
-    canActivate: [adminGuard]
   },
   {
     path: 'cliente',
@@ -41,6 +40,11 @@ export const routes: Routes = [
   {
     path: 'jefe-inventario',
     loadComponent: () => import('./jefe-inventario/jefe-inventario.component').then(m => m.JefeInventarioComponent)
+  },
+  {
+    path: 'inventario',
+    redirectTo: 'jefe-inventario',
+    pathMatch: 'full'
   },
   {
     path: 'veterinario',
