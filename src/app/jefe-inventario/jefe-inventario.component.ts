@@ -2,10 +2,6 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormGroup, FormControl, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
-<<<<<<< HEAD
-=======
-import { AuthService } from '../Core/Service/auth.service';
->>>>>>> 83ec02c7e79424b96afa4ac46cfe360d34cef925
 
 interface Producto {
   id: number;
@@ -51,10 +47,6 @@ export class JefeInventarioComponent implements OnInit {
   productForm: FormGroup;
 
   constructor(private router: Router) {
-<<<<<<< HEAD
-=======
-    
->>>>>>> 83ec02c7e79424b96afa4ac46cfe360d34cef925
     this.productForm = new FormGroup({
       nombre: new FormControl('', [Validators.required, Validators.minLength(2)]),
       categoria: new FormControl<CategoriaFiltro>('ALIMENTOS', [Validators.required]),
