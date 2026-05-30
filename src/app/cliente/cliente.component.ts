@@ -242,7 +242,7 @@ export class ClienteComponent implements OnInit {
       sexo: this.mascotaForm.value.sexo,
       esterilizado: !!this.mascotaForm.value.esterilizado,
       descripcion: this.mascotaForm.value.descripcion?.trim() ?? '',
-      vacunas: this.formatearVacunas(this.mascotaForm.value.vacunas),
+      vacunas: this.formatearVacunasParaFormulario(this.mascotaForm.value.vacunas),
       usuarioId: idCliente,
       idCliente,
       id_cliente: idCliente,

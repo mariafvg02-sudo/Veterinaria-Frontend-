@@ -261,6 +261,7 @@
                 <p><strong>Raza:</strong> {{ mascota.raza || 'Sin dato' }}</p>
                 <p><strong>Edad:</strong> {{ mascota.edad }} años</p>
                 <p><strong>Peso:</strong> {{ mascota.peso }} kg</p>
+                <p><strong>Vacunas:</strong> {{ formatearVacunasParaFormulario(mascota.vacunas) || 'Sin dato' }}</p>
                 <p><strong>ID mascota:</strong> #{{ obtenerMascotaId(mascota) || 'N/D' }}</p>
                 <p><strong>ID cliente:</strong> #{{ obtenerIdCliente(mascota) || 'N/D' }}</p>
                 <p><strong>ID veterinario:</strong> #{{ obtenerIdVeterinario(mascota) || 'Pendiente' }}</p>
@@ -303,6 +304,10 @@
             <div>
               <span>Peso</span>
               <strong>{{ mascotaSeleccionada.peso }} kg</strong>
+            </div>
+            <div>
+              <span>Vacunas</span>
+              <strong>{{ formatearVacunasParaFormulario(mascotaSeleccionada.vacunas) || 'Sin dato' }}</strong>
             </div>
             <div>
               <span>ID mascota</span>
@@ -399,17 +404,6 @@
           <div class="form-group">
             <label for="especie">Especie</label>
             <select id="especie" formControlName="especie" class="form-control">
-
-        <div class="form-group">
-          <label for="vacunas">Vacunas</label>
-          <textarea
-            id="vacunas"
-            formControlName="vacunas"
-            class="form-control"
-            placeholder="Ej: Antirrábica, Parvovirus, Moquillo"
-          ></textarea>
-          <small class="form-help">Separa cada vacuna con coma. Este dato se guarda junto con la mascota.</small>
-        </div>
               <option value="">Seleccionar</option>
               <option value="Canino">Canino</option>
               <option value="Felino">Felino</option>
