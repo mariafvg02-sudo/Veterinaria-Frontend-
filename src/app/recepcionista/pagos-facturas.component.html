@@ -1,0 +1,110 @@
+<div class="pagos-container">
+  <!-- HEADER -->
+  <section class="dashboard-header">
+    <div>
+      <span class="subtitle">Panel de Finanzas</span>
+      <h1>Pagos y Facturas</h1>
+      <p>Registra pagos, emite facturas y realiza seguimiento de transacciones de tus clientes.</p>
+    </div>
+  </section>
+
+  <!-- ESTADÍSTICAS -->
+  <section class="stats-row">
+    <article class="stat-card" *ngFor="let stat of stats">
+      <div class="stat-icon">
+        <i class="fa-solid" [ngClass]="stat.icon"></i>
+      </div>
+      <div>
+        <p class="stat-label">{{ stat.label }}</p>
+        <h2>{{ stat.value }}</h2>
+      </div>
+    </article>
+  </section>
+
+  <!-- FILTROS Y BÚSQUEDA -->
+  <section class="actions-row">
+    <div>
+      <label>Buscar cliente o mascota</label>
+      <input 
+        type="text" 
+        placeholder="Nombre, mascota o descripción" 
+        [(ngModel)]="searchTerm"
+        (change)="onSearchChange()">
+    </div>
+    <div>
+      <label>Filtrar estado</label>
+      <select [(ngModel)]="selectedEstado" (change)="onEstadoChange()">
+        <option value="todos">Todos</option>
+        <option value="pagado">Pagado</option>
+        <option value="pendiente">Pendiente</option>
+        <option value="vencido">Vencido</option>
+      </select>
+    </div>
+    <div class="action-buttons">
+      <button class="btn-primary" type="button" (click)="refrescarPagos()">Refrescar</button>
+    </div>
+  </section>
+
+  <!-- TABLA DE PAGOS -->
+  <section class="table-section">
+    <div class="table-header">
+      <div>
+        <h2>Historial de pagos</h2>
+        <span>{{ filteredPagos.length }} pagos registrados</span>
+      </div>
+      <span>{{ loading ? 'Cargando...' : 'Actualizado' }}</span>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Fecha</th>
+          <th>Cliente</th>
+          <th>Mascota</th>
+          <th>Descripción</th>
+          <th>Monto</th>
+          <th>Método</th>
+          <th>Estado</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let pago of filteredPagos">
+          <td>{{ pago.fecha | date: 'dd/MM/yyyy' }}</td>
+          <td class="cliente-name">{{ pago.cliente }}</td>
+          <td>{{ pago.mascota }}</td>
+          <td class="description">{{ pago.descripcion }}</td>
+          <td class="monto">${{ pago.monto.toFixed(2) }}</td>
+          <td>
+            <span class="method-badge" [ngClass]="pago.metodo">
+              {{ pago.metodo === 'tarjeta' ? '💳 Tarjeta' : pago.metodo === 'efectivo' ? '💵 Efectivo' : '🏦 Transferencia' }}
+            </span>
+          </td>
+          <td>
+            <span class="status-badge" [ngClass]="pago.estado">
+              {{ pago.estado === 'pagado' ? '✓ Pagado' : pago.estado === 'pendiente' ? '⏳ Pendiente' : '⚠ Vencido' }}
+            </span>
+          </td>
+          <td>
+            <div class="action-buttons">
+              <button class="btn-secondary" type="button" (click)="descargarFactura(pago)" title="Descargar factura">
+                <i class="fa-solid fa-download"></i>
+              </button>
+              <button class="btn-secondary" type="button" (click)="enviarComprobante(pago)" title="Enviar comprobante">
+                <i class="fa-solid fa-envelope"></i>
+              </button>
+            </div>
+          </td>
+        </tr>
+        <tr *ngIf="filteredPagos.length === 0 && !loading">
+          <td colspan="8" class="empty-row">No hay pagos que coincidan con la búsqueda.</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- MENSAJE DE FEEDBACK -->
+  <section class="info-panel" *ngIf="message">
+    <div class="message success">{{ message }}</div>
+  </section>
+</div>

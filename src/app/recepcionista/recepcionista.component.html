@@ -1,27 +1,35 @@
 <div class="reception-dashboard" *ngIf="usuario">
   <!-- SIDEBAR -->
   <aside class="sidebar">
-    <div class="sidebar-header">
-      <div class="sidebar-avatar">
-        <i class="fa-solid fa-user"></i>
-      </div>
-      <div class="sidebar-user-meta">
-        <span class="user-role">Recepción</span>
-        <strong class="user-name">{{ usuario.nombre || 'Recepcionista' }}</strong>
-        <span class="user-email">{{ recepcionistaEmail }}</span>
-      </div>
+    <div class="sidebar-title-bar">
+      <span class="sidebar-section-title">Recepción</span>
     </div>
+
+    <ng-container *ngIf="usuario$ | async as usuario">
+      <div class="user-card">
+        <div class="user-avatar">{{ obtenerAvatarInicial(usuario?.nombre) }}</div>
+        <div class="user-details">
+          <strong class="user-fullname">{{ usuario.nombre || 'Maria Fernanda' }}</strong>
+          <span class="user-email">{{ obtenerCorreoRecepcion(usuario?.nombre) }}</span>
+        </div>
+      </div>
+    </ng-container>
+
     <nav class="sidebar-nav">
-      <button type="button" [class.active]="activeTab === 'citas'" (click)="setActiveTab('citas')">
+      <button type="button" class="menu-item" [class.active]="activeTab === 'citas'" (click)="setActiveTab('citas')">
         <i class="fa-solid fa-calendar-check"></i> Citas del día
       </button>
-      <button type="button" [class.active]="activeTab === 'registro'" (click)="setActiveTab('registro')">
+      <button type="button" class="menu-item" [class.active]="activeTab === 'registro'" (click)="setActiveTab('registro')">
         <i class="fa-solid fa-plus"></i> Nueva cita
       </button>
-      <button class="logout" type="button" (click)="logout()">
+      <button type="button" class="menu-item" [class.active]="activeTab === 'pagos'" (click)="setActiveTab('pagos')">
+        <i class="fa-solid fa-receipt"></i> Pagos y facturas
+      </button>
+      <button class="menu-item logout" type="button" (click)="logout()">
         <i class="fa-solid fa-right-from-bracket"></i> Cerrar sesión
       </button>
     </nav>
+
     <div class="sidebar-footer">
       <button routerLink="/home" class="btn-back">
         <i class="fa-solid fa-arrow-left"></i> Salir
@@ -207,6 +215,11 @@
         </div>
         <div *ngIf="message" class="message">{{ message }}</div>
       </article>
+    </section>
+
+    <!-- Vista de Pagos y Facturas -->
+    <section class="info-panel" *ngIf="activeTab === 'pagos'">
+      <app-pagos-facturas></app-pagos-facturas>
     </section>
   </main>
 </div>

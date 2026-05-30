@@ -2,24 +2,26 @@ import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { RouterModule, Router } from '@angular/router';
-import { of } from 'rxjs';
+import { Observable, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { AuthService, Usuario } from '../Core/Service/auth.service';
 import { CitaService } from '../Core/Service/cita.service';
 import { Cita } from '../Models/cita.model';
+import { PagosFacturasComponent } from './pagos-facturas.component';
 
 @Component({
   selector: 'app-recepcionista',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, RouterModule],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, RouterModule, PagosFacturasComponent],
   templateUrl: './recepcionista.component.html',
   styleUrls: ['./recepcionista.component.scss']
 })
 export class RecepcionistaComponent implements OnInit {
   @ViewChild('dashboardSection') dashboardSection?: ElementRef<HTMLElement>;
 
-  activeTab: 'citas' | 'registro' = 'citas';
+  activeTab: 'citas' | 'registro' | 'pagos' = 'citas';
   usuario: Usuario | null = null;
+  readonly usuario$!: Observable<Usuario | null>;
   citas: Cita[] = [];
   searchTerm = '';
   selectedEstado = 'todos';
@@ -33,12 +35,18 @@ export class RecepcionistaComponent implements OnInit {
     private authService: AuthService,
     private citaService: CitaService,
     private router: Router
-  ) {}
+  ) {
+    this.usuario$ = this.authService.usuario$;
+  }
 
   ngOnInit(): void {
-    this.usuario = this.authService.obtenerUsuarioActual();
+    this.authService.usuario$.subscribe((usuario) => {
+      this.usuario = usuario;
+    });
 
-    if (!this.usuario) {
+    const usuarioActual = this.authService.obtenerUsuarioActual();
+
+    if (!usuarioActual) {
       this.router.navigate(['/login']);
       return;
     }
@@ -56,7 +64,7 @@ export class RecepcionistaComponent implements OnInit {
     this.cargarAgenda();
   }
 
-  setActiveTab(tab: 'citas' | 'registro'): void {
+  setActiveTab(tab: 'citas' | 'registro' | 'pagos'): void {
     this.activeTab = tab;
   }
 
@@ -89,9 +97,10 @@ export class RecepcionistaComponent implements OnInit {
     }
 
     this.loading = true;
+    const currentUser = this.authService.obtenerUsuarioActual();
     const citaData: any = {
       ...this.citaForm.value,
-      usuarioId: this.usuario?.id ?? this.usuario?.userId ?? 1,
+      usuarioId: currentUser?.id ?? currentUser?.userId ?? 1,
       mascotaId: Number(this.citaForm.value.mascotaId),
       veterinarioId: Number(this.citaForm.value.veterinarioId),
       estado: this.citaForm.value.estado,
@@ -156,19 +165,24 @@ export class RecepcionistaComponent implements OnInit {
     this.dashboardSection?.nativeElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
-  get recepcionistaEmail(): string {
-    const firstName = (this.usuario?.nombre || 'recepcionista')
-      .trim()
-      .split(/\s+/)[0]
-      .toLowerCase()
-      .replace(/[^a-z0-9]/g, '');
-
-    return `${firstName}@gmail.com`;
-  }
-
   logout(): void {
     this.authService.logout();
     this.router.navigate(['/login']);
+  }
+
+  obtenerAvatarInicial(nombre?: string): string {
+    const valor = (nombre || 'Recepcionista').trim();
+    return valor.charAt(0).toUpperCase();
+  }
+
+  obtenerCorreoRecepcion(nombre?: string): string {
+    const primerNombre = (nombre || 'recepcionista')
+      .trim()
+      .split(/\s+/)[0]
+      .toLowerCase()
+      .replace(/[^a-z0-9]/g, '') || 'recepcionista';
+
+    return `${primerNombre}@gmail.com`;
   }
 
   get filteredCitas(): Cita[] {
