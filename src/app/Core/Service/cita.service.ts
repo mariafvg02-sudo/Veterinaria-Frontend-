@@ -24,7 +24,7 @@ export class CitaService {
   }
 
   crearCita(cita: Cita): Observable<Cita> {
-    return this.http.post<Cita>(this.apiUrl, cita);
+    return this.http.post<Cita>(`${this.apiUrl}/agendar`, cita);
   }
 
   actualizarCita(id: number, cita: Cita): Observable<Cita> {

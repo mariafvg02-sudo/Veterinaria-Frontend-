@@ -23,6 +23,8 @@ export class RecepcionistaComponent implements OnInit {
   usuario: Usuario | null = null;
   readonly usuario$!: Observable<Usuario | null>;
   citas: Cita[] = [];
+  veterinarios: Usuario[] = [];
+  vetSeleccionadoPorCita: Record<number, number> = {};
   searchTerm = '';
   selectedEstado = 'todos';
   loading = false;
@@ -40,12 +42,9 @@ export class RecepcionistaComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.authService.usuario$.subscribe((usuario) => {
-      this.usuario = usuario;
-    });
+    this.authService.usuario$.subscribe(u => { this.usuario = u; });
 
     const usuarioActual = this.authService.obtenerUsuarioActual();
-
     if (!usuarioActual) {
       this.router.navigate(['/login']);
       return;
@@ -62,6 +61,7 @@ export class RecepcionistaComponent implements OnInit {
     });
 
     this.cargarAgenda();
+    this.cargarVeterinarios();
   }
 
   setActiveTab(tab: 'citas' | 'registro' | 'pagos'): void {
@@ -72,14 +72,12 @@ export class RecepcionistaComponent implements OnInit {
     this.loading = true;
     this.message = null;
     this.citaService.obtenerTodas().pipe(
-      catchError(() => of(this.obtenerCitasDeEjemplo()))
+      catchError(() => of([] as Cita[]))
     ).subscribe({
       next: (citas: Cita[]) => {
-        this.citas = [...citas].sort((a, b) => {
-          const dateA = new Date(`${a.fecha}T${(a as any).hora || '00:00'}`).getTime();
-          const dateB = new Date(`${b.fecha}T${(b as any).hora || '00:00'}`).getTime();
-          return dateA - dateB;
-        });
+        this.citas = [...citas].sort((a, b) =>
+          new Date(a.fecha).getTime() - new Date(b.fecha).getTime()
+        );
         this.loading = false;
         if (this.citas.length === 0) this.message = 'No hay citas programadas.';
       },
@@ -87,6 +85,15 @@ export class RecepcionistaComponent implements OnInit {
         this.loading = false;
         this.message = 'Error al cargar la agenda.';
       }
+    });
+  }
+
+  cargarVeterinarios(): void {
+    this.authService.obtenerTodosLosUsuarios().subscribe({
+      next: (usuarios) => {
+        this.veterinarios = usuarios.filter(u => u.rol === 'VETERINARIO');
+      },
+      error: () => {}
     });
   }
 
@@ -98,32 +105,27 @@ export class RecepcionistaComponent implements OnInit {
 
     this.loading = true;
     const currentUser = this.authService.obtenerUsuarioActual();
+    const recepcionistaId = currentUser?.id ?? currentUser?.userId;
     const citaData: any = {
-      ...this.citaForm.value,
-      usuarioId: currentUser?.id ?? currentUser?.userId ?? 1,
-      mascotaId: Number(this.citaForm.value.mascotaId),
-      veterinarioId: Number(this.citaForm.value.veterinarioId),
+      fecha: `${this.citaForm.value.fecha}T${this.citaForm.value.hora}:00`,
+      motivo: this.citaForm.value.motivo,
       estado: this.citaForm.value.estado,
-      notas: this.citaForm.value.notas || undefined
+      notas: this.citaForm.value.notas || undefined,
+      cliente: { id: Number(this.citaForm.value.mascotaId) },
+      recepcionista: recepcionistaId ? { id: recepcionistaId } : undefined,
+      veterinario: { id: Number(this.citaForm.value.veterinarioId) }
     };
 
     this.citaService.crearCita(citaData).subscribe({
       next: (cita) => {
-        this.citas = [cita, ...this.citas].sort((a, b) => {
-          const dateA = new Date(`${a.fecha}T${(a as any).hora || '00:00'}`).getTime();
-          const dateB = new Date(`${b.fecha}T${(b as any).hora || '00:00'}`).getTime();
-          return dateA - dateB;
-        });
+        this.citas = [cita, ...this.citas].sort((a, b) =>
+          new Date(a.fecha).getTime() - new Date(b.fecha).getTime()
+        );
         this.loading = false;
-        this.message = `Cita para ${cita.motivo} agendada correctamente.`;
+        this.message = `Cita para "${cita.motivo}" agendada correctamente.`;
         this.citaForm.reset({
-          mascotaId: 1,
-          fecha: this.today,
-          hora: '09:00',
-          veterinarioId: 1,
-          motivo: 'Revisión general',
-          estado: 'pendiente',
-          notas: ''
+          mascotaId: 1, fecha: this.today, hora: '09:00',
+          veterinarioId: 1, motivo: 'Revisión general', estado: 'pendiente', notas: ''
         });
       },
       error: () => {
@@ -133,30 +135,62 @@ export class RecepcionistaComponent implements OnInit {
     });
   }
 
+  // AC3: la recepcionista asigna un veterinario a una cita pendiente
+  asignarVeterinario(cita: Cita): void {
+    if (!cita.idCita) return;
+    const vetId = this.vetSeleccionadoPorCita[cita.idCita];
+    if (!vetId) { this.message = 'Selecciona un veterinario primero.'; return; }
+
+    const currentUser = this.authService.obtenerUsuarioActual();
+    const recepcionistaId = currentUser?.id ?? currentUser?.userId;
+
+    const citaActualizada: any = {
+      estado: 'asignada',
+      veterinario: { id: Number(vetId) },
+      recepcionista: recepcionistaId ? { id: recepcionistaId } : undefined
+    };
+
+    this.citaService.actualizarCita(cita.idCita, citaActualizada).subscribe({
+      next: (respuesta) => {
+        this.citas = this.citas.map(c => c.idCita === respuesta.idCita ? respuesta : c);
+        delete this.vetSeleccionadoPorCita[cita.idCita!];
+        this.message = 'Veterinario asignado correctamente.';
+      },
+      error: () => { this.message = 'No se pudo asignar el veterinario.'; }
+    });
+  }
+
   actualizarEstado(cita: Cita, nuevoEstado: Cita['estado']): void {
     if (!cita.idCita) return;
     const citaActualizada: Cita = { ...cita, estado: nuevoEstado };
     this.citaService.actualizarCita(cita.idCita, citaActualizada).subscribe({
       next: (respuesta) => {
-        this.citas = this.citas.map((item) => item.idCita === respuesta.idCita ? respuesta : item);
-        this.message = `La cita de ${respuesta.motivo} pasó a estado ${respuesta.estado}.`;
+        this.citas = this.citas.map(c => c.idCita === respuesta.idCita ? respuesta : c);
+        this.message = `Cita actualizada a estado "${respuesta.estado}".`;
       },
-      error: () => {
-        this.message = 'No se pudo actualizar el estado de la cita.';
-      }
+      error: () => { this.message = 'No se pudo actualizar el estado de la cita.'; }
     });
   }
 
+  // AC6: cancelar con observación obligatoria
   cancelarCita(cita: Cita): void {
-    if (!cita.idCita || !confirm('¿Deseas cancelar esta cita?')) return;
-    this.citaService.cancelarCita(cita.idCita).subscribe({
-      next: () => {
-        this.citas = this.citas.filter((item) => item.idCita !== cita.idCita);
+    if (!cita.idCita) return;
+    const obs = prompt('Ingresa el motivo de la cancelación (obligatorio):');
+    if (obs === null) return;
+    if (!obs.trim()) { alert('Debes ingresar una observación para cancelar.'); return; }
+    if (!confirm('¿Confirmas la cancelación de esta cita?')) return;
+
+    const citaActualizada: any = {
+      estado: 'cancelada',
+      observacionCancelacion: obs.trim()
+    };
+
+    this.citaService.actualizarCita(cita.idCita, citaActualizada).subscribe({
+      next: (respuesta) => {
+        this.citas = this.citas.map(c => c.idCita === respuesta.idCita ? respuesta : c);
         this.message = 'Cita cancelada correctamente.';
       },
-      error: () => {
-        this.message = 'No se pudo cancelar la cita.';
-      }
+      error: () => { this.message = 'No se pudo cancelar la cita.'; }
     });
   }
 
@@ -171,83 +205,34 @@ export class RecepcionistaComponent implements OnInit {
   }
 
   obtenerAvatarInicial(nombre?: string): string {
-    const valor = (nombre || 'Recepcionista').trim();
-    return valor.charAt(0).toUpperCase();
+    return ((nombre || 'R').trim().charAt(0)).toUpperCase();
   }
 
   obtenerCorreoRecepcion(nombre?: string): string {
-    const primerNombre = (nombre || 'recepcionista')
-      .trim()
-      .split(/\s+/)[0]
-      .toLowerCase()
-      .replace(/[^a-z0-9]/g, '') || 'recepcionista';
-
-    return `${primerNombre}@gmail.com`;
+    const p = (nombre || 'recepcionista').trim().split(/\s+/)[0].toLowerCase().replace(/[^a-z0-9]/g, '') || 'recepcionista';
+    return `${p}@gmail.com`;
   }
 
   get filteredCitas(): Cita[] {
-    return this.citas.filter((cita) => {
+    return this.citas.filter(cita => {
       const coincideEstado = this.selectedEstado === 'todos' || cita.estado === this.selectedEstado;
-      const textoBusqueda = `${cita.motivo} ${cita.fecha} ${(cita as any).hora || ''}`.toLowerCase();
-      const coincideBusqueda = !this.searchTerm || textoBusqueda.includes(this.searchTerm.toLowerCase());
+      const texto = `${cita.motivo} ${cita.fecha} ${cita.cliente?.nombre || ''}`.toLowerCase();
+      const coincideBusqueda = !this.searchTerm || texto.includes(this.searchTerm.toLowerCase());
       return coincideEstado && coincideBusqueda;
     });
   }
 
   get stats(): Array<{ label: string; value: number; icon: string }> {
-    const pendientes = this.citas.filter((cita) => cita.estado === 'pendiente').length;
-    const confirmadas = this.citas.filter((cita) => cita.estado === 'confirmada').length;
-    const completadas = this.citas.filter((cita) => cita.estado === 'completada').length;
-    const canceladas = this.citas.filter((cita) => cita.estado === 'cancelada').length;
-
+    const pendientes = this.citas.filter(c => c.estado === 'pendiente').length;
+    const asignadas = this.citas.filter(c => c.estado === 'asignada' || c.estado === 'confirmada').length;
+    const completadas = this.citas.filter(c => c.estado === 'completada').length;
+    const canceladas = this.citas.filter(c => c.estado === 'cancelada').length;
     return [
-      { label: 'Citas registradas', value: this.citas.length, icon: 'fa-calendar-check' },
+      { label: 'Total citas', value: this.citas.length, icon: 'fa-calendar-check' },
       { label: 'Pendientes', value: pendientes, icon: 'fa-hourglass-half' },
-      { label: 'Confirmadas', value: confirmadas, icon: 'fa-circle-check' },
+      { label: 'Asignadas', value: asignadas, icon: 'fa-circle-check' },
       { label: 'Finalizadas', value: completadas, icon: 'fa-stethoscope' },
       { label: 'Canceladas', value: canceladas, icon: 'fa-circle-xmark' }
     ];
-  }
-
-  private obtenerCitasDeEjemplo(): Cita[] {
-    const baseDate = new Date();
-    const tomorrow = new Date(baseDate);
-    tomorrow.setDate(baseDate.getDate() + 1);
-
-    return [
-      {
-        idCita: 1,
-        usuarioId: 101,
-        mascotaId: 11,
-        veterinarioId: 2,
-        fecha: baseDate.toISOString().split('T')[0],
-        hora: '09:30',
-        motivo: 'Vacunación anual',
-        estado: 'confirmada',
-        notas: 'Cliente llegó puntual'
-      } as any,
-      {
-        idCita: 2,
-        usuarioId: 102,
-        mascotaId: 12,
-        veterinarioId: 2,
-        fecha: baseDate.toISOString().split('T')[0],
-        hora: '12:00',
-        motivo: 'Revisión general',
-        estado: 'pendiente',
-        notas: 'Pendiente de confirmación'
-      } as any,
-      {
-        idCita: 3,
-        usuarioId: 103,
-        mascotaId: 13,
-        veterinarioId: 3,
-        fecha: tomorrow.toISOString().split('T')[0],
-        hora: '15:15',
-        motivo: 'Corte de uñas',
-        estado: 'pendiente',
-        notas: 'Primera cita de la tarde'
-      } as any
-    ]
   }
 }

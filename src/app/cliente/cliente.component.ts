@@ -1,6 +1,6 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { ReactiveFormsModule, FormBuilder, FormGroup, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
 import { RouterModule, Router } from '@angular/router';
 import { AuthService, Usuario } from '../Core/Service/auth.service';
 import { MascotaService } from '../Core/Service/mascota.service';
@@ -72,7 +72,9 @@ export class ClienteComponent implements OnInit {
     });
 
     this.citaForm = this.fb.group({
-      fecha: ['', Validators.required],
+      mascotaId: ['', Validators.required],
+      fechaFecha: ['', Validators.required],
+      fechaHora: ['', Validators.required],
       motivo: ['', Validators.required]
     });
   }
@@ -200,7 +202,9 @@ export class ClienteComponent implements OnInit {
       this.mascotaSeleccionada = this.mascotas[0];
     } else if (view === 'nueva-cita') {
       this.citaForm.reset({
-        fecha: '',
+        mascotaId: '',
+        fechaFecha: '',
+        fechaHora: '',
         motivo: ''
       });
     }
@@ -324,10 +328,14 @@ export class ClienteComponent implements OnInit {
       return;
     }
 
+    const fechaISO = `${this.citaForm.value.fechaFecha}T${this.citaForm.value.fechaHora}:00`;
+
     const citaData: Cita = {
-      fecha: this.citaForm.value.fecha,
+      fecha: fechaISO,
       motivo: this.citaForm.value.motivo.trim(),
-      estado: 'pendiente'
+      estado: 'pendiente',
+      cliente: { id: userId, nombre: this.usuario.nombre },
+      mascota: { idMascota: Number(this.citaForm.value.mascotaId) }
     };
 
     this.citaService.validarCupoHorario(citaData.fecha, '').subscribe({
@@ -352,12 +360,20 @@ export class ClienteComponent implements OnInit {
     });
   }
 
+  // AC5: el cliente solo puede cancelar si la cita aún está en estado "pendiente"
   cancelarCita(id: number): void {
+    const cita = this.citas.find(c => c.idCita === id);
+    if (!cita) return;
+
+    if (cita.estado === 'asignada') {
+      alert('No puedes cancelar esta cita porque ya tiene un veterinario asignado.');
+      return;
+    }
+
     if (confirm('¿Deseas cancelar esta cita?')) {
-      this.citaService.cancelarCita(id).subscribe({
-        next: () => {
-          this.cargarDatos();
-        },
+      const citaActualizada: Cita = { ...cita, estado: 'cancelada' };
+      this.citaService.actualizarCita(id, citaActualizada).subscribe({
+        next: () => { this.cargarDatos(); },
         error: (err) => console.error('Error cancelando cita:', err)
       });
     }
@@ -523,6 +539,15 @@ export class ClienteComponent implements OnInit {
     if (!this.proximaCita) return 'No tienes citas próximas';
     return this.formatearFechaCita(this.proximaCita.fecha);
   }
+
+  readonly horariosDisponibles: string[] = (() => {
+    const horarios: string[] = [];
+    for (let h = 7; h <= 20; h++) {
+      horarios.push(`${String(h).padStart(2, '0')}:00`);
+      if (h < 20) horarios.push(`${String(h).padStart(2, '0')}:30`);
+    }
+    return horarios;
+  })();
 
   logout(): void {
     this.authService.logout();

@@ -176,13 +176,17 @@
             <small>{{ cita.fecha | date:'MMM' }}</small>
           </div>
           <div class="cita-info">
-            <strong>Cita agendada</strong>
+            <strong>{{ cita.mascota?.nombre || 'Cita agendada' }}</strong>
             <p>{{ formatearFechaCita(cita.fecha) }}</p>
             <small>{{ cita.motivo }}</small>
+            <small *ngIf="cita.mascota?.especie" class="mascota-especie">{{ cita.mascota?.especie }}</small>
           </div>
           <div class="cita-actions">
             <span class="badge" [ngClass]="getEstadoClase(cita.estado)">{{ getEstadoEtiqueta(cita.estado) }}</span>
-            <button *ngIf="cita.idCita" (click)="cancelarCita(cita.idCita)" class="btn-danger" [disabled]="cita.estado === 'cancelada'" type="button">
+            <button *ngIf="cita.idCita" (click)="cancelarCita(cita.idCita)" class="btn-danger"
+              [disabled]="cita.estado === 'cancelada' || cita.estado === 'asignada' || cita.estado === 'completada'"
+              [title]="cita.estado === 'asignada' ? 'No puedes cancelar: ya tiene veterinario asignado' : ''"
+              type="button">
               Cancelar
             </button>
           </div>
@@ -359,13 +363,49 @@
       </div>
 
       <form [formGroup]="citaForm" (ngSubmit)="crearCita()" class="form form-wide">
+
+        <!-- AC1: selector de mascota -->
         <div class="form-group">
-          <label for="fecha">Fecha y hora</label>
-          <input id="fecha" type="datetime-local" formControlName="fecha" class="form-control">
+          <label for="mascotaId">Mascota <span class="required">*</span></label>
+
+          <ng-container *ngIf="mascotas.length > 0; else sinMascotas">
+            <select id="mascotaId" formControlName="mascotaId" class="form-control">
+              <option value="">— Selecciona una mascota —</option>
+              <option *ngFor="let m of mascotas" [value]="obtenerMascotaId(m)">
+                {{ m.nombre }} · {{ m.especie }}
+              </option>
+            </select>
+            <!-- AC2: mensaje de error si no se seleccionó mascota -->
+            <small class="form-error"
+              *ngIf="citaForm.get('mascotaId')?.invalid && citaForm.get('mascotaId')?.touched">
+              Debes seleccionar una mascota para continuar.
+            </small>
+          </ng-container>
+
+          <ng-template #sinMascotas>
+            <p class="form-error">
+              No tienes mascotas registradas.
+              <button type="button" class="btn-link" (click)="setView('nueva-mascota')">Registra una aquí</button>.
+            </p>
+          </ng-template>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="fechaFecha">Fecha <span class="required">*</span></label>
+            <input id="fechaFecha" type="date" formControlName="fechaFecha" class="form-control">
+          </div>
+          <div class="form-group">
+            <label for="fechaHora">Hora <span class="required">*</span></label>
+            <select id="fechaHora" formControlName="fechaHora" class="form-control">
+              <option value="">— Seleccionar hora —</option>
+              <option *ngFor="let h of horariosDisponibles" [value]="h">{{ h }}</option>
+            </select>
+          </div>
         </div>
 
         <div class="form-group">
-          <label for="motivo">Motivo de la cita</label>
+          <label for="motivo">Motivo de la cita <span class="required">*</span></label>
           <textarea id="motivo" formControlName="motivo" class="form-control" placeholder="Ej: Vacunación, revisión, control general"></textarea>
         </div>
 

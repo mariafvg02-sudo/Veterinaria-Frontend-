@@ -9,7 +9,8 @@
   --white: #ffffff;
 
   display: block;
-  min-height: 100vh;
+  height: 100%;
+  overflow: hidden;
   background: var(--bg);
   color: var(--text);
   font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
@@ -19,7 +20,8 @@
 /* ── LAYOUT ── */
 .admin-layout {
   display: flex;
-  min-height: 100vh;
+  height: 100%;
+  overflow: hidden;
 }
 
 /* ── SIDEBAR ── */
@@ -151,6 +153,7 @@
   padding: 36px 44px;
   display: flex;
   flex-direction: column;
+  overflow-y: auto;
   gap: 0;
 }
 

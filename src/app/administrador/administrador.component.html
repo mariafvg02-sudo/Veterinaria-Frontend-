@@ -1,4 +1,4 @@
-<div class="admin-layout">
+<div class="admin-layout" style="border: 1px solid red;">
 
   <!-- SIDEBAR -->
   <aside class="sidebar">
@@ -13,6 +13,9 @@
       </button>
       <button [class.active]="currentView === 'users'" (click)="setView('users')">
         <i class="fa-solid fa-users"></i> Personal
+      </button>
+      <button [class.active]="currentView === 'citas'" (click)="setView('citas')">
+        <i class="fa-solid fa-calendar-days"></i> Citas
       </button>
       <button [class.active]="currentView === 'create'" (click)="setView('create')">
         <i class="fa-solid fa-user-plus"></i> Nuevo usuario
@@ -44,11 +47,13 @@
       <div>
         <h1>
           {{ currentView === 'users' ? 'Personal' :
+             currentView === 'citas' ? 'Citas' :
              currentView === 'create' ? (editingUserId ? 'Editar usuario' : 'Nuevo usuario') :
              'Panel' }}
         </h1>
         <p class="page-subtitle">
           {{ currentView === 'users' ? (filteredUsuarios.length + ' registros encontrados') :
+             currentView === 'citas' ? (citas.length + ' citas registradas — solo lectura') :
              currentView === 'stats' ? 'Resumen del equipo' :
              (editingUserId ? 'Modifica los datos del usuario' : 'Completa el formulario para registrar personal') }}
         </p>
@@ -138,6 +143,46 @@
                 <i class="fa-solid fa-trash-can"></i>
               </button>
             </td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- ── CITAS (solo lectura, AC4) ── -->
+    <section *ngIf="currentView === 'citas'" class="section-fade">
+      <div *ngIf="cargandoCitas" class="empty-state">
+        <i class="fa-solid fa-spinner fa-spin"></i>
+        <p>Cargando citas...</p>
+      </div>
+
+      <div *ngIf="!cargandoCitas && citas.length === 0" class="empty-state">
+        <i class="fa-solid fa-calendar-xmark"></i>
+        <p>No hay citas registradas.</p>
+      </div>
+
+      <table *ngIf="!cargandoCitas && citas.length > 0" class="data-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Fecha</th>
+            <th>Motivo</th>
+            <th>Estado</th>
+            <th>Cliente</th>
+            <th>Veterinario</th>
+            <th>Recepcionista</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let cita of citas">
+            <td>{{ cita.idCita }}</td>
+            <td>{{ cita.fecha | date:'dd/MM/yyyy HH:mm' }}</td>
+            <td>{{ cita.motivo }}</td>
+            <td>
+              <span class="role-badge" [ngClass]="(cita.estado || '').toLowerCase()">{{ cita.estado }}</span>
+            </td>
+            <td>{{ cita.cliente?.nombre || 'N/D' }}</td>
+            <td>{{ cita.veterinario?.nombre || 'Sin asignar' }}</td>
+            <td>{{ cita.recepcionista?.nombre || '—' }}</td>
           </tr>
         </tbody>
       </table>

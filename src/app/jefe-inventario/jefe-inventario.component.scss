@@ -13,7 +13,8 @@
   --white: #ffffff;
 
   display: block;
-  min-height: 100vh;
+  height: 100%;
+  overflow: hidden;
   background:
     radial-gradient(circle at top left, rgba(139, 106, 82, 0.14), transparent 28%),
     radial-gradient(circle at top right, rgba(47, 111, 94, 0.12), transparent 24%),
@@ -24,8 +25,9 @@
 
 .inventario-dashboard {
   display: flex;
-  min-height: 100vh;
+  height: 100%;
   width: 100%;
+  overflow: hidden;
 }
 
 /* SIDEBAR */
@@ -122,6 +124,7 @@
   flex-direction: column;
   min-width: 0;
   padding: 32px;
+  overflow-y: auto;
 
   .content-header {
     display: flex;

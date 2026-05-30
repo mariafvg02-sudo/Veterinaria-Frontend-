@@ -53,24 +53,50 @@
         <thead>
           <tr>
             <th>Fecha</th>
-            <th>Hora</th>
-            <th>Mascota</th>
+            <th>Cliente</th>
             <th>Motivo</th>
             <th>Estado</th>
+            <th>Veterinario / Asignar</th>
             <th>Acciones</th>
           </tr>
         </thead>
         <tbody>
           <tr *ngFor="let cita of filteredCitas">
-            <td>{{ cita.fecha | date:'dd/MM/yyyy' }}</td>
-            <td>{{ $any(cita).hora }}</td>
-            <td>#{{ $any(cita).mascotaId }}</td>
+            <td>{{ cita.fecha | date:'dd/MM/yyyy HH:mm' }}</td>
+            <td>{{ cita.cliente?.nombre || 'N/D' }}</td>
             <td>{{ cita.motivo }}</td>
             <td><span class="status-badge" [ngClass]="cita.estado">{{ cita.estado }}</span></td>
             <td>
+              <!-- AC3: asignar veterinario si la cita está pendiente -->
+              <ng-container *ngIf="cita.estado === 'pendiente'">
+                <select (change)="vetSeleccionadoPorCita[cita.idCita!] = +$any($event.target).value" style="max-width:130px;">
+                  <option value="0">-- Veterinario --</option>
+                  <option *ngFor="let v of veterinarios" [value]="v.id ?? v.userId">{{ v.nombre }}</option>
+                </select>
+                <button type="button" class="btn-finish" style="margin-left:4px;"
+                  (click)="asignarVeterinario(cita)"
+                  [disabled]="!vetSeleccionadoPorCita[cita.idCita!]">
+                  Asignar
+                </button>
+              </ng-container>
+              <!-- Mostrar vet asignado en otros estados -->
+              <span *ngIf="cita.estado !== 'pendiente'">
+                {{ cita.veterinario?.nombre || 'Sin veterinario' }}
+              </span>
+            </td>
+            <td>
               <div class="action-buttons">
-                <button class="btn-finish" type="button" (click)="actualizarEstado(cita, 'completada')" [disabled]="cita.estado === 'completada' || cita.estado === 'cancelada'">Finalizar</button>
-                <button class="btn-secondary" type="button" (click)="cancelarCita(cita)" [disabled]="cita.estado === 'cancelada'">Cancelar</button>
+                <button class="btn-finish" type="button"
+                  (click)="actualizarEstado(cita, 'completada')"
+                  [disabled]="cita.estado === 'completada' || cita.estado === 'cancelada' || cita.estado === 'pendiente'">
+                  Finalizar
+                </button>
+                <!-- AC6: cancelar con observación -->
+                <button class="btn-secondary" type="button"
+                  (click)="cancelarCita(cita)"
+                  [disabled]="cita.estado === 'cancelada' || cita.estado === 'completada'">
+                  Cancelar
+                </button>
               </div>
             </td>
           </tr>

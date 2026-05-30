@@ -3,6 +3,8 @@ import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { RouterModule, Router } from '@angular/router';
 import { AuthService, Usuario } from '../Core/Service/auth.service';
+import { CitaService } from '../Core/Service/cita.service';
+import { Cita } from '../Models/cita.model';
 
 @Component({
   selector: 'app-administrador',
@@ -23,10 +25,13 @@ export class AdministradorComponent implements OnInit {
   filterText: string = '';
 
   usuariosRegistrados: Usuario[] = [];
+  citas: Cita[] = [];
+  cargandoCitas = false;
 
   constructor(
     private fb: FormBuilder,
     private authService: AuthService,
+    private citaService: CitaService,
     private router: Router
   ) {
     this.userForm = this.fb.group({
@@ -76,6 +81,15 @@ export class AdministradorComponent implements OnInit {
     this.currentView = view;
     this.error = null;
     this.exito = null;
+    if (view === 'citas') this.cargarCitas();
+  }
+
+  cargarCitas(): void {
+    this.cargandoCitas = true;
+    this.citaService.obtenerTodas().subscribe({
+      next: (citas) => { this.citas = citas; this.cargandoCitas = false; },
+      error: () => { this.cargandoCitas = false; }
+    });
   }
 
   onSubmitUser() {

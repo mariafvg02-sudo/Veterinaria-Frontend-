@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
+import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { AuthService } from '../Core/Service/auth.service';
 import { CitaService } from '../Core/Service/cita.service';
 import { Cita } from '../Models/cita.model';
@@ -8,9 +9,9 @@ import { Cita } from '../Models/cita.model';
 @Component({
   selector: 'app-veterinario',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule, ReactiveFormsModule],
   templateUrl: './veterinario.component.html',
-  styleUrls: ['../administrador/administrador.component.scss'] // Reutilizamos estilos
+  styleUrls: ['./veterinario.component.scss']
 })
 export class VeterinarioComponent implements OnInit {
   activeTab: string = 'agenda';
@@ -21,7 +22,8 @@ export class VeterinarioComponent implements OnInit {
     motivo: string;
     paciente?: string;
     dueno?: string;
-    estado: 'Pendiente' | 'En consulta' | 'Completada' | 'Cancelada';
+    estado: 'Pendiente' | 'Asignada' | 'En consulta' | 'Completada' | 'Cancelada';
+    estadoOriginal: string;
   }> = [];
 
   filterText: string = '';
@@ -29,33 +31,47 @@ export class VeterinarioComponent implements OnInit {
   error: string | null = null;
   usuarioId: number | null = null;
 
+  // Modal de procesamiento (AC1, AC2, AC3, AC4)
+  mostrarModalProcesar = false;
+  citaEnProceso: any = null;
+  procesamientoForm!: FormGroup;
+  guardando = false;
+  mensajeExito: string | null = null;
+
   get filteredCitas() {
     const q = (this.filterText || '').trim().toLowerCase();
     if (!q) return this.citasHoy;
-    return this.citasHoy.filter(c => ((c.paciente || '') + ' ' + (c.dueno || '') + ' ' + (c.motivo || '')).toLowerCase().includes(q));
+    return this.citasHoy.filter(c =>
+      ((c.paciente || '') + ' ' + (c.dueno || '') + ' ' + (c.motivo || '')).toLowerCase().includes(q)
+    );
   }
 
   get citasPendientes(): number {
-    return this.citasHoy.filter(cita => cita.estado === 'Pendiente').length;
+    return this.citasHoy.filter(c => c.estado === 'Pendiente').length;
   }
 
-  get citasEnConsulta(): number {
-    return this.citasHoy.filter(cita => cita.estado === 'En consulta').length;
+  get citasAsignadas(): number {
+    return this.citasHoy.filter(c => c.estado === 'Asignada').length;
   }
 
   get citasCompletadas(): number {
-    return this.citasHoy.filter(cita => cita.estado === 'Completada').length;
+    return this.citasHoy.filter(c => c.estado === 'Completada').length;
   }
 
   constructor(
     private authService: AuthService,
     private router: Router,
-    private citaService: CitaService
+    private citaService: CitaService,
+    private fb: FormBuilder
   ) {}
 
   ngOnInit(): void {
     const usuario = this.authService.obtenerUsuarioActual();
-    this.usuarioId = usuario?.userId || null;
+    this.usuarioId = usuario?.id ?? usuario?.userId ?? null;
+    this.procesamientoForm = this.fb.group({
+      diagnostico: ['', [Validators.required, Validators.minLength(1)]],
+      tratamiento: ['', [Validators.required, Validators.minLength(1)]]
+    });
     this.cargarCitas();
   }
 
@@ -73,14 +89,15 @@ export class VeterinarioComponent implements OnInit {
           idCita: cita.idCita,
           fecha: cita.fecha,
           motivo: cita.motivo,
-          paciente: (cita as any).paciente || 'N/A',
-          dueno: (cita as any).dueno || 'N/A',
-          estado: this.normalizarEstado(cita.estado)
+          paciente: cita.cliente?.nombre || 'N/A',
+          dueno: cita.cliente?.correo || 'N/A',
+          estado: this.normalizarEstado(cita.estado),
+          estadoOriginal: cita.estado
         }));
         this.loading = false;
       },
       error: (err) => {
-        console.error('Error cargando citas del veterinario:', err);
+        console.error('Error cargando citas:', err);
         this.error = 'No se pudieron cargar las citas desde el servidor.';
         this.citasHoy = [];
         this.loading = false;
@@ -88,57 +105,95 @@ export class VeterinarioComponent implements OnInit {
     });
   }
 
-  atenderCita(cita: any) {
-    if (!cita.idCita) {
-      alert('La cita no tiene ID para actualizarse.');
+  // AC2: el veterinario se asigna a sí mismo a una cita pendiente
+  asignarme(cita: any) {
+    if (!cita.idCita) { alert('La cita no tiene ID.'); return; }
+    if (!this.usuarioId) { alert('No se pudo obtener tu ID de veterinario.'); return; }
+    if (!confirm(`¿Deseas asignarte a la cita de ${cita.paciente}?`)) return;
+
+    const citaActualizada: any = {
+      estado: 'asignada',
+      veterinario: { id: this.usuarioId }
+    };
+
+    this.citaService.actualizarCita(cita.idCita, citaActualizada).subscribe({
+      next: () => { this.cargarCitas(); },
+      error: () => { alert('No se pudo asignar la cita.'); }
+    });
+  }
+
+  // AC1: abre el modal de procesamiento para una cita asignada
+  abrirModalProcesar(cita: any) {
+    this.citaEnProceso = cita;
+    this.procesamientoForm.reset();
+    this.mensajeExito = null;
+    this.mostrarModalProcesar = true;
+  }
+
+  cerrarModalProcesar() {
+    this.mostrarModalProcesar = false;
+    this.citaEnProceso = null;
+    this.procesamientoForm.reset();
+    this.mensajeExito = null;
+  }
+
+  // AC3, AC4: guarda diagnóstico y tratamiento, actualiza estado a "procesada"
+  guardarProcesamiento() {
+    if (this.procesamientoForm.invalid) {
+      this.procesamientoForm.markAllAsTouched();
       return;
     }
+    if (!this.citaEnProceso?.idCita) return;
 
-    if (!confirm(`Iniciar consulta para ${cita.paciente}?`)) return;
+    this.guardando = true;
+    const { diagnostico, tratamiento } = this.procesamientoForm.value;
 
-    const citaActualizada: Cita = {
-      fecha: cita.fecha,
-      motivo: cita.motivo,
-      estado: 'completada'
+    const citaActualizada: any = {
+      estado: 'completada',
+      diagnostico: diagnostico.trim(),
+      tratamiento: tratamiento.trim()
     };
 
-    this.citaService.actualizarCita(cita.idCita, citaActualizada).subscribe({
+    this.citaService.actualizarCita(this.citaEnProceso.idCita, citaActualizada).subscribe({
       next: () => {
+        this.guardando = false;
+        this.mensajeExito = `Cita de ${this.citaEnProceso.paciente} procesada correctamente.`;
         this.cargarCitas();
+        setTimeout(() => this.cerrarModalProcesar(), 1800);
       },
-      error: (err) => {
-        console.error('Error actualizando cita:', err);
-        alert('No se pudo actualizar la cita.');
+      error: () => {
+        this.guardando = false;
+        alert('No se pudo guardar el procesamiento. Intenta nuevamente.');
       }
     });
   }
 
-  cambiarEstado(cita: any, nuevoEstado: string) {
+  // AC6: el veterinario cancela una cita asignada con observación
+  cancelarConObservacion(cita: any) {
     if (!cita.idCita) return;
-    if (!confirm(`Cambiar estado de ${cita.paciente} a "${nuevoEstado}"?`)) return;
+    const obs = prompt('Ingresa el motivo de la cancelación (obligatorio):');
+    if (obs === null) return;
+    if (!obs.trim()) { alert('Debes ingresar una observación para cancelar.'); return; }
+    if (!confirm('¿Confirmas la cancelación de esta cita?')) return;
 
-    const citaActualizada: Cita = {
-      fecha: cita.fecha,
-      motivo: cita.motivo,
-      estado: this.normalizarEstadoApi(nuevoEstado)
+    const citaActualizada: any = {
+      estado: 'cancelada',
+      observacionCancelacion: obs.trim()
     };
 
     this.citaService.actualizarCita(cita.idCita, citaActualizada).subscribe({
-      next: () => {
-        this.cargarCitas();
-      },
-      error: (err) => {
-        console.error('Error cambiando estado:', err);
-        alert('No se pudo cambiar el estado.');
-      }
+      next: () => { this.cargarCitas(); },
+      error: () => { alert('No se pudo cancelar la cita.'); }
     });
   }
 
-  private normalizarEstado(estado: string): 'Pendiente' | 'En consulta' | 'Completada' | 'Cancelada' {
+  private normalizarEstado(estado: string): 'Pendiente' | 'Asignada' | 'En consulta' | 'Completada' | 'Cancelada' {
     switch ((estado || '').toLowerCase()) {
-      case 'confirmada':
       case 'pendiente':
         return 'Pendiente';
+      case 'asignada':
+      case 'confirmada':
+        return 'Asignada';
       case 'en consulta':
         return 'En consulta';
       case 'completada':
@@ -147,19 +202,6 @@ export class VeterinarioComponent implements OnInit {
         return 'Cancelada';
       default:
         return 'Pendiente';
-    }
-  }
-
-  private normalizarEstadoApi(estado: string): Cita['estado'] {
-    switch ((estado || '').toLowerCase()) {
-      case 'en consulta':
-        return 'confirmada';
-      case 'completada':
-        return 'completada';
-      case 'cancelada':
-        return 'cancelada';
-      default:
-        return 'pendiente';
     }
   }
 
