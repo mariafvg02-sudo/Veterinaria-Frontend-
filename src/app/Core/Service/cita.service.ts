@@ -19,7 +19,6 @@ export class CitaService {
     return this.http.get<Cita[]>(`${this.apiUrl}/usuario/${usuarioId}`);
   }
 
-
   obtenerCitaPorId(id: number): Observable<Cita> {
     return this.http.get<Cita>(`${this.apiUrl}/${id}`);
   }

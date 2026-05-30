@@ -1,13 +1,53 @@
-<div class="recepcionista-root">
-  <h2>Agenda de Recepción</h2>
+<div class="reception-dashboard" *ngIf="usuario">
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-title-bar">
+      <span class="sidebar-section-title">Recepción</span>
+    </div>
 
-  <section class="nuevo-form">
-    <h3>Registrar nueva cita</h3>
-    <form [formGroup]="citaForm" (ngSubmit)="registrarCita()">
-      <label>
-        Fecha
-        <input type="date" formControlName="fecha" />
-      </label>
+    <ng-container *ngIf="usuario$ | async as usuario">
+      <div class="user-card">
+        <div class="user-avatar">{{ obtenerAvatarInicial(usuario?.nombre) }}</div>
+        <div class="user-details">
+          <strong class="user-fullname">{{ usuario.nombre || 'Maria Fernanda' }}</strong>
+          <span class="user-email">{{ obtenerCorreoRecepcion(usuario?.nombre) }}</span>
+        </div>
+      </div>
+    </ng-container>
+
+    <nav class="sidebar-nav">
+      <button type="button" class="menu-item" [class.active]="activeTab === 'citas'" (click)="setActiveTab('citas')">
+        <i class="fa-solid fa-calendar-check"></i> Citas del día
+      </button>
+      <button type="button" class="menu-item" [class.active]="activeTab === 'registro'" (click)="setActiveTab('registro')">
+        <i class="fa-solid fa-plus"></i> Nueva cita
+      </button>
+      <button type="button" class="menu-item" [class.active]="activeTab === 'pagos'" (click)="setActiveTab('pagos')">
+        <i class="fa-solid fa-receipt"></i> Pagos y facturas
+      </button>
+      <button class="menu-item logout" type="button" (click)="logout()">
+        <i class="fa-solid fa-right-from-bracket"></i> Cerrar sesión
+      </button>
+    </nav>
+
+    <div class="sidebar-footer">
+      <button routerLink="/home" class="btn-back">
+        <i class="fa-solid fa-arrow-left"></i> Salir
+      </button>
+    </div>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <main class="main-content">
+    <!-- Vista de Citas -->
+    <section class="dashboard-view" #dashboardSection *ngIf="activeTab === 'citas'">
+      <section class="dashboard-header">
+      <div>
+        <span class="subtitle">Panel de Recepción</span>
+        <h1>Agenda de citas</h1>
+        <p>Controla la atención diaria, registra nuevas citas y actualiza el estado de cada paciente.</p>
+      </div>
+    </section>
 
       <label>
         Hora
@@ -23,19 +63,138 @@
     </form>
   </section>
 
-  <section class="lista-citas">
-    <h3>Próximas citas</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Fecha</th>
+            <th>Hora</th>
+            <th>Mascota</th>
+            <th>Motivo</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let cita of filteredCitas">
+            <td>{{ cita.fecha | date:'dd/MM/yyyy' }}</td>
+            <td>{{ $any(cita).hora }}</td>
+            <td>#{{ $any(cita).mascotaId }}</td>
+            <td>{{ cita.motivo }}</td>
+            <td><span class="status-badge" [ngClass]="cita.estado">{{ cita.estado }}</span></td>
+            <td>
+              <div class="action-buttons">
+                <button class="btn-finish" type="button" (click)="actualizarEstado(cita, 'completada')" [disabled]="cita.estado === 'completada' || cita.estado === 'cancelada'">Finalizar</button>
+                <button class="btn-secondary" type="button" (click)="cancelarCita(cita)" [disabled]="cita.estado === 'cancelada'">Cancelar</button>
+              </div>
+            </td>
+          </tr>
+          <tr *ngIf="filteredCitas.length === 0 && !loading">
+            <td colspan="6" class="empty-row">No hay citas que coincidan con la búsqueda.</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+    </section>
 
-    <div *ngIf="loading">Cargando citas...</div>
-    <p *ngIf="error" class="error">{{ error }}</p>
+    <!-- Vista de Registro (Nueva Cita) -->
+    <section class="info-panel" *ngIf="activeTab === 'registro'">
+      <article class="table-section booking-card">
+        <div class="booking-visual-header">
+          <div class="booking-copy">
+            <span class="subtitle">Agendar cita</span>
+            <h2>Registro rápido de atención</h2>
+            <p>Coordina la consulta con la mascota, el veterinario y los detalles de la atención diaria.</p>
+          </div>
+          <div class="booking-illustration" aria-hidden="true">
+            <svg viewBox="0 0 220 180" role="img" aria-label="Ilustración de mascota">
+              <rect x="14" y="16" width="190" height="148" rx="24" fill="#f8f1eb"/>
+              <circle cx="74" cy="62" r="32" fill="#8d775f"/>
+              <circle cx="74" cy="54" r="10" fill="#fff6ef"/>
+              <path d="M48 68c5 10 19 15 26 15" fill="none" stroke="#6f5a47" stroke-width="6" stroke-linecap="round"/>
+              <path d="M90 90c10 10 24 11 34 0" fill="none" stroke="#6f5a47" stroke-width="6" stroke-linecap="round"/>
+              <circle cx="54" cy="105" r="6" fill="#6f5a47"/>
+              <circle cx="98" cy="105" r="6" fill="#6f5a47"/>
+              <path d="M72 125c12 14 24 14 36 0" fill="none" stroke="#8d775f" stroke-width="7" stroke-linecap="round"/>
+              <rect x="126" y="52" width="52" height="56" rx="18" fill="#ffffff" stroke="#8d775f" stroke-width="4"/>
+              <circle cx="150" cy="80" r="12" fill="#8d775f"/>
+              <path d="M142 104h16" stroke="#8d775f" stroke-width="5" stroke-linecap="round"/>
+              <path d="M126 46c16-10 28-10 44 0" fill="none" stroke="#8d775f" stroke-width="5" stroke-linecap="round"/>
+            </svg>
+          </div>
+        </div>
+        <div class="table-header">
+          <div>
+            <h2>Nueva cita</h2>
+            <span>Registrar atención</span>
+          </div>
+        </div>
 
-    <ul *ngIf="!loading">
-      <li *ngFor="let c of citas">
-        <strong>{{ c.motivo }}</strong>
-        <span>{{ c.fecha }} {{ c.hora || '' }}</span>
-        <span class="estado">{{ c.estado }}</span>
-        <button type="button" (click)="cancelarCita(c.idCita)">Cancelar</button>
-      </li>
-    </ul>
-  </section>
+        <form [formGroup]="citaForm" (ngSubmit)="registrarCita()">
+          <div class="actions-row">
+            <div>
+              <label>Fecha</label>
+              <input type="date" formControlName="fecha">
+            </div>
+            <div>
+              <label>Hora</label>
+              <input type="time" formControlName="hora">
+            </div>
+          </div>
+
+          <div class="actions-row">
+            <div>
+              <label>Mascota (ID)</label>
+              <input type="number" min="1" formControlName="mascotaId">
+            </div>
+            <div>
+              <label>Veterinario</label>
+              <input type="number" min="1" formControlName="veterinarioId">
+            </div>
+          </div>
+
+          <div class="actions-row">
+            <div>
+              <label>Motivo de la cita</label>
+              <input type="text" formControlName="motivo" placeholder="Vacunación, revisión, emergencia">
+            </div>
+            <div>
+              <label>Estado</label>
+              <select formControlName="estado">
+                <option value="pendiente">Pendiente</option>
+                <option value="confirmada">Confirmada</option>
+                <option value="completada">Completada</option>
+                <option value="cancelada">Cancelada</option>
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label>Notas de recepción</label>
+            <textarea formControlName="notas" rows="4" placeholder="Incluye detalles importantes para la atención"></textarea>
+          </div>
+
+          <div class="action-buttons form-actions">
+            <button class="btn-primary" type="submit" [disabled]="loading || citaForm.invalid">Registrar cita</button>
+          </div>
+        </form>
+      </article>
+
+      <article class="info-grid">
+        <div>
+          <h3>Resumen operativo</h3>
+          <p>La agenda está orientada al flujo de recepción: búsqueda rápida, confirmación de citas y cierre de atención.</p>
+        </div>
+        <div>
+          <h4>Recomendación</h4>
+          <p>Revisa las citas pendientes al inicio del turno y marca como finalizadas una vez se complete la atención.</p>
+        </div>
+        <div *ngIf="message" class="message">{{ message }}</div>
+      </article>
+    </section>
+
+    <!-- Vista de Pagos y Facturas -->
+    <section class="info-panel" *ngIf="activeTab === 'pagos'">
+      <app-pagos-facturas></app-pagos-facturas>
+    </section>
+  </main>
 </div>

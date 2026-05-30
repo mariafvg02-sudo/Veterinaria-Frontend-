@@ -53,7 +53,7 @@ export class LoginComponent {
       this.cargando = false;
       
       // Guardamos el rol en el almacenamiento local para que lo lea tu "adminGuard"
-      localStorage.setItem('userRole', 'ADMIN'); 
+      localStorage.setItem('userRole', 'ADMINISTRADOR'); 
       
       // Saltamos directo sin ir al backend
       this.router.navigate(['/administrador']);
@@ -64,15 +64,23 @@ export class LoginComponent {
     this.authService.login(correo, clave).subscribe({
       next: (response) => {
         console.log('Login exitoso, respuesta del servidor:', response);
-        this.cargando = false;
-        // Guardamos también un rol general por si tus otros guardians lo necesitan
-        localStorage.setItem('userRole', response.usuario?.rol?.toUpperCase() || 'CLIENTE');
-        // Normalizamos el rol para aceptar respuestas con o sin guion bajo.
-        const rolUsuario = response.usuario?.rol
-          ?.toUpperCase()
-          .replace(/[_\s-]/g, '');
         
-        switch (rolUsuario) {
+        this.cargando = false;
+        // // Guardamos también un rol general por si tus otros guardians lo necesitan
+        // localStorage.setItem('userRole', response.usuario?.rol?.toUpperCase() || 'CLIENTE');
+        // // Normalizamos el rol para aceptar respuestas con o sin guion bajo.
+        // const rolUsuario = response.usuario?.rol
+        //   ?.toUpperCase()
+        
+        // Normalizamos el rol: elimina espacios y guiones bajos (ej: JEFE_INVENTARIO -> JEFEINVENTARIO)
+        const rolFinal = (response.usuario?.rol || 'CLIENTE')
+          .toUpperCase()
+          .replace(/[_\s-]/g, '');
+
+        // Guardamos el rol YA NORMALIZADO para que los Guards no fallen
+        localStorage.setItem('userRole', rolFinal);
+
+        switch (rolFinal) {
           case 'ADMINISTRADOR':
             this.router.navigate(['/administrador']);
             break;
