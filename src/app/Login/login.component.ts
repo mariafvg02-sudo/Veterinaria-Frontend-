@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -16,11 +16,11 @@ export class LoginComponent {
   showPassword = false;
   cargando = false;
   error: string | null = null;
+  private authService = inject(AuthService);
 
   constructor(
     private fb: FormBuilder,
-    private router: Router,
-    private authService: AuthService
+    private router: Router
   ) {
     this.loginForm = this.fb.group({
       correo: ['', [Validators.required, Validators.email]],
@@ -65,13 +65,8 @@ export class LoginComponent {
       next: (response) => {
         console.log('Login exitoso, respuesta del servidor:', response);
         this.cargando = false;
-        
-<<<<<<< HEAD
         // Guardamos también un rol general por si tus otros guardians lo necesitan
         localStorage.setItem('userRole', response.usuario?.rol?.toUpperCase() || 'CLIENTE');
-
-=======
->>>>>>> 83ec02c7e79424b96afa4ac46cfe360d34cef925
         // Normalizamos el rol para aceptar respuestas con o sin guion bajo.
         const rolUsuario = response.usuario?.rol
           ?.toUpperCase()

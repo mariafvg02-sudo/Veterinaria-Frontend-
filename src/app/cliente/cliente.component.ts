@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { RouterModule, Router } from '@angular/router';
@@ -16,6 +16,12 @@ import { Cita } from '../Models/cita.model';
   styleUrl: './cliente.component.scss'
 })
 export class ClienteComponent implements OnInit {
+  private authService = inject(AuthService);
+  private mascotaService = inject(MascotaService);
+  private citaService = inject(CitaService);
+  private router = inject(Router);
+  private fb = inject(FormBuilder);
+
   usuario: Usuario | null = null;
   mascotas: Mascota[] = [];
   citas: Cita[] = [];
@@ -33,14 +39,6 @@ export class ClienteComponent implements OnInit {
   mascotaForm!: FormGroup;
   citaForm!: FormGroup;
   mascotaEditando: Mascota | null = null;
-
-  constructor(
-    private authService: AuthService,
-    private mascotaService: MascotaService,
-    private citaService: CitaService,
-    private router: Router,
-    private fb: FormBuilder
-  ) {}
 
   ngOnInit(): void {
     try {
@@ -69,7 +67,8 @@ export class ClienteComponent implements OnInit {
       peso: [0, [Validators.required, Validators.min(0)]],
       sexo: ['', Validators.required],
       esterilizado: [false],
-      descripcion: ['']
+      descripcion: [''],
+      vacunas: ['']
     });
 
     this.citaForm = this.fb.group({
@@ -81,8 +80,8 @@ export class ClienteComponent implements OnInit {
   cargarDatos(): void {
     if (!this.usuario) return;
 
-    // Intentamos obtener el ID del usuario de las posibles propiedades (id o Userid)
-    const userId = this.usuario.userId;
+    // Intentamos obtener el ID del usuario de las posibles propiedades del backend.
+    const userId = this.obtenerUsuarioId();
 
     if (!userId) {
       console.error('No se pudo cargar los datos: ID de usuario no encontrado', this.usuario);
@@ -194,7 +193,8 @@ export class ClienteComponent implements OnInit {
         peso: 0,
         sexo: '',
         esterilizado: false,
-        descripcion: ''
+        descripcion: '',
+        vacunas: ''
       });
     } else if (view === 'mascotas' && !this.mascotaSeleccionada && this.mascotas.length > 0) {
       this.mascotaSeleccionada = this.mascotas[0];
@@ -242,6 +242,7 @@ export class ClienteComponent implements OnInit {
       sexo: this.mascotaForm.value.sexo,
       esterilizado: !!this.mascotaForm.value.esterilizado,
       descripcion: this.mascotaForm.value.descripcion?.trim() ?? '',
+      vacunas: this.formatearVacunas(this.mascotaForm.value.vacunas),
       usuarioId: idCliente,
       idCliente,
       id_cliente: idCliente,
@@ -296,7 +297,8 @@ export class ClienteComponent implements OnInit {
       peso: mascota.peso ?? 0,
       sexo: mascota.sexo ?? '',
       esterilizado: mascota.esterilizado ?? false,
-      descripcion: mascota.descripcion ?? ''
+      descripcion: mascota.descripcion ?? '',
+      vacunas: this.formatearVacunasParaFormulario(mascota.vacunas)
     });
     this.setView('editar-mascota');
   }
@@ -362,7 +364,14 @@ export class ClienteComponent implements OnInit {
   }
 
   obtenerUsuarioId(): number | null {
-    return this.usuario?.userId || null;
+    const usuario = this.usuario;
+    const userId = usuario?.userId ?? usuario?.id ?? (usuario as { idUsuario?: number; id_usuario?: number; userid?: number; Userid?: number })?.idUsuario ?? (usuario as { idUsuario?: number; id_usuario?: number; userid?: number; Userid?: number })?.id_usuario ?? (usuario as { idUsuario?: number; id_usuario?: number; userid?: number; Userid?: number })?.userid ?? (usuario as { idUsuario?: number; id_usuario?: number; userid?: number; Userid?: number })?.Userid ?? null;
+
+    if (userId === null || userId === undefined || Number.isNaN(Number(userId))) {
+      return null;
+    }
+
+    return Number(userId);
   }
 
   obtenerMascotaId(mascota?: Mascota | null): number | null {
@@ -391,8 +400,28 @@ export class ClienteComponent implements OnInit {
       id_veterinario: mascota.id_veterinario ?? mascota.idVeterinario ?? null,
       sexo: mascota.sexo ?? '',
       esterilizado: mascota.esterilizado ?? false,
-      descripcion: mascota.descripcion ?? ''
+      descripcion: mascota.descripcion ?? '',
+      vacunas: this.formatearVacunas(mascota.vacunas)
     };
+  }
+
+  formatearVacunas(vacunas: unknown): string[] {
+    if (Array.isArray(vacunas)) {
+      return vacunas.map(vacuna => String(vacuna).trim()).filter(Boolean);
+    }
+
+    if (typeof vacunas === 'string') {
+      return vacunas
+        .split(',')
+        .map(vacuna => vacuna.trim())
+        .filter(Boolean);
+    }
+
+    return [];
+  }
+
+  formatearVacunasParaFormulario(vacunas: unknown): string {
+    return this.formatearVacunas(vacunas).join(', ');
   }
 
   get mascotasMostradas(): Mascota[] {

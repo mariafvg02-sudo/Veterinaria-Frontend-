@@ -9,6 +9,7 @@ export interface Mascota {
   sexo?: 'Macho' | 'Hembra' | string;
   esterilizado?: boolean;
   descripcion?: string;
+  vacunas?: string[]; // lista opcional de vacunas recibidas (p. ej. ['Antirrábica', 'Parvovirus'])
   usuarioId?: number; // ID del cliente propietario
   idCliente?: number;
   id_cliente?: number;
