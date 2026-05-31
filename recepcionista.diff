@@ -1,0 +1,1403 @@
+diff --git a/src/app/recepcionista/recepcionista.component.html b/src/app/recepcionista/recepcionista.component.html
+index ca31378..0e28463 100644
+--- a/src/app/recepcionista/recepcionista.component.html
++++ b/src/app/recepcionista/recepcionista.component.html
+@@ -1,38 +1,207 @@
+-<div class="admin-dashboard">
++<div class="reception-dashboard" *ngIf="usuario">
++  <!-- SIDEBAR -->
+   <aside class="sidebar">
+-    <div class="sidebar-header"><i class="fa-solid fa-concierge-bell"></i> <span>Recepci+¦n</span></div>
++    <div class="sidebar-header">
++      <div class="sidebar-avatar">
++        <i class="fa-solid fa-user"></i>
++      </div>
++      <div class="sidebar-user-meta">
++        <span class="user-role">Recepci+¦n</span>
++        <strong class="user-name">{{ usuario.nombre || 'Recepcionista' }}</strong>
++        <span class="user-email">{{ recepcionistaEmail }}</span>
++      </div>
++    </div>
+     <nav class="sidebar-nav">
+-      <button [class.active]="activeTab === 'agenda'" (click)="setActiveTab('agenda')">
+-        <i class="fa-solid fa-clock"></i> Sala de Espera
++      <button type="button" class="active" (click)="goToDashboard()">
++        <i class="fa-solid fa-house"></i> Dashboard
+       </button>
+-      <button [class.active]="activeTab === 'registro'" (click)="setActiveTab('registro')">
+-        <i class="fa-solid fa-plus"></i> Nueva Cita
++      <button class="logout" type="button" (click)="logout()">
++        <i class="fa-solid fa-right-from-bracket"></i> Cerrar sesi+¦n
+       </button>
+     </nav>
+     <div class="sidebar-footer">
+-      <button routerLink="/home" class="btn-back"><i class="fa-solid fa-arrow-left"></i> Salir</button>
++      <button routerLink="/home" class="btn-back">
++        <i class="fa-solid fa-arrow-left"></i> Volver al Inicio
++      </button>
+     </div>
+   </aside>
+ 
++  <!-- MAIN CONTENT -->
+   <main class="main-content">
+-    <header class="content-header">
+-      <h1>M+¦dulo de Atenci+¦n al Cliente</h1>
+-    </header>
+-
+-    <section *ngIf="activeTab === 'agenda'" class="fade-in">
+-      <div class="stats-grid">
+-        <div class="stat-card">
+-          <div class="stat-icon"><i class="fa-solid fa-user-plus"></i></div>
+-          <div class="stat-data">
+-            <span class="stat-label">En espera</span>
+-            <span class="stat-value">4</span>
+-          </div>
++    <section class="dashboard-view" #dashboardSection>
++      <section class="dashboard-header">
++      <div>
++        <span class="subtitle">Panel de Recepci+¦n</span>
++        <h1>Agenda de citas</h1>
++        <p>Controla la atenci+¦n diaria, registra nuevas citas y actualiza el estado de cada paciente.</p>
++      </div>
++    </section>
++
++    <section class="stats-row">
++      <article class="stat-card" *ngFor="let stat of stats">
++        <div class="stat-icon"><i class="fa-solid" [ngClass]="stat.icon"></i></div>
++        <div>
++          <p class="stat-label">{{ stat.label }}</p>
++          <h2>{{ stat.value }}</h2>
+         </div>
++      </article>
++    </section>
++
++    <section class="actions-row">
++      <div>
++        <label>Buscar cita</label>
++        <input type="text" placeholder="Mascota, motivo o fecha" [(ngModel)]="searchTerm">
+       </div>
+-      <div class="table-container">
+-         <p>Lista de pacientes esperando ser atendidos...</p>
+-         <button class="btn-submit" (click)="registrarLlegada()">Registrar llegada de paciente</button>
++      <div>
++        <label>Filtrar estado</label>
++        <select [(ngModel)]="selectedEstado">
++          <option value="todos">Todos</option>
++          <option value="pendiente">Pendiente</option>
++          <option value="confirmada">Confirmada</option>
++          <option value="completada">Completada</option>
++          <option value="cancelada">Cancelada</option>
++        </select>
+       </div>
++      <div class="action-buttons">
++        <button class="btn-primary" type="button" (click)="cargarAgenda()">Refrescar agenda</button>
++      </div>
++    </section>
++
++    <section class="table-section">
++      <div class="table-header">
++        <div>
++          <h2>Agenda visible</h2>
++          <span>{{ filteredCitas.length }} citas filtradas</span>
++        </div>
++        <span>{{ loading ? 'Cargando...' : 'Actualizado' }}</span>
++      </div>
++
++      <table>
++        <thead>
++          <tr>
++            <th>Fecha</th>
++            <th>Hora</th>
++            <th>Mascota</th>
++            <th>Motivo</th>
++            <th>Estado</th>
++            <th>Acciones</th>
++          </tr>
++        </thead>
++        <tbody>
++          <tr *ngFor="let cita of filteredCitas">
++            <td>{{ cita.fecha | date:'dd/MM/yyyy' }}</td>
++            <td>{{ cita.hora }}</td>
++            <td>#{{ cita.mascotaId }}</td>
++            <td>{{ cita.motivo }}</td>
++            <td><span class="status-badge" [ngClass]="cita.estado">{{ cita.estado }}</span></td>
++            <td>
++              <div class="action-buttons">
++                <button class="btn-finish" type="button" (click)="actualizarEstado(cita, 'completada')" [disabled]="cita.estado === 'completada' || cita.estado === 'cancelada'">Finalizar</button>
++                <button class="btn-secondary" type="button" (click)="cancelarCita(cita)" [disabled]="cita.estado === 'cancelada'">Cancelar</button>
++              </div>
++            </td>
++          </tr>
++          <tr *ngIf="filteredCitas.length === 0 && !loading">
++            <td colspan="6" class="empty-row">No hay citas que coincidan con la b+¦squeda.</td>
++          </tr>
++        </tbody>
++      </table>
++    </section>
++
++    <section class="info-panel">
++      <article class="table-section booking-card">
++        <div class="booking-visual-header">
++          <div class="booking-copy">
++            <span class="subtitle">Agendar cita</span>
++            <h2>Registro r+ípido de atenci+¦n</h2>
++            <p>Coordina la consulta con la mascota, el veterinario y los detalles de la atenci+¦n diaria.</p>
++          </div>
++          <div class="booking-illustration" aria-hidden="true">
++            <svg viewBox="0 0 220 180" role="img" aria-label="Ilustraci+¦n de mascota">
++              <rect x="14" y="16" width="190" height="148" rx="24" fill="#f8f1eb"/>
++              <circle cx="74" cy="62" r="32" fill="#8d775f"/>
++              <circle cx="74" cy="54" r="10" fill="#fff6ef"/>
++              <path d="M48 68c5 10 19 15 26 15" fill="none" stroke="#6f5a47" stroke-width="6" stroke-linecap="round"/>
++              <path d="M90 90c10 10 24 11 34 0" fill="none" stroke="#6f5a47" stroke-width="6" stroke-linecap="round"/>
++              <circle cx="54" cy="105" r="6" fill="#6f5a47"/>
++              <circle cx="98" cy="105" r="6" fill="#6f5a47"/>
++              <path d="M72 125c12 14 24 14 36 0" fill="none" stroke="#8d775f" stroke-width="7" stroke-linecap="round"/>
++              <rect x="126" y="52" width="52" height="56" rx="18" fill="#ffffff" stroke="#8d775f" stroke-width="4"/>
++              <circle cx="150" cy="80" r="12" fill="#8d775f"/>
++              <path d="M142 104h16" stroke="#8d775f" stroke-width="5" stroke-linecap="round"/>
++              <path d="M126 46c16-10 28-10 44 0" fill="none" stroke="#8d775f" stroke-width="5" stroke-linecap="round"/>
++            </svg>
++          </div>
++        </div>
++        <div class="table-header">
++          <div>
++            <h2>Nueva cita</h2>
++            <span>Registrar atenci+¦n</span>
++          </div>
++        </div>
++
++        <form [formGroup]="citaForm" (ngSubmit)="registrarCita()">
++          <div class="actions-row">
++            <div>
++              <label>Fecha</label>
++              <input type="date" formControlName="fecha">
++            </div>
++            <div>
++              <label>Hora</label>
++              <input type="time" formControlName="hora">
++            </div>
++          </div>
++
++          <div class="actions-row">
++            <div>
++              <label>Mascota (ID)</label>
++              <input type="number" min="1" formControlName="mascotaId">
++            </div>
++            <div>
++              <label>Veterinario</label>
++              <input type="number" min="1" formControlName="veterinarioId">
++            </div>
++          </div>
++
++          <div class="actions-row">
++            <div>
++              <label>Motivo de la cita</label>
++              <input type="text" formControlName="motivo" placeholder="Vacunaci+¦n, revisi+¦n, emergencia">
++            </div>
++            <div>
++              <label>Estado</label>
++              <select formControlName="estado">
++                <option value="pendiente">Pendiente</option>
++                <option value="confirmada">Confirmada</option>
++                <option value="completada">Completada</option>
++                <option value="cancelada">Cancelada</option>
++              </select>
++            </div>
++          </div>
++
++          <div>
++            <label>Notas de recepci+¦n</label>
++            <textarea formControlName="notas" rows="4" placeholder="Incluye detalles importantes para la atenci+¦n"></textarea>
++          </div>
++
++          <div class="action-buttons form-actions">
++            <button class="btn-primary" type="submit" [disabled]="loading || citaForm.invalid">Registrar cita</button>
++          </div>
++        </form>
++      </article>
++
++      <article class="info-grid">
++        <div>
++          <h3>Resumen operativo</h3>
++          <p>La agenda est+í orientada al flujo de recepci+¦n: b+¦squeda r+ípida, confirmaci+¦n de citas y cierre de atenci+¦n.</p>
++        </div>
++        <div>
++          <h4>Recomendaci+¦n</h4>
++          <p>Revisa las citas pendientes al inicio del turno y marca como finalizadas una vez se complete la atenci+¦n.</p>
++        </div>
++        <div *ngIf="message" class="message">{{ message }}</div>
++      </article>
++    </section>
+     </section>
+   </main>
+ </div>
+\ No newline at end of file
+diff --git a/src/app/recepcionista/recepcionista.component.scss b/src/app/recepcionista/recepcionista.component.scss
+index 4ee9aab..4b8a2d1 100644
+--- a/src/app/recepcionista/recepcionista.component.scss
++++ b/src/app/recepcionista/recepcionista.component.scss
+@@ -1,14 +1,173 @@
++
+ :host {
++  --primary: #8d775f;
++  --primary-light: #f7f3ef;
++  --bg-main: #fcfaf8;
++  --white: #ffffff;
++  --text-dark: #4a3c31;
++  --text-muted: #9e8e81;
++  --border: #e8e1d9;
++  --shadow: 0 12px 35px rgba(141, 119, 95, 0.12);
+   display: block;
+-  padding: 1.5rem;
+-  background: #f5f5f5;
+   min-height: 100vh;
+-  box-sizing: border-box;
++  background: var(--bg-main);
++  color: var(--text-dark);
++  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+ }
+ 
+ .reception-dashboard {
+-  max-width: 1200px;
+-  margin: 0 auto;
++  display: flex;
++  min-height: 100vh;
++  width: 100%;
++  background-color: var(--bg-main);
++}
++
++.sidebar {
++  width: 275px;
++  background: var(--white);
++  border-right: 1px solid var(--border);
++  display: flex;
++  flex-shrink: 0;
++  flex-direction: column;
++
++  .sidebar-header {
++    padding: 32px 24px 30px;
++    border-bottom: 2px solid var(--primary-light);
++    display: flex;
++    align-items: center;
++    gap: 14px;
++
++    .sidebar-avatar {
++      width: 44px;
++      height: 44px;
++      border-radius: 50%;
++      background: var(--primary-light);
++      display: grid;
++      place-items: center;
++      color: var(--primary);
++      font-size: 1.1rem;
++      flex-shrink: 0;
++    }
++
++    .sidebar-user-meta {
++      display: flex;
++      flex-direction: column;
++      gap: 0.68rem;
++      margin-top: 8px;
++    }
++
++    .user-role {
++      font-size: 0.65rem;
++      font-weight: 800;
++      letter-spacing: 0.14em;
++      text-transform: uppercase;
++      color: var(--text-muted);
++    }
++
++    .user-name {
++      font-size: 1.06rem;
++      font-weight: 800;
++      color: var(--text-dark);
++      margin-top: 2px;
++    }
++
++    .user-email {
++      font-size: 0.82rem;
++      font-weight: 700;
++      color: var(--primary);
++    }
++  }
++
++  .sidebar-nav {
++    flex: 1;
++    padding: 28px 0 20px;
++    button {
++      width: 100%;
++      background: none;
++      border: none;
++      padding: 12px 25px;
++      display: flex;
++      align-items: center;
++      gap: 14px;
++      color: var(--text-dark);
++      font-size: 14px;
++      cursor: pointer;
++      transition: 0.3s;
++      text-align: left;
++      i { width: 20px; color: var(--primary); font-size: 16px; }
++      &:hover { background: var(--primary-light); color: var(--primary); }
++      &.active {
++        background: var(--primary);
++        color: var(--white);
++        margin: 0 15px;
++        border-radius: 12px;
++        width: calc(100% - 30px);
++        i { color: var(--white); }
++      }
++
++      &.sidebar-contact {
++        margin: 0 15px 10px;
++        border-radius: 12px;
++        width: calc(100% - 30px);
++        background: var(--primary-light);
++        color: var(--primary);
++        font-weight: 700;
++        display: flex;
++        align-items: center;
++        gap: 10px;
++        padding: 12px 14px;
++        box-sizing: border-box;
++        cursor: default;
++
++        i { color: var(--primary); width: 20px; font-size: 18px; }
++
++        span {
++          font-size: 0.82rem;
++          white-space: nowrap;
++          overflow: hidden;
++          text-overflow: ellipsis;
++        }
++      }
++
++      &.logout {
++        margin-top: 18px;
++        color: #d9534f;
++        font-weight: 600;
++        border-top: 1px solid var(--primary-light);
++        padding-top: 20px;
++
++        i { color: #d9534f; }
++
++        &:hover {
++          background: #fff5f5;
++        }
++      }
++    }
++  }
++
++  .sidebar-footer {
++    padding: 20px 25px;
++    .btn-back {
++      background: none;
++      border: 1px solid var(--border);
++      color: var(--text-dark);
++      padding: 10px;
++      border-radius: 10px;
++      cursor: pointer;
++      width: 100%;
++      font-weight: 600;
++      transition: 0.3s;
++      &:hover { background: var(--primary-light); color: var(--primary); }
++    }
++  }
++}
++
++.main-content {
++  flex: 1;
++  display: flex;
++  flex-direction: column;
++  min-width: 0;
++  padding: 40px;
+ }
+ 
+ .dashboard-header {
+@@ -16,261 +175,464 @@
+   justify-content: space-between;
+   align-items: flex-start;
+   gap: 1rem;
+-  margin-bottom: 2rem;
+-}
+-
+-.dashboard-header .subtitle {
+-  display: inline-block;
+-  color: #777;
+-  font-size: 0.9rem;
+-  margin-bottom: 0.3rem;
+-  text-transform: uppercase;
+-  letter-spacing: 0.08em;
+-}
++  margin-bottom: 1.5rem;
++
++  .subtitle {
++    display: inline-block;
++    font-size: 0.72rem;
++    font-weight: 800;
++    color: var(--primary);
++    text-transform: uppercase;
++    letter-spacing: 0.14em;
++    margin-bottom: 0.4rem;
++  }
+ 
+-.dashboard-header h1 {
+-  margin: 0;
+-  font-size: clamp(2rem, 2.4vw, 2.4rem);
+-  color: #2c3e50;
+-}
++  h1 {
++    margin: 0;
++    color: var(--text-dark);
++    font-size: clamp(2rem, 2.6vw, 2.4rem);
++    font-weight: 700;
++  }
+ 
+-.dashboard-header p {
+-  margin: 0.7rem 0 0;
+-  color: #4d565f;
+-  max-width: 640px;
++  p {
++    margin: 0.65rem 0 0;
++    max-width: 640px;
++    color: var(--text-muted);
++    line-height: 1.5;
++  }
+ }
+ 
+ .header-actions {
+   display: flex;
++  gap: 0.75rem;
+   align-items: center;
+ }
+ 
++.btn-primary,
+ .btn-secondary,
+-.btn-primary {
++.btn-finish {
+   border: none;
+   border-radius: 12px;
+-  padding: 0.95rem 1.4rem;
+-  font-weight: 600;
++  padding: 0.9rem 1.25rem;
++  font-weight: 700;
+   cursor: pointer;
++  transition: all 0.2s ease;
+ }
+ 
+-.btn-secondary {
+-  background: #ffffff;
+-  color: #34495e;
+-  box-shadow: 0 8px 24px rgba(69, 110, 138, 0.08);
++.btn-primary,
++.btn-finish {
++  background: var(--primary);
++  color: var(--white);
++  box-shadow: var(--shadow);
++
++  &:hover {
++    filter: brightness(0.96);
++  }
+ }
+ 
+-.btn-primary {
+-  background: #2b6cb0;
+-  color: white;
++.btn-secondary {
++  background: var(--white);
++  color: var(--primary);
++  border: 1px solid rgba(141, 119, 95, 0.35);
++
++  &:hover {
++    background: var(--primary-light);
++  }
+ }
+ 
+ .stats-row {
+   display: grid;
+   grid-template-columns: repeat(4, minmax(0, 1fr));
+   gap: 1rem;
+-  margin-bottom: 1.8rem;
++  margin-bottom: 1.5rem;
+ }
+ 
+ .stat-card {
+-  background: #ffffff;
+-  padding: 1.5rem;
+-  border-radius: 18px;
++  background: var(--white);
++  border-radius: 20px;
++  padding: 1.2rem 1.25rem;
+   display: flex;
+   align-items: center;
+   gap: 1rem;
+-  border: 1px solid rgba(48, 80, 172, 0.12);
+-}
+-
+-.stat-icon {
+-  width: 55px;
+-  height: 55px;
+-  display: grid;
+-  place-items: center;
+-  border-radius: 16px;
+-  color: white;
+-  font-size: 1.2rem;
+-}
++  box-shadow: var(--shadow);
++  border-left: 5px solid var(--primary);
++
++  .stat-icon {
++    width: 50px;
++    height: 50px;
++    border-radius: 14px;
++    display: grid;
++    place-items: center;
++    background: var(--primary-light);
++    color: var(--primary);
++    font-size: 1.2rem;
++  }
+ 
+-.stat-label {
+-  font-size: 0.9rem;
+-  color: #6b7280;
+-  margin-bottom: 0.35rem;
+-}
++  .stat-label {
++    margin: 0 0 0.25rem;
++    color: var(--text-muted);
++    font-size: 0.78rem;
++    font-weight: 700;
++    text-transform: uppercase;
++    letter-spacing: 0.08em;
++  }
+ 
+-.stats-row h2 {
+-  margin: 0;
+-  font-size: 2rem;
+-  color: #1f2937;
++  h2 {
++    margin: 0;
++    color: var(--text-dark);
++    font-size: 1.55rem;
++    font-weight: 800;
++  }
+ }
+ 
+ .actions-row {
+   display: grid;
+-  grid-template-columns: 2fr 1fr 1fr;
+-  gap: 1rem;
++  grid-template-columns: 1.6fr 1fr 1fr;
++  gap: 0.9rem;
+   align-items: end;
+-  margin-bottom: 1.8rem;
+-}
+-
+-.actions-row label {
+-  display: block;
+-  margin-bottom: 0.5rem;
+-  color: #475569;
+-  font-weight: 600;
+-}
++  margin-bottom: 1rem;
+ 
+-.actions-row input,
+-.actions-row select {
+-  width: 100%;
+-  padding: 0.95rem 1rem;
+-  border-radius: 14px;
+-  border: 1px solid #d1d5db;
+-  background: white;
+-  color: #111827;
+-}
++  label {
++    display: block;
++    margin-bottom: 0.45rem;
++    color: var(--text-dark);
++    font-weight: 700;
++    font-size: 0.88rem;
++  }
+ 
+-.action-buttons {
+-  display: flex;
+-  gap: 0.75rem;
++  input,
++  select,
++  textarea {
++    width: 100%;
++    box-sizing: border-box;
++    border-radius: 14px;
++    border: 1px solid var(--border);
++    background: var(--white);
++    color: var(--text-dark);
++    padding: 0.95rem 1rem;
++    font-size: 0.95rem;
++    outline: none;
++    transition: border-color 0.2s ease, box-shadow 0.2s ease;
++
++    &:focus {
++      border-color: var(--primary);
++      box-shadow: 0 0 0 4px rgba(141, 119, 95, 0.12);
++    }
++  }
+ }
+ 
+ .table-section {
+-  background: white;
+-  border-radius: 22px;
+-  padding: 1.75rem;
+-  box-shadow: 0 16px 40px rgba(15, 23, 42, 0.05);
+-  border: 1px solid #e5e7eb;
+-}
+-
+-.table-header {
+-  display: flex;
+-  justify-content: space-between;
+-  align-items: center;
+-  margin-bottom: 1rem;
+-}
+-
+-.table-header h2 {
+-  margin: 0;
+-  color: #111827;
+-}
+-
+-.table-header span {
+-  color: #6b7280;
+-  font-weight: 600;
++  background: var(--white);
++  border-radius: 24px;
++  padding: 1.35rem 1.4rem;
++  box-shadow: var(--shadow);
++  border: 1px solid rgba(141, 119, 95, 0.08);
++  margin-bottom: 1.2rem;
++
++  .table-header {
++    display: flex;
++    justify-content: space-between;
++    align-items: center;
++    margin-bottom: 1rem;
++
++    h2 {
++      margin: 0;
++      color: var(--text-dark);
++      font-size: 1.08rem;
++      font-weight: 800;
++    }
++
++    span {
++      color: var(--text-muted);
++      font-size: 0.9rem;
++      font-weight: 700;
++    }
++  }
+ }
+ 
+-table {
++.table-section table {
+   width: 100%;
+   border-collapse: collapse;
+   min-width: 780px;
+ }
+ 
+-th,
+-td {
+-  padding: 1rem 0.9rem;
++.table-section th,
++.table-section td {
+   text-align: left;
+-  border-bottom: 1px solid #e5e7eb;
++  padding: 0.95rem 0.5rem;
++  border-bottom: 1px solid rgba(141, 119, 95, 0.14);
+ }
+ 
+-th {
+-  color: #6b7280;
+-  font-size: 0.9rem;
+-  font-weight: 700;
++.table-section th {
++  color: var(--text-muted);
++  font-size: 0.78rem;
++  font-weight: 800;
++  text-transform: uppercase;
++  letter-spacing: 0.08em;
+ }
+ 
+-td {
+-  color: #334155;
++.table-section td {
++  color: var(--text-dark);
+   font-size: 0.95rem;
+ }
+ 
+ .status-badge {
+   display: inline-flex;
+-  padding: 0.45rem 0.85rem;
++  align-items: center;
++  justify-content: center;
+   border-radius: 999px;
+-  font-size: 0.78rem;
+-  font-weight: 700;
+-}
++  padding: 0.35rem 0.7rem;
++  font-size: 0.7rem;
++  font-weight: 800;
++  text-transform: capitalize;
++
++  &.pendiente {
++    background: #fff6da;
++    color: #b1851e;
++  }
++
++  &.confirmada {
++    background: #e5f6eb;
++    color: #2d7d4d;
++  }
++
++  &.completada,
++  &.finalizada {
++    background: #e7efff;
++    color: #3358bb;
++  }
+ 
+-.status-badge.pendiente {
+-  background: #fef3c7;
+-  color: #92400e;
++  &.cancelada {
++    background: #fde6e6;
++    color: #b14141;
++  }
+ }
+ 
+-.status-badge.confirmada {
+-  background: #d1fae5;
+-  color: #0f766e;
++.empty-row {
++  text-align: center;
++  color: var(--text-muted);
++  padding: 1.2rem 0;
+ }
+ 
+-.status-badge.finalizada {
+-  background: #e0f2fe;
+-  color: #0c4a6e;
++.action-buttons {
++  display: flex;
++  gap: 0.75rem;
++  align-items: center;
+ }
+ 
+ .btn-finish {
+-  border: none;
+-  background: #2563eb;
+-  color: white;
+-  border-radius: 12px;
+-  padding: 0.7rem 1rem;
+-  cursor: pointer;
+-  font-weight: 600;
++  padding: 0.72rem 0.95rem;
+ }
+ 
+-.btn-finish:disabled {
+-  opacity: 0.6;
+-  cursor: not-allowed;
++.form-actions {
++  margin-top: 1rem;
+ }
+ 
+-.empty-row {
+-  text-align: center;
+-  color: #6b7280;
+-  padding: 1.5rem 0;
++.info-panel {
++  display: grid;
++  grid-template-columns: 1.4fr 0.9fr;
++  gap: 1rem;
++  margin-top: 1rem;
+ }
+ 
+-.info-panel {
+-  margin-top: 2rem;
++.info-grid {
+   display: grid;
+-  grid-template-columns: 1.4fr 1fr;
+-  gap: 1.25rem;
++  gap: 0.85rem;
++}
++
++.info-grid article {
++  background: var(--white);
++  border-radius: 20px;
++  padding: 1.1rem 1.15rem;
++  box-shadow: var(--shadow);
++  border: 1px solid rgba(141, 119, 95, 0.08);
++
++  h3, h4 {
++    margin: 0 0 0.5rem;
++    color: var(--text-dark);
++    font-size: 1rem;
++  }
++
++  p {
++    margin: 0;
++    color: var(--text-muted);
++    line-height: 1.55;
++  }
++}
++
++.info-panel textarea {
++  width: 100%;
++  box-sizing: border-box;
++  padding: 0.95rem 1rem;
++  border-radius: 14px;
++  border: 1px solid var(--border);
++  background: var(--white);
++  color: var(--text-dark);
++  resize: vertical;
++  min-height: 110px;
++  margin-top: 0.35rem;
++  outline: none;
++
++  &:focus {
++    border-color: var(--primary);
++    box-shadow: 0 0 0 4px rgba(141, 119, 95, 0.12);
++  }
+ }
+ 
+-.info-panel h3 {
+-  margin: 0 0 0.75rem;
+-  color: #111827;
++.message {
++  margin-top: 1rem;
++  color: #6f5a47;
++  font-weight: 800;
+ }
+ 
+-.info-panel p {
+-  margin: 0;
+-  color: #475569;
+-  line-height: 1.75;
++.booking-card {
++  display: flex;
++  flex-direction: column;
++  gap: 1rem;
+ }
+ 
+-.info-grid {
++.booking-visual-header {
+   display: grid;
++  grid-template-columns: 1.2fr 0.8fr;
+   gap: 1rem;
++  align-items: center;
++  background: linear-gradient(180deg, #fcfaf8, #f8f1eb);
++  border-radius: 22px;
++  padding: 1rem 1rem 0.85rem;
++  border: 1px solid rgba(141, 119, 95, 0.12);
++
++  .booking-copy {
++    .subtitle {
++      display: inline-block;
++      margin-bottom: 0.4rem;
++      font-size: 0.72rem;
++      font-weight: 800;
++      text-transform: uppercase;
++      letter-spacing: 0.14em;
++      color: var(--primary);
++    }
++
++    h2 {
++      margin: 0;
++      color: var(--text-dark);
++      font-size: 1.15rem;
++    }
++
++    p {
++      margin: 0.5rem 0 0;
++      color: var(--text-muted);
++      line-height: 1.5;
++    }
++  }
++
++  .booking-illustration {
++    display: flex;
++    justify-content: center;
++    align-items: center;
++
++    svg {
++      width: 100%;
++      max-width: 240px;
++      height: auto;
++      filter: drop-shadow(0 12px 20px rgba(141, 119, 95, 0.16));
++    }
++  }
+ }
+ 
+-.info-grid article {
+-  background: #ffffff;
+-  border-radius: 18px;
+-  padding: 1.25rem;
+-  border: 1px solid #e5e7eb;
++.profile-view {
++  display: flex;
++  align-items: center;
++  justify-content: center;
++  min-height: 70vh;
+ }
+ 
+-.info-grid h4 {
+-  margin: 0 0 0.5rem;
+-  color: #111827;
++.profile-card {
++  max-width: 760px;
++  width: 100%;
++  background: var(--white);
++  border-radius: 28px;
++  padding: 1.5rem;
++  box-shadow: var(--shadow);
++  border: 1px solid rgba(141, 119, 95, 0.08);
+ }
+ 
+-.info-grid p {
+-  margin: 0;
+-  color: #475569;
++.profile-top {
++  display: flex;
++  align-items: center;
++  gap: 1rem;
++  margin-bottom: 1.25rem;
++
++  .profile-avatar {
++    width: 52px;
++    height: 52px;
++    border-radius: 50%;
++    display: grid;
++    place-items: center;
++    background: var(--primary-light);
++    color: var(--primary);
++    font-size: 1.2rem;
++  }
++
++  h1 {
++    margin: 0;
++    color: var(--text-dark);
++    font-size: 1.7rem;
++  }
++
++  p {
++    margin: 0.35rem 0 0;
++    color: var(--text-muted);
++  }
+ }
+ 
+-.message {
+-  margin-top: 1.5rem;
+-  color: #0f766e;
+-  font-weight: 700;
++.profile-details {
++  display: grid;
++  grid-template-columns: repeat(2, 1fr);
++  gap: 0.85rem;
++  margin-bottom: 1.1rem;
++
++  .detail-item {
++    background: #fffdfb;
++    border: 1px solid rgba(141, 119, 95, 0.14);
++    border-radius: 18px;
++    padding: 0.95rem 1rem;
++    display: flex;
++    flex-direction: column;
++    gap: 0.35rem;
++  }
++
++  .detail-label {
++    color: var(--text-muted);
++    font-size: 0.72rem;
++    font-weight: 800;
++    text-transform: uppercase;
++    letter-spacing: 0.08em;
++  }
++
++  .detail-value {
++    color: var(--text-dark);
++    font-size: 1rem;
++    font-weight: 700;
++  }
++}
++
++.profile-tip {
++  background: linear-gradient(180deg, #fffdfb, #f6f0eb);
++  border-radius: 20px;
++  padding: 1rem 1.1rem;
++  border: 1px solid rgba(141, 119, 95, 0.14);
++
++  h2 {
++    margin: 0 0 0.4rem;
++    color: var(--text-dark);
++    font-size: 1.02rem;
++  }
++
++  p {
++    margin: 0;
++    color: var(--text-muted);
++    line-height: 1.5;
++  }
+ }
+ 
+ @media (max-width: 1040px) {
+@@ -279,6 +641,10 @@ td {
+   .info-panel {
+     grid-template-columns: 1fr;
+   }
++
++  .booking-visual-header {
++    grid-template-columns: 1fr;
++  }
+ }
+ 
+ @media (max-width: 760px) {
+@@ -287,7 +653,12 @@ td {
+     align-items: stretch;
+   }
+ 
+-  table {
++  .profile-details {
++    grid-template-columns: 1fr;
++  }
++
++  .table-section table {
+     min-width: 100%;
+   }
+ }
++
+diff --git a/src/app/recepcionista/recepcionista.component.spec.ts b/src/app/recepcionista/recepcionista.component.spec.ts
+index 2343582..a5c897a 100644
+--- a/src/app/recepcionista/recepcionista.component.spec.ts
++++ b/src/app/recepcionista/recepcionista.component.spec.ts
+@@ -1,4 +1,8 @@
+ import { ComponentFixture, TestBed } from '@angular/core/testing';
++import { Router } from '@angular/router';
++import { of } from 'rxjs';
++import { AuthService } from '../Core/Service/auth.service';
++import { CitaService } from '../Core/Service/cita.service';
+ 
+ import { RecepcionistaComponent } from './recepcionista.component';
+ 
+@@ -6,12 +10,57 @@ describe('RecepcionistaComponent', () => {
+   let component: RecepcionistaComponent;
+   let fixture: ComponentFixture<RecepcionistaComponent>;
+ 
++  const authServiceStub = {
++    obtenerUsuarioActual: jasmine.createSpy('obtenerUsuarioActual').and.returnValue({
++      id: 1,
++      nombre: 'Recepcionista Demo',
++      correo: 'recepcionista@test.com',
++      documentoIdentidad: 123456789,
++      rol: 'RECEPCIONISTA'
++    }),
++    logout: jasmine.createSpy('logout')
++  };
++
++  const citaServiceStub = {
++    obtenerTodas: jasmine.createSpy('obtenerTodas').and.returnValue(of([])),
++    crearCita: jasmine.createSpy('crearCita').and.returnValue(of({
++      idCita: 1,
++      usuarioId: 1,
++      mascotaId: 1,
++      veterinarioId: 1,
++      fecha: '2026-05-29',
++      hora: '09:00',
++      motivo: 'Revisi+¦n general',
++      estado: 'pendiente'
++    })),
++    actualizarCita: jasmine.createSpy('actualizarCita').and.returnValue(of({
++      idCita: 1,
++      usuarioId: 1,
++      mascotaId: 1,
++      veterinarioId: 1,
++      fecha: '2026-05-29',
++      hora: '09:00',
++      motivo: 'Revisi+¦n general',
++      estado: 'completada'
++    })),
++    cancelarCita: jasmine.createSpy('cancelarCita').and.returnValue(of(void 0))
++  };
++
++  const routerStub = {
++    navigate: jasmine.createSpy('navigate')
++  };
++
+   beforeEach(async () => {
+     await TestBed.configureTestingModule({
+-      imports: [RecepcionistaComponent]
++      imports: [RecepcionistaComponent],
++      providers: [
++        { provide: AuthService, useValue: authServiceStub },
++        { provide: CitaService, useValue: citaServiceStub },
++        { provide: Router, useValue: routerStub }
++      ]
+     })
+     .compileComponents();
+-    
++
+     fixture = TestBed.createComponent(RecepcionistaComponent);
+     component = fixture.componentInstance;
+     fixture.detectChanges();
+diff --git a/src/app/recepcionista/recepcionista.component.ts b/src/app/recepcionista/recepcionista.component.ts
+index 28d8a04..d98c078 100644
+--- a/src/app/recepcionista/recepcionista.component.ts
++++ b/src/app/recepcionista/recepcionista.component.ts
+@@ -1,23 +1,241 @@
+-import { Component } from '@angular/core';
++import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
+ import { CommonModule } from '@angular/common';
++import { FormsModule } from '@angular/forms';
+ import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+-import { RouterModule } from '@angular/router';
++import { Router } from '@angular/router';
++import { of } from 'rxjs';
++import { catchError } from 'rxjs/operators';
++import { AuthService, Usuario } from '../Core/Service/auth.service';
++import { CitaService } from '../Core/Service/cita.service';
++import { Cita } from '../Models/cita.model';
+ 
+ @Component({
+   selector: 'app-recepcionista',
+   standalone: true,
+-  imports: [CommonModule, ReactiveFormsModule, RouterModule],
++  imports: [CommonModule, FormsModule, ReactiveFormsModule],
+   templateUrl: './recepcionista.component.html',
+-  styleUrls: ['../administrador/administrador.component.scss']
++  styleUrls: ['./recepcionista.component.scss']
+ })
+-export class RecepcionistaComponent {
+-  activeTab: string = 'agenda';
++export class RecepcionistaComponent implements OnInit {
++  @ViewChild('dashboardSection') dashboardSection?: ElementRef<HTMLElement>;
+ 
+-  setActiveTab(tab: string) {
+-    this.activeTab = tab;
++  usuario: Usuario | null = null;
++  citas: Cita[] = [];
++  searchTerm = '';
++  selectedEstado = 'todos';
++  loading = false;
++  message: string | null = null;
++  citaForm!: FormGroup;
++  today = new Date().toISOString().split('T')[0];
++
++  constructor(
++    private fb: FormBuilder,
++    private authService: AuthService,
++    private citaService: CitaService,
++    private router: Router
++  ) {}
++
++  ngOnInit(): void {
++    this.usuario = this.authService.obtenerUsuarioActual();
++
++    if (!this.usuario) {
++      this.router.navigate(['/login']);
++      return;
++    }
++
++    this.citaForm = this.fb.group({
++      mascotaId: [1, [Validators.required, Validators.min(1)]],
++      fecha: [this.today, Validators.required],
++      hora: ['09:00', Validators.required],
++      veterinarioId: [1, [Validators.required, Validators.min(1)]],
++      motivo: ['Revisi+¦n general', Validators.required],
++      estado: ['pendiente', Validators.required],
++      notas: ['']
++    });
++
++    this.cargarAgenda();
++  }
++
++  cargarAgenda(): void {
++    this.loading = true;
++    this.message = null;
++
++    this.citaService.obtenerTodas().pipe(
++      catchError(() => of(this.obtenerCitasDeEjemplo()))
++    ).subscribe({
++      next: (citas) => {
++        this.citas = [...citas].sort((a, b) => new Date(`${a.fecha}T${a.hora}`).getTime() - new Date(`${b.fecha}T${b.hora}`).getTime());
++        this.loading = false;
++
++        if (this.citas.length === 0) {
++          this.message = 'No hay citas programadas en este momento.';
++        }
++      },
++      error: () => {
++        this.loading = false;
++        this.message = 'No se pudo cargar la agenda. Mostrando datos de ejemplo.';
++      }
++    });
++  }
++
++  registrarCita(): void {
++    if (this.citaForm.invalid) {
++      this.citaForm.markAllAsTouched();
++      return;
++    }
++
++    this.loading = true;
++
++    const citaData: Cita = {
++      ...this.citaForm.value,
++      usuarioId: this.usuario?.id ?? this.usuario?.Userid ?? 1,
++      mascotaId: Number(this.citaForm.value.mascotaId),
++      veterinarioId: Number(this.citaForm.value.veterinarioId),
++      estado: this.citaForm.value.estado as Cita['estado'],
++      notas: this.citaForm.value.notas || undefined
++    };
++
++    this.citaService.crearCita(citaData).subscribe({
++      next: (cita) => {
++        this.citas = [cita, ...this.citas].sort((a, b) => new Date(`${a.fecha}T${a.hora}`).getTime() - new Date(`${b.fecha}T${b.hora}`).getTime());
++        this.loading = false;
++        this.message = `Cita para ${cita.motivo} agendada correctamente.`;
++        this.citaForm.reset({
++          mascotaId: 1,
++          fecha: this.today,
++          hora: '09:00',
++          veterinarioId: 1,
++          motivo: 'Revisi+¦n general',
++          estado: 'pendiente',
++          notas: ''
++        });
++      },
++      error: () => {
++        this.loading = false;
++        this.message = 'No se pudo agendar la cita. Intenta nuevamente.';
++      }
++    });
++  }
++
++  actualizarEstado(cita: Cita, nuevoEstado: Cita['estado']): void {
++    if (!cita.idCita) return;
++
++    const citaActualizada: Cita = {
++      ...cita,
++      estado: nuevoEstado
++    };
++
++    this.citaService.actualizarCita(cita.idCita, citaActualizada).subscribe({
++      next: (respuesta) => {
++        this.citas = this.citas.map((item) => item.idCita === respuesta.idCita ? respuesta : item);
++        this.message = `La cita de ${respuesta.motivo} pas+¦ a estado ${respuesta.estado}.`;
++      },
++      error: () => {
++        this.message = 'No se pudo actualizar el estado de la cita.';
++      }
++    });
+   }
+ 
+-  registrarLlegada() {
+-    alert('Cliente registrado en sala de espera');
++  cancelarCita(cita: Cita): void {
++    if (!cita.idCita || !confirm('-+Deseas cancelar esta cita?')) {
++      return;
++    }
++
++    this.citaService.cancelarCita(cita.idCita).subscribe({
++      next: () => {
++        this.citas = this.citas.filter((item) => item.idCita !== cita.idCita);
++        this.message = 'Cita cancelada correctamente.';
++      },
++      error: () => {
++        this.message = 'No se pudo cancelar la cita.';
++      }
++    });
++  }
++
++  goToDashboard(): void {
++    this.cargarAgenda();
++    this.dashboardSection?.nativeElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
++  }
++
++  get recepcionistaEmail(): string {
++    const firstName = (this.usuario?.nombre || 'recepcionista')
++      .trim()
++      .split(/\s+/)[0]
++      .toLowerCase()
++      .replace(/[^a-z0-9]/g, '');
++
++    return `${firstName}@gmail.com`;
++  }
++
++  logout(): void {
++    this.authService.logout();
++    this.router.navigate(['/login']);
++  }
++
++  get filteredCitas(): Cita[] {
++    return this.citas.filter((cita) => {
++      const coincideEstado = this.selectedEstado === 'todos' || cita.estado === this.selectedEstado;
++      const textoBusqueda = `${cita.motivo} ${cita.fecha} ${cita.hora}`.toLowerCase();
++      const coincideBusqueda = !this.searchTerm || textoBusqueda.includes(this.searchTerm.toLowerCase());
++
++      return coincideEstado && coincideBusqueda;
++    });
++  }
++
++  get stats(): Array<{ label: string; value: number; icon: string }> {
++    const pendientes = this.citas.filter((cita) => cita.estado === 'pendiente').length;
++    const confirmadas = this.citas.filter((cita) => cita.estado === 'confirmada').length;
++    const completadas = this.citas.filter((cita) => cita.estado === 'completada').length;
++    const canceladas = this.citas.filter((cita) => cita.estado === 'cancelada').length;
++
++    return [
++      { label: 'Citas registradas', value: this.citas.length, icon: 'fa-calendar-check' },
++      { label: 'Pendientes', value: pendientes, icon: 'fa-hourglass-half' },
++      { label: 'Confirmadas', value: confirmadas, icon: 'fa-circle-check' },
++      { label: 'Finalizadas', value: completadas, icon: 'fa-stethoscope' },
++      { label: 'Canceladas', value: canceladas, icon: 'fa-circle-xmark' }
++    ];
++  }
++
++  private obtenerCitasDeEjemplo(): Cita[] {
++    const baseDate = new Date();
++    const tomorrow = new Date(baseDate);
++    tomorrow.setDate(baseDate.getDate() + 1);
++
++    return [
++      {
++        idCita: 1,
++        usuarioId: 101,
++        mascotaId: 11,
++        veterinarioId: 2,
++        fecha: baseDate.toISOString().split('T')[0],
++        hora: '09:30',
++        motivo: 'Vacunaci+¦n anual',
++        estado: 'confirmada',
++        notas: 'Cliente lleg+¦ puntual'
++      },
++      {
++        idCita: 2,
++        usuarioId: 102,
++        mascotaId: 12,
++        veterinarioId: 2,
++        fecha: baseDate.toISOString().split('T')[0],
++        hora: '12:00',
++        motivo: 'Revisi+¦n general',
++        estado: 'pendiente',
++        notas: 'Pendiente de confirmaci+¦n'
++      },
++      {
++        idCita: 3,
++        usuarioId: 103,
++        mascotaId: 13,
++        veterinarioId: 3,
++        fecha: tomorrow.toISOString().split('T')[0],
++        hora: '15:15',
++        motivo: 'Corte de u+¦as',
++        estado: 'pendiente',
++        notas: 'Primera cita de la tarde'
++      }
++    ];
+   }
+ }
+\ No newline at end of file

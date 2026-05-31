@@ -14,7 +14,7 @@ export class VeterinarioService {
   }
   // Agregar este método en tu servicio de Angular
   obtenerPorId(id: number): Observable<Veterinario> {
-  return this.http.get<Veterinario>(`${this.url}/${id}`);
+    return this.http.get<Veterinario>(`${this.url}/${id}`);
   }
   guardar(veterinario: Veterinario): Observable<Veterinario> {
     return this.http.post<Veterinario>(this.url, veterinario);
