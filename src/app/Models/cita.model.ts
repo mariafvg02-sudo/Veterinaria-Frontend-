@@ -1,11 +1,34 @@
+export interface CitaUsuario {
+  id?: number;
+  nombre?: string;
+  correo?: string;
+}
+
 export interface Cita {
   idCita?: number;
-  usuarioId: number;
-  mascotaId: number;
-  veterinarioId: number;
-  fecha: string; // formato YYYY-MM-DD
-  hora: string; // formato HH:MM
+  fecha: string;
+  hora?: string;
   motivo: string;
-  estado: 'pendiente' | 'confirmada' | 'cancelada' | 'completada';
+  estado: string;
+  observacionCancelacion?: string;
+  diagnostico?: string;
+  tratamiento?: string;
+
+  // Objetos anidados — vienen del backend en las respuestas
+  cliente?: CitaUsuario;
+  veterinario?: CitaUsuario;
+  recepcionista?: CitaUsuario;
+  mascota?: { idMascota?: number; nombre?: string; especie?: string; raza?: string };
+
+  // IDs planos — usados en formularios y requests legacy
+  usuarioId?: number;
+  clienteId?: number;
+  mascotaId?: number;
+  veterinarioId?: number;
   notas?: string;
+
+  // Nombres para mostrar en la UI
+  clienteNombre?: string;
+  veterinarioNombre?: string;
+  recepcionistaNombre?: string;
 }

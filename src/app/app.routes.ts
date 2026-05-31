@@ -22,7 +22,7 @@ export const routes: Routes = [
   },
   {
     path: 'home',
-    loadComponent: () => import('./Home/home.component').then(m => m.HomeComponent)
+    loadComponent: () => import('./home/home.component').then(m => m.HomeComponent)
   },
   {
     path: 'administrador',
@@ -45,5 +45,9 @@ export const routes: Routes = [
   {
     path: 'veterinario',
     loadComponent: () => import('./Veterinario/veterinario.component').then(m => m.VeterinarioComponent)
+  },
+  {
+    path: 'veterinario/cita/:id',
+    loadComponent: () => import('./Veterinario/cita-detalle/cita-detalle.component').then(m => m.CitaDetalleComponent)
   }
 ];

@@ -211,7 +211,8 @@ export class ClienteComponent implements OnInit {
     }
   }
 
-  getMascotaNombre(mascotaId: number): string {
+  getMascotaNombre(mascotaId: number | undefined): string {
+    if (!mascotaId) return 'Mascota desconocida';
     return this.mascotas.find(m => m.idMascota === mascotaId)?.nombre || 'Mascota desconocida';
   }
 
