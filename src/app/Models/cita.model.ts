@@ -9,9 +9,10 @@ export interface Cita {
   fecha: string;
   hora?: string;
   motivo: string;
-  nombrePropetario?: string;
-  estado: 'pendiente' | 'asignada' | 'confirmada' | 'cancelada' | 'completada';
+  estado: string;
   observacionCancelacion?: string;
+  diagnostico?: string;
+  tratamiento?: string;
 
   // Objetos anidados — vienen del backend en las respuestas
   cliente?: CitaUsuario;
@@ -30,8 +31,4 @@ export interface Cita {
   clienteNombre?: string;
   veterinarioNombre?: string;
   recepcionistaNombre?: string;
-
-  // Datos del procesamiento de la cita
-  diagnostico?: string;
-  tratamiento?: string;
 }

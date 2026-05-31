@@ -1,10 +1,20 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule, Router } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { AuthService } from '../Core/Service/auth.service';
 import { CitaService } from '../Core/Service/cita.service';
 import { Cita } from '../Models/cita.model';
+
+interface CitaRow {
+  idCita?: number;
+  fecha: string;
+  motivo: string;
+  paciente: string;
+  dueno: string;
+  estado: 'Pendiente' | 'Asignada' | 'En consulta' | 'Completada' | 'Cancelada';
+  estadoOriginal: string;
+}
 
 @Component({
   selector: 'app-veterinario',
@@ -16,22 +26,16 @@ import { Cita } from '../Models/cita.model';
 export class VeterinarioComponent implements OnInit {
   activeTab: string = 'agenda';
 
-  citasHoy: Array<{
-    idCita?: number;
-    fecha: string;
-    motivo: string;
-    paciente?: string;
-    dueno?: string;
-    estado: 'Pendiente' | 'Asignada' | 'En consulta' | 'Completada' | 'Cancelada';
-    estadoOriginal: string;
-  }> = [];
+  citasHoy: CitaRow[] = [];
+  historialCitas: CitaRow[] = [];
 
   filterText: string = '';
+  historialFilterText: string = '';
+
   loading = false;
   error: string | null = null;
   usuarioId: number | null = null;
 
-  // Modal de procesamiento (AC1, AC2, AC3, AC4)
   mostrarModalProcesar = false;
   citaEnProceso: any = null;
   procesamientoForm!: FormGroup;
@@ -43,6 +47,14 @@ export class VeterinarioComponent implements OnInit {
     if (!q) return this.citasHoy;
     return this.citasHoy.filter(c =>
       ((c.paciente || '') + ' ' + (c.dueno || '') + ' ' + (c.motivo || '')).toLowerCase().includes(q)
+    );
+  }
+
+  get filteredHistorial() {
+    const q = (this.historialFilterText || '').trim().toLowerCase();
+    if (!q) return this.historialCitas;
+    return this.historialCitas.filter(c =>
+      (c.paciente || '').toLowerCase().includes(q)
     );
   }
 
@@ -67,12 +79,13 @@ export class VeterinarioComponent implements OnInit {
 
   ngOnInit(): void {
     const usuario = this.authService.obtenerUsuarioActual();
-    this.usuarioId = usuario?.id ?? usuario?.userId ?? null;
+    this.usuarioId = usuario?.id ?? usuario?.Userid ?? null;
     this.procesamientoForm = this.fb.group({
       diagnostico: ['', [Validators.required, Validators.minLength(1)]],
       tratamiento: ['', [Validators.required, Validators.minLength(1)]]
     });
     this.cargarCitas();
+    this.cargarHistorial();
   }
 
   setActiveTab(tab: string) {
@@ -85,15 +98,7 @@ export class VeterinarioComponent implements OnInit {
 
     this.citaService.obtenerTodas().subscribe({
       next: (citas) => {
-        this.citasHoy = citas.map(cita => ({
-          idCita: cita.idCita,
-          fecha: cita.fecha,
-          motivo: cita.motivo,
-          paciente: cita.cliente?.nombre || 'N/A',
-          dueno: cita.cliente?.correo || 'N/A',
-          estado: this.normalizarEstado(cita.estado),
-          estadoOriginal: cita.estado
-        }));
+        this.citasHoy = citas.map(cita => this.mapearCita(cita));
         this.loading = false;
       },
       error: (err) => {
@@ -105,7 +110,38 @@ export class VeterinarioComponent implements OnInit {
     });
   }
 
-  // AC2: el veterinario se asigna a sí mismo a una cita pendiente
+  cargarHistorial(): void {
+    if (!this.usuarioId) return;
+
+    this.citaService.obtenerCitasPorVeterinario(this.usuarioId).subscribe({
+      next: (citas) => {
+        this.historialCitas = citas
+          .filter(c => (c.estado || '').toLowerCase() === 'completada')
+          .map(c => this.mapearCita(c));
+      },
+      error: (err) => {
+        console.error('Error cargando historial:', err);
+        this.historialCitas = [];
+      }
+    });
+  }
+
+  private mapearCita(cita: Cita): CitaRow {
+    return {
+      idCita: cita.idCita,
+      fecha: cita.fecha,
+      motivo: cita.motivo,
+      paciente: cita.mascota?.nombre || 'N/A',
+      dueno: cita.cliente?.nombre || 'N/A',
+      estado: this.normalizarEstado(cita.estado),
+      estadoOriginal: cita.estado
+    };
+  }
+
+  verDetalleCita(cita: CitaRow): void {
+    this.router.navigate(['/veterinario/cita', cita.idCita]);
+  }
+
   asignarme(cita: any) {
     if (!cita.idCita) { alert('La cita no tiene ID.'); return; }
     if (!this.usuarioId) { alert('No se pudo obtener tu ID de veterinario.'); return; }
@@ -117,12 +153,11 @@ export class VeterinarioComponent implements OnInit {
     };
 
     this.citaService.actualizarCita(cita.idCita, citaActualizada).subscribe({
-      next: () => { this.cargarCitas(); },
+      next: () => { this.cargarCitas(); this.cargarHistorial(); },
       error: () => { alert('No se pudo asignar la cita.'); }
     });
   }
 
-  // AC1: abre el modal de procesamiento para una cita asignada
   abrirModalProcesar(cita: any) {
     this.citaEnProceso = cita;
     this.procesamientoForm.reset();
@@ -137,7 +172,6 @@ export class VeterinarioComponent implements OnInit {
     this.mensajeExito = null;
   }
 
-  // AC3, AC4: guarda diagnóstico y tratamiento, actualiza estado a "procesada"
   guardarProcesamiento() {
     if (this.procesamientoForm.invalid) {
       this.procesamientoForm.markAllAsTouched();
@@ -159,6 +193,7 @@ export class VeterinarioComponent implements OnInit {
         this.guardando = false;
         this.mensajeExito = `Cita de ${this.citaEnProceso.paciente} procesada correctamente.`;
         this.cargarCitas();
+        this.cargarHistorial();
         setTimeout(() => this.cerrarModalProcesar(), 1800);
       },
       error: () => {
@@ -168,7 +203,6 @@ export class VeterinarioComponent implements OnInit {
     });
   }
 
-  // AC6: el veterinario cancela una cita asignada con observación
   cancelarConObservacion(cita: any) {
     if (!cita.idCita) return;
     const obs = prompt('Ingresa el motivo de la cancelación (obligatorio):');
@@ -182,26 +216,20 @@ export class VeterinarioComponent implements OnInit {
     };
 
     this.citaService.actualizarCita(cita.idCita, citaActualizada).subscribe({
-      next: () => { this.cargarCitas(); },
+      next: () => { this.cargarCitas(); this.cargarHistorial(); },
       error: () => { alert('No se pudo cancelar la cita.'); }
     });
   }
 
   private normalizarEstado(estado: string): 'Pendiente' | 'Asignada' | 'En consulta' | 'Completada' | 'Cancelada' {
     switch ((estado || '').toLowerCase()) {
-      case 'pendiente':
-        return 'Pendiente';
+      case 'pendiente': return 'Pendiente';
       case 'asignada':
-      case 'confirmada':
-        return 'Asignada';
-      case 'en consulta':
-        return 'En consulta';
-      case 'completada':
-        return 'Completada';
-      case 'cancelada':
-        return 'Cancelada';
-      default:
-        return 'Pendiente';
+      case 'confirmada': return 'Asignada';
+      case 'en consulta': return 'En consulta';
+      case 'completada': return 'Completada';
+      case 'cancelada': return 'Cancelada';
+      default: return 'Pendiente';
     }
   }
 

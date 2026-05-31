@@ -1,0 +1,83 @@
+<div class="detalle-page">
+
+  <div class="detalle-header">
+    <button class="btn-back" (click)="volver()">
+      <i class="fa-solid fa-arrow-left"></i> Volver
+    </button>
+    <h1><i class="fa-solid fa-file-medical"></i> Detalle de Consulta</h1>
+  </div>
+
+  <div *ngIf="loading" class="info-card">
+    <p>Cargando información...</p>
+  </div>
+
+  <div *ngIf="error && !loading" class="info-card error">
+    <p>{{ error }}</p>
+  </div>
+
+  <ng-container *ngIf="cita && !loading">
+
+    <!-- Mascota y cliente -->
+    <div class="section-grid">
+      <div class="info-card">
+        <h2><i class="fa-solid fa-paw"></i> Mascota</h2>
+        <div class="info-row">
+          <span class="label">Nombre</span>
+          <span class="value">{{ cita.mascota?.nombre || 'N/A' }}</span>
+        </div>
+        <div class="info-row">
+          <span class="label">Especie</span>
+          <span class="value">{{ cita.mascota?.especie || 'N/A' }}</span>
+        </div>
+        <div class="info-row">
+          <span class="label">Raza</span>
+          <span class="value">{{ cita.mascota?.raza || 'N/A' }}</span>
+        </div>
+      </div>
+
+      <div class="info-card">
+        <h2><i class="fa-solid fa-user"></i> Cliente</h2>
+        <div class="info-row">
+          <span class="label">Nombre</span>
+          <span class="value">{{ cita.cliente?.nombre || 'N/A' }}</span>
+        </div>
+        <div class="info-row">
+          <span class="label">Correo</span>
+          <span class="value">{{ cita.cliente?.correo || 'N/A' }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Datos de la cita -->
+    <div class="info-card">
+      <h2><i class="fa-solid fa-calendar-check"></i> Datos de la Consulta</h2>
+      <div class="info-row">
+        <span class="label">Fecha</span>
+        <span class="value">{{ cita.fecha }}</span>
+      </div>
+      <div class="info-row">
+        <span class="label">Motivo</span>
+        <span class="value">{{ cita.motivo || 'N/A' }}</span>
+      </div>
+      <div class="info-row">
+        <span class="label">Estado</span>
+        <span class="value badge">{{ cita.estado }}</span>
+      </div>
+    </div>
+
+    <!-- Diagnóstico y tratamiento -->
+    <div class="info-card" *ngIf="cita.diagnostico || cita.tratamiento">
+      <h2><i class="fa-solid fa-stethoscope"></i> Resultado Clínico</h2>
+      <div class="info-row column" *ngIf="cita.diagnostico">
+        <span class="label">Diagnóstico</span>
+        <span class="value text-block">{{ cita.diagnostico }}</span>
+      </div>
+      <div class="info-row column" *ngIf="cita.tratamiento">
+        <span class="label">Tratamiento</span>
+        <span class="value text-block">{{ cita.tratamiento }}</span>
+      </div>
+    </div>
+
+  </ng-container>
+
+</div>

@@ -49,5 +49,9 @@ export const routes: Routes = [
   {
     path: 'veterinario',
     loadComponent: () => import('./Veterinario/veterinario.component').then(m => m.VeterinarioComponent)
+  },
+  {
+    path: 'veterinario/cita/:id',
+    loadComponent: () => import('./Veterinario/cita-detalle/cita-detalle.component').then(m => m.CitaDetalleComponent)
   }
 ];

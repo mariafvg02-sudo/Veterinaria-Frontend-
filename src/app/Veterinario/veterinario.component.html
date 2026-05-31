@@ -19,6 +19,7 @@
       <h1>Bienvenido, Dr. Veterinario</h1>
     </header>
 
+    <!-- ===== TAB: AGENDA ===== -->
     <section *ngIf="activeTab === 'agenda'" class="table-container fade-in">
       <div class="table-header"><h2>Citas</h2></div>
 
@@ -63,6 +64,7 @@
           <tr>
             <th>ID</th>
             <th>Fecha y hora</th>
+            <th>Mascota</th>
             <th>Cliente</th>
             <th>Motivo</th>
             <th>Estado</th>
@@ -74,6 +76,7 @@
             <td>{{ cita.idCita }}</td>
             <td>{{ cita.fecha }}</td>
             <td>{{ cita.paciente }}</td>
+            <td>{{ cita.dueno }}</td>
             <td>{{ cita.motivo }}</td>
             <td>
               <span class="role-badge"
@@ -82,21 +85,18 @@
               </span>
             </td>
             <td>
-              <!-- AC2: asignarse si la cita está pendiente -->
               <button class="btn-submit" style="padding:5px 10px;"
                 *ngIf="cita.estado === 'Pendiente'"
                 (click)="asignarme(cita)">
                 Asignarme
               </button>
 
-              <!-- AC1: procesar cita asignada -->
               <button class="btn-submit" style="padding:5px 10px;"
                 *ngIf="cita.estado === 'Asignada'"
                 (click)="abrirModalProcesar(cita)">
                 Procesar
               </button>
 
-              <!-- AC6: cancelar con observación si está asignada -->
               <button class="btn-icon" title="Cancelar con observación"
                 *ngIf="cita.estado === 'Asignada'"
                 (click)="cancelarConObservacion(cita)">
@@ -107,33 +107,47 @@
             </td>
           </tr>
           <tr *ngIf="filteredCitas.length === 0 && !loading">
-            <td colspan="6" style="text-align:center; padding:16px;">No hay citas que coincidan.</td>
+            <td colspan="7" style="text-align:center; padding:16px;">No hay citas que coincidan.</td>
           </tr>
         </tbody>
       </table>
     </section>
 
+    <!-- ===== TAB: HISTORIAS CLÍNICAS ===== -->
     <section *ngIf="activeTab === 'pacientes'" class="fade-in">
-      <div class="stat-card" style="margin-bottom: 12px;">
-        <p>Pacientes e historias clínicas disponibles desde la agenda.</p>
-      </div>
 
       <div class="table-header"><h2>Pacientes atendidos</h2></div>
-      <table class="admin-table" *ngIf="citasCompletadas > 0; else noPacientes">
+
+      <div style="display:flex;gap:12px;align-items:center;margin-bottom:12px">
+        <input type="search" placeholder="Buscar por nombre de mascota"
+          (input)="historialFilterText = $any($event.target).value"
+          aria-label="Buscar por mascota">
+      </div>
+
+      <table class="admin-table" *ngIf="historialCitas.length > 0; else noPacientes">
         <thead>
           <tr>
-            <th>Paciente</th>
-            <th>Dueño</th>
+            <th>Mascota</th>
+            <th>Cliente</th>
+            <th>Fecha de consulta</th>
             <th>Motivo</th>
-            <th>Estado</th>
+            <th>Detalle</th>
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let cita of filteredCitas" [hidden]="cita.estado !== 'Completada'">
+          <tr *ngFor="let cita of filteredHistorial">
             <td>{{ cita.paciente }}</td>
             <td>{{ cita.dueno }}</td>
+            <td>{{ cita.fecha }}</td>
             <td>{{ cita.motivo }}</td>
-            <td><span class="role-badge veterinario">{{ cita.estado }}</span></td>
+            <td>
+              <button class="btn-submit" style="padding:5px 12px;" (click)="verDetalleCita(cita)">
+                <i class="fa-solid fa-eye"></i> Ver detalle
+              </button>
+            </td>
+          </tr>
+          <tr *ngIf="filteredHistorial.length === 0">
+            <td colspan="5" style="text-align:center; padding:16px;">No hay resultados para "{{ historialFilterText }}".</td>
           </tr>
         </tbody>
       </table>
@@ -147,7 +161,7 @@
   </main>
 </div>
 
-<!-- AC2: Modal de procesamiento de cita -->
+<!-- Modal de procesamiento de cita -->
 <div class="modal-overlay" *ngIf="mostrarModalProcesar" (click)="cerrarModalProcesar()">
   <div class="modal-card" (click)="$event.stopPropagation()">
     <div class="modal-header">
@@ -157,10 +171,9 @@
 
     <div class="modal-body">
       <p class="modal-subtitle" *ngIf="citaEnProceso">
-        Paciente: <strong>{{ citaEnProceso.paciente }}</strong> &mdash; Motivo: {{ citaEnProceso.motivo }}
+        Mascota: <strong>{{ citaEnProceso.paciente }}</strong> &mdash; Motivo: {{ citaEnProceso.motivo }}
       </p>
 
-      <!-- AC4: mensaje de éxito -->
       <div class="alert-success" *ngIf="mensajeExito">
         <i class="fa-solid fa-circle-check"></i> {{ mensajeExito }}
       </div>
@@ -175,7 +188,6 @@
             placeholder="Ingrese el diagnóstico de la mascota"
             [class.input-error]="procesamientoForm.get('diagnostico')?.invalid && procesamientoForm.get('diagnostico')?.touched">
           </textarea>
-          <!-- AC3: validación -->
           <span class="error-msg"
             *ngIf="procesamientoForm.get('diagnostico')?.invalid && procesamientoForm.get('diagnostico')?.touched">
             El diagnóstico es obligatorio.
@@ -191,7 +203,6 @@
             placeholder="Ingrese el tratamiento indicado"
             [class.input-error]="procesamientoForm.get('tratamiento')?.invalid && procesamientoForm.get('tratamiento')?.touched">
           </textarea>
-          <!-- AC3: validación -->
           <span class="error-msg"
             *ngIf="procesamientoForm.get('tratamiento')?.invalid && procesamientoForm.get('tratamiento')?.touched">
             El tratamiento es obligatorio.
