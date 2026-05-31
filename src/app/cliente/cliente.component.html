@@ -1,112 +1,412 @@
 <div class="cliente-container" *ngIf="usuario">
-  <!-- SIDEBAR -->
   <aside class="sidebar">
     <div class="sidebar-header">
       <h1><i class="fa-solid fa-paw"></i> VETAPP</h1>
+      <p>Panel del cliente</p>
     </div>
+
+    <div class="sidebar-profile">
+      <span class="profile-avatar">{{ (usuario.nombre || usuario.correo || 'C').charAt(0) | uppercase }}</span>
+      <div>
+        <strong>{{ usuario.nombre || 'Cliente' }}</strong>
+        <small>{{ usuario.correo }}</small>
+      </div>
+    </div>
+
     <nav class="nav-menu">
-      <button (click)="setView('dashboard')" [class.active]="currentView === 'dashboard'" class="nav-btn">
+      <button type="button" (click)="setView('dashboard')" [class.active]="currentView === 'dashboard'" class="nav-btn">
         <i class="fa-solid fa-house"></i> Dashboard
       </button>
-      <button (click)="setView('citas')" [class.active]="currentView === 'citas'" class="nav-btn">
-        <i class="fa-solid fa-calendar"></i> Mis Citas
+      <button type="button" (click)="setView('citas')" [class.active]="currentView === 'citas'" class="nav-btn">
+        <i class="fa-solid fa-calendar-days"></i> Mis Citas
       </button>
-      <button (click)="setView('mascotas')" [class.active]="currentView === 'mascotas'" class="nav-btn">
+      <button type="button" (click)="setView('mascotas')" [class.active]="currentView === 'mascotas'" class="nav-btn">
         <i class="fa-solid fa-paw"></i> Mis Mascotas
       </button>
-      <button (click)="logout()" class="nav-btn logout">
+      <button type="button" (click)="logout()" class="nav-btn logout">
         <i class="fa-solid fa-right-from-bracket"></i> Salir
       </button>
     </nav>
   </aside>
 
-  <!-- MAIN CONTENT -->
   <main class="main-content">
     <header class="header">
-      <h2>Bienvenido(a), {{ usuario.nombre || usuario.correo }}</h2>
+      <div>
+        <span class="header-kicker">Tu espacio de control</span>
+        <h2>Bienvenido(a), {{ usuario.nombre || usuario.correo }}</h2>
+      </div>
+      <button type="button" class="btn-ghost" (click)="setView('nueva-cita')">
+        <i class="fa-solid fa-calendar-plus"></i>
+        Nueva cita
+      </button>
     </header>
 
-    <!-- DASHBOARD VIEW -->
+    <!-- Error banner hidden by default per UX request -->
+    <section class="view-section error-section" *ngIf="false">
+      <div class="error-panel">
+        <div class="error-icon">
+          <i class="fa-solid fa-triangle-exclamation"></i>
+        </div>
+
+        <div class="error-content">
+          <span class="error-kicker">Sincronización temporal</span>
+          <h3>No pudimos actualizar tus mascotas</h3>
+          <p class="error-message">{{ errorCarga }}</p>
+          <p class="error-hint">Puedes reintentar sin salir de esta pantalla. Si había información guardada en caché, seguirá visible mientras se recupera el servicio.</p>
+
+          <div class="error-actions">
+            <button class="btn-primary" type="button" (click)="reintentarCarga()">Reintentar</button>
+            <button class="btn-secondary" type="button" (click)="toggleDetalleError()">
+              {{ mostrarDetalleError ? 'Ocultar detalles' : 'Ver detalles' }}
+            </button>
+          </div>
+
+          <div *ngIf="mostrarDetalleError" class="error-details">
+            <span>Detalle técnico</span>
+            <small>{{ detalleError }}</small>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <section *ngIf="currentView === 'dashboard'" class="view-section">
-      <h3>Dashboard</h3>
-      <div class="stats-grid">
+      <div class="hero-panel">
+        <div>
+          <p class="hero-kicker">Resumen general</p>
+          <h3>Gestiona mascotas y citas desde un solo lugar</h3>
+          <p class="hero-copy">Revisa tus próximos turnos, agrega mascotas y mantén la información lista para atención.</p>
+        </div>
+        <div class="hero-actions">
+          <button type="button" class="btn-primary" (click)="setView('citas')">Ver citas</button>
+          <button type="button" class="btn-secondary" (click)="setView('mascotas')">Ver mascotas</button>
+        </div>
+      </div>
+
+      <div class="stats-grid compact">
         <div class="stat-card">
           <i class="fa-solid fa-dog"></i>
           <div>
-            <p class="stat-label">Mis Mascotas</p>
-            <p class="stat-value">{{ mascotas.length || 0 }}</p>
+            <p class="stat-label">Mascotas registradas</p>
+            <p class="stat-value">{{ mascotas.length }}</p>
+          </div>
+        </div>
+        <div class="stat-card">
+          <i class="fa-solid fa-hashtag"></i>
+          <div>
+            <p class="stat-label">Con veterinario asignado</p>
+            <p class="stat-value">{{ mascotasConVeterinario }}</p>
           </div>
         </div>
         <div class="stat-card">
           <i class="fa-solid fa-calendar-check"></i>
           <div>
-            <p class="stat-label">Próxima Cita</p>
-            <p class="stat-value">{{ proximaCita?.fecha || 'Sin citas' }}</p>
+            <p class="stat-label">Citas pendientes</p>
+            <p class="stat-value">{{ getCitasPorEstado('pendiente') }}</p>
+          </div>
+        </div>
+        <div class="stat-card">
+          <i class="fa-solid fa-clipboard-check"></i>
+          <div>
+            <p class="stat-label">Citas confirmadas</p>
+            <p class="stat-value">{{ getCitasPorEstado('confirmada') }}</p>
           </div>
         </div>
       </div>
+
+      <div class="dashboard-grid">
+        <article class="panel-card highlight-card">
+          <div class="panel-head">
+            <h4>Próxima cita</h4>
+            <span class="badge" [ngClass]="getEstadoClase(proximaCita?.estado)">{{ getEstadoEtiqueta(proximaCita?.estado) }}</span>
+          </div>
+          <ng-container *ngIf="proximaCita; else noProximaCita">
+            <p class="big-date">{{ formatearFechaCita(proximaCita.fecha) }}</p>
+            <p class="panel-copy">{{ proximaCita.motivo }}</p>
+          </ng-container>
+          <ng-template #noProximaCita>
+            <p class="no-data compact">Todavía no tienes una cita agendada.</p>
+            <button type="button" class="btn-primary" (click)="setView('nueva-cita')">Agendar ahora</button>
+          </ng-template>
+        </article>
+
+        <article class="panel-card">
+          <div class="panel-head">
+            <h4>Acciones rápidas</h4>
+          </div>
+          <div class="quick-actions">
+            <button type="button" class="quick-action" (click)="setView('nueva-cita')">
+              <i class="fa-solid fa-calendar-plus"></i>
+              <span>
+                <strong>Agendar cita</strong>
+                <small>Crear un turno nuevo</small>
+              </span>
+            </button>
+            <button type="button" class="quick-action" (click)="setView('nueva-mascota')">
+              <i class="fa-solid fa-folder-plus"></i>
+              <span>
+                <strong>Agregar mascota</strong>
+                <small>Registrar un nuevo paciente</small>
+              </span>
+            </button>
+          </div>
+        </article>
+      </div>
     </section>
 
-    <!-- CITAS VIEW -->
     <section *ngIf="currentView === 'citas'" class="view-section">
       <div class="view-header">
-        <h3>Mis Citas</h3>
-        <button (click)="setView('nueva-cita')" class="btn-primary">
+        <div>
+          <span class="section-kicker">Agenda</span>
+          <h3>Mis Citas</h3>
+        </div>
+        <button (click)="setView('nueva-cita')" class="btn-primary" type="button">
           <i class="fa-solid fa-plus"></i> Nueva Cita
         </button>
       </div>
 
-      <div *ngIf="citas && citas.length > 0; else noCitas" class="citas-list">
-        <div *ngFor="let cita of citas" class="cita-item">
+      <div *ngIf="cargandoCitas" class="empty-state">
+        <i class="fa-solid fa-spinner"></i>
+        <p>Cargando citas...</p>
+      </div>
+
+      <div *ngIf="!cargandoCitas && citas && citas.length > 0; else noCitas" class="citas-list">
+        <article *ngFor="let cita of citas" class="cita-item">
+          <div class="cita-date-pill">
+            <span>{{ cita.fecha | date:'dd' }}</span>
+            <small>{{ cita.fecha | date:'MMM' }}</small>
+          </div>
           <div class="cita-info">
-            <strong>{{ getMascotaNombre(cita.mascotaId) }}</strong>
-            <p>{{ cita.fecha }} - {{ cita.hora }}</p>
+            <strong>{{ cita.mascota?.nombre || 'Cita agendada' }}</strong>
+            <p>{{ formatearFechaCita(cita.fecha) }}</p>
             <small>{{ cita.motivo }}</small>
+            <small *ngIf="cita.mascota?.especie" class="mascota-especie">{{ cita.mascota?.especie }}</small>
           </div>
           <div class="cita-actions">
-            <span class="badge" [ngClass]="'badge-' + cita.estado">{{ cita.estado }}</span>
-            <button *ngIf="cita.idCita" (click)="cancelarCita(cita.idCita)" class="btn-danger" [disabled]="cita.estado === 'cancelada'">
+            <span class="badge" [ngClass]="getEstadoClase(cita.estado)">{{ getEstadoEtiqueta(cita.estado) }}</span>
+            <button *ngIf="cita.idCita" (click)="cancelarCita(cita.idCita)" class="btn-danger"
+              [disabled]="cita.estado === 'cancelada' || cita.estado === 'asignada' || cita.estado === 'completada'"
+              [title]="cita.estado === 'asignada' ? 'No puedes cancelar: ya tiene veterinario asignado' : ''"
+              type="button">
               Cancelar
             </button>
           </div>
-        </div>
+        </article>
       </div>
       <ng-template #noCitas>
-        <p class="no-data">No tienes citas agendadas</p>
+        <div class="empty-state">
+          <i class="fa-solid fa-calendar-days"></i>
+          <p>No tienes citas agendadas</p>
+          <button type="button" class="btn-primary" (click)="setView('nueva-cita')">Programar cita</button>
+        </div>
       </ng-template>
     </section>
 
-    <!-- NUEVA CITA VIEW -->
-    <section *ngIf="currentView === 'nueva-cita'" class="view-section">
+    <section *ngIf="currentView === 'mascotas'" class="view-section">
       <div class="view-header">
-        <button (click)="setView('citas')" class="btn-back">← Volver</button>
-        <h3>Agendar Nueva Cita</h3>
+        <div>
+          <span class="section-kicker">Registro</span>
+          <h3>Mis Mascotas</h3>
+        </div>
+        <button (click)="setView('nueva-mascota')" class="btn-primary" type="button">
+          <i class="fa-solid fa-plus"></i> Agregar Mascota
+        </button>
       </div>
 
-      <form [formGroup]="citaForm" (ngSubmit)="crearCita()" class="form">
+      <div class="filters-bar">
+        <div class="search-box">
+          <i class="fa-solid fa-magnifying-glass"></i>
+          <input
+            type="search"
+            class="form-control search-input"
+            [value]="busquedaMascota"
+            (input)="actualizarBusquedaMascota($event)"
+            placeholder="Buscar por nombre, raza, especie o ID..."
+          >
+        </div>
+        <select class="form-control filter-select" [value]="filtroEspecie" (change)="actualizarFiltroEspecie($event)">
+          <option *ngFor="let especie of especiesDisponibles" [value]="especie">{{ especie }}</option>
+        </select>
+      </div>
+
+      <div *ngIf="cargandoMascotas" class="empty-state">
+        <i class="fa-solid fa-spinner"></i>
+        <p>Cargando mascotas...</p>
+      </div>
+
+      <div class="mascotas-layout" *ngIf="!cargandoMascotas && mascotasMostradas.length > 0; else noMascotas">
+        <div class="mascotas-grid-column">
+          <div class="list-summary">
+            <span>{{ mascotasMostradas.length }} mascota(s) visible(s)</span>
+            <span>{{ filtroEspecie === 'Todas' ? 'Todas las especies' : filtroEspecie }}</span>
+          </div>
+
+          <div class="mascotas-grid">
+            <article
+              *ngFor="let mascota of mascotasMostradas"
+              class="mascota-card"
+              [class.selected]="obtenerMascotaId(mascotaSeleccionada) === obtenerMascotaId(mascota)"
+              (click)="seleccionarMascota(mascota)"
+            >
+              <div class="mascota-header">
+                <div>
+                  <span class="pet-type">{{ getMascotaEtiqueta(mascota) }}</span>
+                  <h4>{{ mascota.nombre }}</h4>
+                </div>
+                <div class="mascota-actions">
+                  <button type="button" class="btn-small" title="Editar" (click)="editarMascota(mascota); $event.stopPropagation()">
+                    <i class="fa-solid fa-pen"></i>
+                  </button>
+                  <button *ngIf="obtenerMascotaId(mascota)" type="button" class="btn-small danger" title="Eliminar" (click)="eliminarMascota(obtenerMascotaId(mascota)!); $event.stopPropagation()">
+                    <i class="fa-solid fa-trash"></i>
+                  </button>
+                </div>
+              </div>
+              <div class="mascota-details">
+                <p><strong>Raza:</strong> {{ mascota.raza || 'Sin dato' }}</p>
+                <p><strong>Edad:</strong> {{ mascota.edad }} años</p>
+                <p><strong>Peso:</strong> {{ mascota.peso }} kg</p>
+                <p><strong>Vacunas:</strong> {{ formatearVacunasParaFormulario(mascota.vacunas) || 'Sin dato' }}</p>
+                <p><strong>ID mascota:</strong> #{{ obtenerMascotaId(mascota) || 'N/D' }}</p>
+                <p><strong>ID cliente:</strong> #{{ obtenerIdCliente(mascota) || 'N/D' }}</p>
+                <p><strong>ID veterinario:</strong> #{{ obtenerIdVeterinario(mascota) || 'Pendiente' }}</p>
+                <p><strong>Asignación:</strong> {{ obtenerIdVeterinario(mascota) ? 'Asignada' : 'Pendiente' }}</p>
+                <p class="description" *ngIf="mascota.descripcion"><strong>Nota:</strong> {{ mascota.descripcion }}</p>
+              </div>
+
+              <div class="mascota-meta-grid">
+                <div>
+                  <span>Sexo</span>
+                  <strong>{{ mascota.sexo || 'Sin dato' }}</strong>
+                </div>
+                <div>
+                  <span>Esterilizado</span>
+                  <strong>{{ mascota.esterilizado ? 'Sí' : 'No' }}</strong>
+                </div>
+              </div>
+            </article>
+          </div>
+        </div>
+
+        <aside class="mascota-detail-panel" *ngIf="mascotaSeleccionada; else sinSeleccion">
+          <span class="section-kicker">Ficha activa</span>
+          <h4>{{ mascotaSeleccionada.nombre }}</h4>
+          <p class="detail-copy">{{ getMascotaResumen(mascotaSeleccionada) }}</p>
+
+          <div class="detail-list">
+            <div>
+              <span>Especie</span>
+              <strong>{{ mascotaSeleccionada.especie || 'Sin dato' }}</strong>
+            </div>
+            <div>
+              <span>Raza</span>
+              <strong>{{ mascotaSeleccionada.raza || 'Sin dato' }}</strong>
+            </div>
+            <div>
+              <span>Edad</span>
+              <strong>{{ mascotaSeleccionada.edad }} años</strong>
+            </div>
+            <div>
+              <span>Peso</span>
+              <strong>{{ mascotaSeleccionada.peso }} kg</strong>
+            </div>
+            <div>
+              <span>Vacunas</span>
+              <strong>{{ formatearVacunasParaFormulario(mascotaSeleccionada.vacunas) || 'Sin dato' }}</strong>
+            </div>
+            <div>
+              <span>ID mascota</span>
+              <strong>#{{ obtenerMascotaId(mascotaSeleccionada) || 'N/D' }}</strong>
+            </div>
+            <div>
+              <span>ID cliente</span>
+              <strong>#{{ obtenerIdCliente(mascotaSeleccionada) || 'N/D' }}</strong>
+            </div>
+            <div>
+              <span>ID veterinario</span>
+              <strong>#{{ obtenerIdVeterinario(mascotaSeleccionada) || 'Pendiente' }}</strong>
+            </div>
+          </div>
+
+          <p class="detail-note" *ngIf="mascotaSeleccionada.descripcion">{{ mascotaSeleccionada.descripcion }}</p>
+
+          <div class="detail-actions">
+            <button type="button" class="btn-primary" (click)="editarMascota(mascotaSeleccionada)">Editar ficha</button>
+            <button type="button" class="btn-secondary" (click)="setView('nueva-cita')">Agendar cita</button>
+          </div>
+        </aside>
+
+        <ng-template #sinSeleccion>
+          <aside class="mascota-detail-panel empty-detail">
+            <i class="fa-solid fa-paw"></i>
+            <h4>Selecciona una mascota</h4>
+            <p>Haz clic en una tarjeta para ver su ficha completa, editarla o agendar una cita.</p>
+          </aside>
+        </ng-template>
+      </div>
+
+      <ng-template #noMascotas>
+        <div class="empty-state">
+          <i class="fa-solid fa-paw"></i>
+          <p>No tienes mascotas registradas o no coinciden con el filtro aplicado</p>
+          <button type="button" class="btn-primary" (click)="setView('nueva-mascota')">Registrar mascota</button>
+        </div>
+      </ng-template>
+    </section>
+
+    <section *ngIf="currentView === 'nueva-cita'" class="view-section">
+      <div class="view-header">
+        <button (click)="setView('citas')" class="btn-back" type="button">← Volver</button>
+        <div>
+          <span class="section-kicker">Agenda</span>
+          <h3>Agendar Nueva Cita</h3>
+        </div>
+      </div>
+
+      <form [formGroup]="citaForm" (ngSubmit)="crearCita()" class="form form-wide">
+
+        <!-- AC1: selector de mascota -->
         <div class="form-group">
-          <label>Mascota</label>
-          <select formControlName="mascotaId" class="form-control">
-            <option value="">Seleccionar mascota</option>
-            <option *ngFor="let mascota of mascotas" [value]="mascota.idMascota">
-              {{ mascota.nombre }}
-            </option>
-          </select>
+          <label for="mascotaId">Mascota <span class="required">*</span></label>
+
+          <ng-container *ngIf="mascotas.length > 0; else sinMascotas">
+            <select id="mascotaId" formControlName="mascotaId" class="form-control">
+              <option value="">— Selecciona una mascota —</option>
+              <option *ngFor="let m of mascotas" [value]="obtenerMascotaId(m)">
+                {{ m.nombre }} · {{ m.especie }}
+              </option>
+            </select>
+            <!-- AC2: mensaje de error si no se seleccionó mascota -->
+            <small class="form-error"
+              *ngIf="citaForm.get('mascotaId')?.invalid && citaForm.get('mascotaId')?.touched">
+              Debes seleccionar una mascota para continuar.
+            </small>
+          </ng-container>
+
+          <ng-template #sinMascotas>
+            <p class="form-error">
+              No tienes mascotas registradas.
+              <button type="button" class="btn-link" (click)="setView('nueva-mascota')">Registra una aquí</button>.
+            </p>
+          </ng-template>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="fechaFecha">Fecha <span class="required">*</span></label>
+            <input id="fechaFecha" type="date" formControlName="fechaFecha" class="form-control">
+          </div>
+          <div class="form-group">
+            <label for="fechaHora">Hora <span class="required">*</span></label>
+            <select id="fechaHora" formControlName="fechaHora" class="form-control">
+              <option value="">— Seleccionar hora —</option>
+              <option *ngFor="let h of horariosDisponibles" [value]="h">{{ h }}</option>
+            </select>
+          </div>
         </div>
 
         <div class="form-group">
-          <label>Fecha</label>
-          <input type="date" formControlName="fecha" class="form-control">
-        </div>
-
-        <div class="form-group">
-          <label>Hora</label>
-          <input type="time" formControlName="hora" class="form-control">
-        </div>
-
-        <div class="form-group">
-          <label>Motivo de la Cita</label>
-          <textarea formControlName="motivo" class="form-control" placeholder="Ej: Vacunación, revisión, etc."></textarea>
+          <label for="motivo">Motivo de la cita <span class="required">*</span></label>
+          <textarea id="motivo" formControlName="motivo" class="form-control" placeholder="Ej: Vacunación, revisión, control general"></textarea>
         </div>
 
         <div class="form-actions">
@@ -117,100 +417,87 @@
       </form>
     </section>
 
-    <!-- MASCOTAS VIEW -->
-    <section *ngIf="currentView === 'mascotas'" class="view-section">
-      <div class="view-header">
-        <h3>Mis Mascotas</h3>
-        <button (click)="setView('nueva-mascota')" class="btn-primary">
-          <i class="fa-solid fa-plus"></i> Agregar Mascota
-        </button>
-      </div>
-
-      <div *ngIf="mascotas && mascotas.length > 0; else noMascotas" class="mascotas-grid">
-        <div *ngFor="let mascota of mascotas" class="mascota-card">
-          <div class="mascota-header">
-            <h4>{{ mascota.nombre }}</h4>
-            <div class="mascota-actions">
-              <button (click)="editarMascota(mascota)" class="btn-small" title="Editar">
-                <i class="fa-solid fa-edit"></i>
-              </button>
-              <button *ngIf="mascota.idMascota" (click)="eliminarMascota(mascota.idMascota)" class="btn-small danger" title="Eliminar">
-                <i class="fa-solid fa-trash"></i>
-              </button>
-            </div>
-          </div>
-          <div class="mascota-details">
-            <p><strong>Especie:</strong> {{ mascota.especie }}</p>
-            <p><strong>Raza:</strong> {{ mascota.raza }}</p>
-            <p><strong>Edad:</strong> {{ mascota.edad }} años</p>
-            <p><strong>Peso:</strong> {{ mascota.peso }} kg</p>
-            <p><strong>Sexo:</strong> {{ mascota.sexo }}</p>
-          </div>
-        </div>
-      </div>
-      <ng-template #noMascotas>
-        <p class="no-data">No tienes mascotas registradas</p>
-      </ng-template>
-    </section>
-
-    <!-- NUEVA/EDITAR MASCOTA VIEW -->
     <section *ngIf="currentView === 'nueva-mascota' || currentView === 'editar-mascota'" class="view-section">
       <div class="view-header">
-        <button (click)="setView('mascotas')" class="btn-back">← Volver</button>
-        <h3>{{ currentView === 'nueva-mascota' ? 'Agregar Mascota' : 'Editar Mascota' }}</h3>
+        <button (click)="setView('mascotas')" class="btn-back" type="button">← Volver</button>
+        <div>
+          <span class="section-kicker">Registro</span>
+          <h3>{{ currentView === 'nueva-mascota' ? 'Agregar Mascota' : 'Editar Mascota' }}</h3>
+        </div>
       </div>
 
-      <form [formGroup]="mascotaForm" (ngSubmit)="guardarMascota()" class="form">
+      <form [formGroup]="mascotaForm" (ngSubmit)="guardarMascota()" class="form form-wide">
+        <div class="form-info">
+          <i class="fa-solid fa-circle-info"></i>
+          <p>
+            El cliente se toma automáticamente desde tu sesión y el veterinario se asigna desde el backend o recepción.
+            Los datos editables aquí son los que sí puedes completar desde esta vista.
+          </p>
+        </div>
+
         <div class="form-group">
-          <label>Nombre</label>
-          <input type="text" formControlName="nombre" class="form-control" placeholder="Nombre de la mascota">
+          <label for="nombre">Nombre</label>
+          <input id="nombre" type="text" formControlName="nombre" class="form-control" placeholder="Nombre de la mascota">
         </div>
 
         <div class="form-row">
           <div class="form-group">
-            <label>Especie</label>
-            <select formControlName="especie" class="form-control">
-        
+            <label for="especie">Especie</label>
+            <select id="especie" formControlName="especie" class="form-control">
+              <option value="">Seleccionar</option>
               <option value="Canino">Canino</option>
               <option value="Felino">Felino</option>
-        
             </select>
           </div>
           <div class="form-group">
-            <label>Raza</label>
-            <input type="text" formControlName="raza" class="form-control" placeholder="Raza">
+            <label for="raza">Raza</label>
+            <input id="raza" type="text" formControlName="raza" class="form-control" placeholder="Raza">
           </div>
         </div>
 
         <div class="form-row">
           <div class="form-group">
-            <label>Edad (años)</label>
-            <input type="number" formControlName="edad" class="form-control" min="0">
+            <label for="edad">Edad (años)</label>
+            <input id="edad" type="number" formControlName="edad" class="form-control" min="0">
           </div>
           <div class="form-group">
-            <label>Peso (kg)</label>
-            <input type="number" formControlName="peso" class="form-control" min="0" step="0.1">
+            <label for="peso">Peso (kg)</label>
+            <input id="peso" type="number" formControlName="peso" class="form-control" min="0" step="0.1">
           </div>
         </div>
 
         <div class="form-row">
           <div class="form-group">
-            <label>Sexo</label>
-            <select formControlName="sexo" class="form-control">
+            <label for="sexo">Sexo</label>
+            <select id="sexo" formControlName="sexo" class="form-control">
               <option value="">Seleccionar</option>
               <option value="Macho">Macho</option>
               <option value="Hembra">Hembra</option>
             </select>
           </div>
-          <div class="form-group">
-            <label>¿Esterilizado?</label>
-            <input type="checkbox" formControlName="esterilizado" class="form-checkbox">
+          <div class="form-group checkbox-group">
+            <label for="esterilizado">¿Esterilizado?</label>
+            <div class="checkbox-row">
+              <input id="esterilizado" type="checkbox" formControlName="esterilizado" class="form-checkbox">
+              <span>Marcar si ya fue esterilizado</span>
+            </div>
           </div>
         </div>
 
         <div class="form-group">
-          <label>Descripción</label>
-          <textarea formControlName="descripcion" class="form-control" placeholder="Información adicional"></textarea>
+          <label for="descripcion">Descripción</label>
+          <textarea id="descripcion" formControlName="descripcion" class="form-control" placeholder="Información adicional"></textarea>
+        </div>
+
+        <div class="form-group">
+          <label for="vacunas">Vacunas</label>
+          <textarea
+            id="vacunas"
+            formControlName="vacunas"
+            class="form-control"
+            placeholder="Ej: Antirrábica, Parvovirus, Moquillo"
+          ></textarea>
+          <small class="form-help">Separa cada vacuna con coma. Este dato se guarda junto con la mascota.</small>
         </div>
 
         <div class="form-actions">

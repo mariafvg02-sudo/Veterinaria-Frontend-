@@ -41,9 +41,19 @@
             <span class="slide-badge">{{ slide.badge }}</span>
             <h2 class="slide-title">{{ slide.title }}</h2>
             <p class="slide-description">{{ slide.description }}</p>
-            <div class="slide-actions">
-              <button class="cta-button" routerLink="/servicios">Solicitar Cita</button>
-              <button class="cta-button outline" routerLink="/servicios">Nuestros Servicios</button>
+
+            <div class="slide-summary">
+              <section class="summary-card">
+                <h3>Servicios</h3>
+                <ul>
+                  <li *ngFor="let service of slide.services">{{ service }}</li>
+                </ul>
+              </section>
+
+              <section class="summary-card summary-card--highlight">
+                <h3>Descuento destacado</h3>
+                <p>{{ slide.discount }}</p>
+              </section>
             </div>
           </div>
         </article>

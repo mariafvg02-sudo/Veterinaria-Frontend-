@@ -44,7 +44,7 @@
                 },
                 {
                   "type": "anyComponentStyle",
-                  "maximumWarning": "10kb",
+                  "maximumWarning": "15kb",
                   "maximumError": "20kb"
                 }
               ],
@@ -102,6 +102,6 @@
     }
   },
   "cli": {
-    "analytics": "2d113918-3c4d-405f-942b-ab6c1d2930b2"
+    "analytics": "6c80da89-1ddf-44e8-8411-f9a15737dd88"
   }
 }

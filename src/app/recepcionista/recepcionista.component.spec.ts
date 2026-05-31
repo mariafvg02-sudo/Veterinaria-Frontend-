@@ -27,6 +27,46 @@ describe('RecepcionistaComponent', () => {
   let component: RecepcionistaComponent;
   let fixture: ComponentFixture<RecepcionistaComponent>;
 
+  const authServiceStub = {
+    obtenerUsuarioActual: jasmine.createSpy('obtenerUsuarioActual').and.returnValue({
+      id: 1,
+      nombre: 'Recepcionista Demo',
+      correo: 'recepcionista@test.com',
+      documentoIdentidad: 123456789,
+      rol: 'RECEPCIONISTA'
+    }),
+    logout: jasmine.createSpy('logout')
+  };
+
+  const citaServiceStub = {
+    obtenerTodas: jasmine.createSpy('obtenerTodas').and.returnValue(of([])),
+    crearCita: jasmine.createSpy('crearCita').and.returnValue(of({
+      idCita: 1,
+      usuarioId: 1,
+      mascotaId: 1,
+      veterinarioId: 1,
+      fecha: '2026-05-29',
+      hora: '09:00',
+      motivo: 'Revisión general',
+      estado: 'pendiente'
+    })),
+    actualizarCita: jasmine.createSpy('actualizarCita').and.returnValue(of({
+      idCita: 1,
+      usuarioId: 1,
+      mascotaId: 1,
+      veterinarioId: 1,
+      fecha: '2026-05-29',
+      hora: '09:00',
+      motivo: 'Revisión general',
+      estado: 'completada'
+    })),
+    cancelarCita: jasmine.createSpy('cancelarCita').and.returnValue(of(void 0))
+  };
+
+  const routerStub = {
+    navigate: jasmine.createSpy('navigate')
+  };
+
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [RecepcionistaComponent],
@@ -35,7 +75,8 @@ describe('RecepcionistaComponent', () => {
         { provide: CitaService, useValue: citaServiceStub },
         { provide: Router, useValue: routerStub }
       ]
-    }).compileComponents();
+    })
+    .compileComponents();
 
     fixture = TestBed.createComponent(RecepcionistaComponent);
     component = fixture.componentInstance;

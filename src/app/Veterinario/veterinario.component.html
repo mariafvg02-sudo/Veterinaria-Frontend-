@@ -10,7 +10,7 @@
       </button>
     </nav>
     <div class="sidebar-footer">
-      <button routerLink="/home" class="btn-back"><i class="fa-solid fa-arrow-left"></i> Cerrar Sesión</button>
+      <button type="button" (click)="logout()" class="btn-back"><i class="fa-solid fa-arrow-left"></i> Cerrar Sesión</button>
     </div>
   </aside>
 
@@ -20,33 +20,194 @@
     </header>
 
     <section *ngIf="activeTab === 'agenda'" class="table-container fade-in">
-      <div class="table-header"><h2>Citas del Día</h2></div>
+      <div class="table-header"><h2>Citas</h2></div>
+
+      <div class="stats-grid" style="margin-bottom: 12px;">
+        <div class="stat-card">
+          <div class="stat-icon"><i class="fa-solid fa-clock"></i></div>
+          <div class="stat-data">
+            <span class="stat-label">Pendientes</span>
+            <span class="stat-value">{{ citasPendientes }}</span>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon"><i class="fa-solid fa-stethoscope"></i></div>
+          <div class="stat-data">
+            <span class="stat-label">Asignadas</span>
+            <span class="stat-value">{{ citasAsignadas }}</span>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon"><i class="fa-solid fa-circle-check"></i></div>
+          <div class="stat-data">
+            <span class="stat-label">Completadas</span>
+            <span class="stat-value">{{ citasCompletadas }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:flex;gap:12px;align-items:center;margin-bottom:8px">
+        <input type="search" placeholder="Buscar por paciente, dueño o motivo"
+          (input)="filterText = $any($event.target).value" aria-label="Buscar citas">
+      </div>
+
+      <div *ngIf="loading" class="stat-card" style="margin-bottom: 12px;">
+        <p>Cargando citas...</p>
+      </div>
+      <div *ngIf="error && !loading" class="stat-card" style="margin-bottom: 12px;">
+        <p>{{ error }}</p>
+      </div>
+
       <table class="admin-table">
         <thead>
           <tr>
-            <th>Hora</th>
-            <th>Paciente</th>
+            <th>ID</th>
+            <th>Fecha y hora</th>
+            <th>Cliente</th>
             <th>Motivo</th>
             <th>Estado</th>
             <th>Acciones</th>
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let cita of citasHoy">
-            <td>{{ cita.hora }}</td>
-            <td>{{ cita.paciente }} <span>({{ cita.dueno }})</span></td>
+          <tr *ngFor="let cita of filteredCitas">
+            <td>{{ cita.idCita }}</td>
+            <td>{{ cita.fecha }}</td>
+            <td>{{ cita.paciente }}</td>
             <td>{{ cita.motivo }}</td>
-            <td><span class="role-badge" [ngClass]="cita.estado === 'En consulta' ? 'veterinario' : 'recepcionista'">{{ cita.estado }}</span></td>
             <td>
-              <button class="btn-submit" style="padding: 5px 10px;" (click)="atenderCita(cita)">Atender</button>
+              <span class="role-badge"
+                [ngClass]="cita.estado === 'Asignada' ? 'veterinario' : (cita.estado === 'Completada' ? 'administrador' : 'recepcionista')">
+                {{ cita.estado }}
+              </span>
             </td>
+            <td>
+              <!-- AC2: asignarse si la cita está pendiente -->
+              <button class="btn-submit" style="padding:5px 10px;"
+                *ngIf="cita.estado === 'Pendiente'"
+                (click)="asignarme(cita)">
+                Asignarme
+              </button>
+
+              <!-- AC1: procesar cita asignada -->
+              <button class="btn-submit" style="padding:5px 10px;"
+                *ngIf="cita.estado === 'Asignada'"
+                (click)="abrirModalProcesar(cita)">
+                Procesar
+              </button>
+
+              <!-- AC6: cancelar con observación si está asignada -->
+              <button class="btn-icon" title="Cancelar con observación"
+                *ngIf="cita.estado === 'Asignada'"
+                (click)="cancelarConObservacion(cita)">
+                Cancelar
+              </button>
+
+              <span *ngIf="cita.estado === 'Completada' || cita.estado === 'Cancelada'" class="text-muted">—</span>
+            </td>
+          </tr>
+          <tr *ngIf="filteredCitas.length === 0 && !loading">
+            <td colspan="6" style="text-align:center; padding:16px;">No hay citas que coincidan.</td>
           </tr>
         </tbody>
       </table>
     </section>
 
     <section *ngIf="activeTab === 'pacientes'" class="fade-in">
-      <div class="stat-card"><p>Buscador de pacientes e historias clínicas en desarrollo...</p></div>
+      <div class="stat-card" style="margin-bottom: 12px;">
+        <p>Pacientes e historias clínicas disponibles desde la agenda.</p>
+      </div>
+
+      <div class="table-header"><h2>Pacientes atendidos</h2></div>
+      <table class="admin-table" *ngIf="citasCompletadas > 0; else noPacientes">
+        <thead>
+          <tr>
+            <th>Paciente</th>
+            <th>Dueño</th>
+            <th>Motivo</th>
+            <th>Estado</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let cita of filteredCitas" [hidden]="cita.estado !== 'Completada'">
+            <td>{{ cita.paciente }}</td>
+            <td>{{ cita.dueno }}</td>
+            <td>{{ cita.motivo }}</td>
+            <td><span class="role-badge veterinario">{{ cita.estado }}</span></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <ng-template #noPacientes>
+        <div class="stat-card">
+          <p>Aún no hay consultas completadas para mostrar.</p>
+        </div>
+      </ng-template>
     </section>
   </main>
+</div>
+
+<!-- AC2: Modal de procesamiento de cita -->
+<div class="modal-overlay" *ngIf="mostrarModalProcesar" (click)="cerrarModalProcesar()">
+  <div class="modal-card" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3><i class="fa-solid fa-stethoscope"></i> Procesar Cita</h3>
+      <button class="modal-close" (click)="cerrarModalProcesar()" aria-label="Cerrar">&times;</button>
+    </div>
+
+    <div class="modal-body">
+      <p class="modal-subtitle" *ngIf="citaEnProceso">
+        Paciente: <strong>{{ citaEnProceso.paciente }}</strong> &mdash; Motivo: {{ citaEnProceso.motivo }}
+      </p>
+
+      <!-- AC4: mensaje de éxito -->
+      <div class="alert-success" *ngIf="mensajeExito">
+        <i class="fa-solid fa-circle-check"></i> {{ mensajeExito }}
+      </div>
+
+      <form [formGroup]="procesamientoForm" (ngSubmit)="guardarProcesamiento()" *ngIf="!mensajeExito">
+        <div class="form-group">
+          <label for="diagnostico">Diagnóstico <span class="required">*</span></label>
+          <textarea
+            id="diagnostico"
+            formControlName="diagnostico"
+            rows="3"
+            placeholder="Ingrese el diagnóstico de la mascota"
+            [class.input-error]="procesamientoForm.get('diagnostico')?.invalid && procesamientoForm.get('diagnostico')?.touched">
+          </textarea>
+          <!-- AC3: validación -->
+          <span class="error-msg"
+            *ngIf="procesamientoForm.get('diagnostico')?.invalid && procesamientoForm.get('diagnostico')?.touched">
+            El diagnóstico es obligatorio.
+          </span>
+        </div>
+
+        <div class="form-group">
+          <label for="tratamiento">Tratamiento <span class="required">*</span></label>
+          <textarea
+            id="tratamiento"
+            formControlName="tratamiento"
+            rows="3"
+            placeholder="Ingrese el tratamiento indicado"
+            [class.input-error]="procesamientoForm.get('tratamiento')?.invalid && procesamientoForm.get('tratamiento')?.touched">
+          </textarea>
+          <!-- AC3: validación -->
+          <span class="error-msg"
+            *ngIf="procesamientoForm.get('tratamiento')?.invalid && procesamientoForm.get('tratamiento')?.touched">
+            El tratamiento es obligatorio.
+          </span>
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" class="btn-icon" (click)="cerrarModalProcesar()" [disabled]="guardando">
+            Cancelar
+          </button>
+          <button type="submit" class="btn-submit" [disabled]="guardando">
+            <span *ngIf="!guardando">Guardar</span>
+            <span *ngIf="guardando">Guardando...</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
 </div>

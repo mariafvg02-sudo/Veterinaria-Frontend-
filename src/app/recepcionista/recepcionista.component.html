@@ -1,34 +1,46 @@
 <div class="reception-dashboard" *ngIf="usuario">
   <!-- SIDEBAR -->
   <aside class="sidebar">
-    <div class="sidebar-header">
-      <div class="sidebar-avatar">
-        <i class="fa-solid fa-user"></i>
-      </div>
-      <div class="sidebar-user-meta">
-        <span class="user-role">Recepción</span>
-        <strong class="user-name">{{ usuario.nombre || 'Recepcionista' }}</strong>
-        <span class="user-email">{{ recepcionistaEmail }}</span>
-      </div>
+    <div class="sidebar-title-bar">
+      <span class="sidebar-section-title">Recepción</span>
     </div>
+
+    <ng-container *ngIf="usuario$ | async as usuario">
+      <div class="user-card">
+        <div class="user-avatar">{{ obtenerAvatarInicial(usuario?.nombre) }}</div>
+        <div class="user-details">
+          <strong class="user-fullname">{{ usuario.nombre || 'Maria Fernanda' }}</strong>
+          <span class="user-email">{{ obtenerCorreoRecepcion(usuario?.nombre) }}</span>
+        </div>
+      </div>
+    </ng-container>
+
     <nav class="sidebar-nav">
-      <button type="button" class="active" (click)="goToDashboard()">
-        <i class="fa-solid fa-house"></i> Dashboard
+      <button type="button" class="menu-item" [class.active]="activeTab === 'citas'" (click)="setActiveTab('citas')">
+        <i class="fa-solid fa-calendar-check"></i> Citas del día
       </button>
-      <button class="logout" type="button" (click)="logout()">
+      <button type="button" class="menu-item" [class.active]="activeTab === 'registro'" (click)="setActiveTab('registro')">
+        <i class="fa-solid fa-plus"></i> Nueva cita
+      </button>
+      <button type="button" class="menu-item" [class.active]="activeTab === 'pagos'" (click)="setActiveTab('pagos')">
+        <i class="fa-solid fa-receipt"></i> Pagos y facturas
+      </button>
+      <button class="menu-item logout" type="button" (click)="logout()">
         <i class="fa-solid fa-right-from-bracket"></i> Cerrar sesión
       </button>
     </nav>
+
     <div class="sidebar-footer">
       <button routerLink="/home" class="btn-back">
-        <i class="fa-solid fa-arrow-left"></i> Volver al Inicio
+        <i class="fa-solid fa-arrow-left"></i> Salir
       </button>
     </div>
   </aside>
 
   <!-- MAIN CONTENT -->
   <main class="main-content">
-    <section class="dashboard-view" #dashboardSection>
+    <!-- Vista de Citas -->
+    <section class="dashboard-view" #dashboardSection *ngIf="activeTab === 'citas'">
       <section class="dashboard-header">
       <div>
         <span class="subtitle">Panel de Recepción</span>
@@ -37,67 +49,54 @@
       </div>
     </section>
 
-    <section class="stats-row">
-      <article class="stat-card" *ngFor="let stat of stats">
-        <div class="stat-icon"><i class="fa-solid" [ngClass]="stat.icon"></i></div>
-        <div>
-          <p class="stat-label">{{ stat.label }}</p>
-          <h2>{{ stat.value }}</h2>
-        </div>
-      </article>
-    </section>
-
-    <section class="actions-row">
-      <div>
-        <label>Buscar cita</label>
-        <input type="text" placeholder="Mascota, motivo o fecha" [(ngModel)]="searchTerm">
-      </div>
-      <div>
-        <label>Filtrar estado</label>
-        <select [(ngModel)]="selectedEstado">
-          <option value="todos">Todos</option>
-          <option value="pendiente">Pendiente</option>
-          <option value="confirmada">Confirmada</option>
-          <option value="completada">Completada</option>
-          <option value="cancelada">Cancelada</option>
-        </select>
-      </div>
-      <div class="action-buttons">
-        <button class="btn-primary" type="button" (click)="cargarAgenda()">Refrescar agenda</button>
-      </div>
-    </section>
-
-    <section class="table-section">
-      <div class="table-header">
-        <div>
-          <h2>Agenda visible</h2>
-          <span>{{ filteredCitas.length }} citas filtradas</span>
-        </div>
-        <span>{{ loading ? 'Cargando...' : 'Actualizado' }}</span>
-      </div>
-
       <table>
         <thead>
           <tr>
             <th>Fecha</th>
-            <th>Hora</th>
-            <th>Mascota</th>
+            <th>Cliente</th>
             <th>Motivo</th>
             <th>Estado</th>
+            <th>Veterinario / Asignar</th>
             <th>Acciones</th>
           </tr>
         </thead>
         <tbody>
           <tr *ngFor="let cita of filteredCitas">
-            <td>{{ cita.fecha | date:'dd/MM/yyyy' }}</td>
-            <td>{{ cita.hora }}</td>
-            <td>#{{ cita.mascotaId }}</td>
+            <td>{{ cita.fecha | date:'dd/MM/yyyy HH:mm' }}</td>
+            <td>{{ cita.cliente?.nombre || 'N/D' }}</td>
             <td>{{ cita.motivo }}</td>
             <td><span class="status-badge" [ngClass]="cita.estado">{{ cita.estado }}</span></td>
             <td>
+              <!-- AC3: asignar veterinario si la cita está pendiente -->
+              <ng-container *ngIf="cita.estado === 'pendiente'">
+                <select (change)="vetSeleccionadoPorCita[cita.idCita!] = +$any($event.target).value" style="max-width:130px;">
+                  <option value="0">-- Veterinario --</option>
+                  <option *ngFor="let v of veterinarios" [value]="v.id ?? v.userId">{{ v.nombre }}</option>
+                </select>
+                <button type="button" class="btn-finish" style="margin-left:4px;"
+                  (click)="asignarVeterinario(cita)"
+                  [disabled]="!vetSeleccionadoPorCita[cita.idCita!]">
+                  Asignar
+                </button>
+              </ng-container>
+              <!-- Mostrar vet asignado en otros estados -->
+              <span *ngIf="cita.estado !== 'pendiente'">
+                {{ cita.veterinario?.nombre || 'Sin veterinario' }}
+              </span>
+            </td>
+            <td>
               <div class="action-buttons">
-                <button class="btn-finish" type="button" (click)="actualizarEstado(cita, 'completada')" [disabled]="cita.estado === 'completada' || cita.estado === 'cancelada'">Finalizar</button>
-                <button class="btn-secondary" type="button" (click)="cancelarCita(cita)" [disabled]="cita.estado === 'cancelada'">Cancelar</button>
+                <button class="btn-finish" type="button"
+                  (click)="actualizarEstado(cita, 'completada')"
+                  [disabled]="cita.estado === 'completada' || cita.estado === 'cancelada' || cita.estado === 'pendiente'">
+                  Finalizar
+                </button>
+                <!-- AC6: cancelar con observación -->
+                <button class="btn-secondary" type="button"
+                  (click)="cancelarCita(cita)"
+                  [disabled]="cita.estado === 'cancelada' || cita.estado === 'completada'">
+                  Cancelar
+                </button>
               </div>
             </td>
           </tr>
@@ -108,7 +107,8 @@
       </table>
     </section>
 
-    <section class="info-panel">
+    <!-- Vista de Registro (Nueva Cita) -->
+    <section class="info-panel" *ngIf="activeTab === 'registro'">
       <article class="table-section booking-card">
         <div class="booking-visual-header">
           <div class="booking-copy">
@@ -202,6 +202,10 @@
         <div *ngIf="message" class="message">{{ message }}</div>
       </article>
     </section>
+
+    <!-- Vista de Pagos y Facturas -->
+    <section class="info-panel" *ngIf="activeTab === 'pagos'">
+      <app-pagos-facturas></app-pagos-facturas>
     </section>
   </main>
 </div>

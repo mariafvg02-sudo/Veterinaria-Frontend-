@@ -1,130 +1,273 @@
-<div class="admin-dashboard">
+<div class="admin-layout" style="border: 1px solid red;">
+
   <!-- SIDEBAR -->
-  <aside class="sidebar client-theme-sidebar">
-    <div class="sidebar-header">
+  <aside class="sidebar">
+    <div class="sidebar-brand">
       <i class="fa-solid fa-paw"></i>
-      <span>VET APP</span>
+      <span>Vet App</span>
     </div>
+
     <nav class="sidebar-nav">
       <button [class.active]="currentView === 'stats'" (click)="setView('stats')">
-        <i class="fa-solid fa-chart-line"></i> Estadísticas
+        <i class="fa-solid fa-chart-pie"></i> Panel
       </button>
       <button [class.active]="currentView === 'users'" (click)="setView('users')">
-        <i class="fa-solid fa-users-gear"></i> Gestión Usuarios
+        <i class="fa-solid fa-users"></i> Personal
+      </button>
+      <button [class.active]="currentView === 'citas'" (click)="setView('citas')">
+        <i class="fa-solid fa-calendar-days"></i> Citas
       </button>
       <button [class.active]="currentView === 'create'" (click)="setView('create')">
-        <i class="fa-solid fa-user-plus"></i> Nuevo Usuario
+        <i class="fa-solid fa-user-plus"></i> Nuevo usuario
       </button>
     </nav>
+
     <div class="sidebar-footer">
-      <button routerLink="/home" class="btn-back">
-        <i class="fa-solid fa-arrow-left"></i> Volver al Inicio
+      <div class="admin-info">
+        <div class="avatar-circle">{{ (usuario?.nombre || 'A').charAt(0).toUpperCase() }}</div>
+        <div class="admin-meta">
+          <span class="admin-name">{{ usuario?.nombre || 'Admin' }}</span>
+          <span class="admin-role">Administrador</span>
+        </div>
+      </div>
+      <button routerLink="/home" class="btn-sidebar-action">
+        <i class="fa-solid fa-arrow-left"></i> Inicio
+      </button>
+      <button (click)="logout()" class="btn-sidebar-action danger">
+        <i class="fa-solid fa-right-from-bracket"></i> Cerrar sesión
       </button>
     </div>
   </aside>
 
-  <!-- MAIN CONTENT -->
+  <!-- MAIN -->
   <main class="main-content">
-    <header class="content-header client-theme-header">
-      <h1>{{ currentView === 'users' ? 'Gestión de Personal' : currentView === 'create' ? 'Crear Nuevo Miembro' : 'Resumen General' }}</h1>
-      <div class="user-info">
-        <span class="welcome-text">Hola, <strong>{{ usuario?.nombre || 'Admin' }}</strong></span>
-        <button (click)="logout()" class="btn-logout" title="Cerrar Sesión"><i class="fa-solid fa-right-from-bracket"></i></button>
+
+    <!-- HEADER -->
+    <header class="page-header">
+      <div>
+        <h1>
+          {{ currentView === 'users' ? 'Personal' :
+             currentView === 'citas' ? 'Citas' :
+             currentView === 'create' ? (editingUserId ? 'Editar usuario' : 'Nuevo usuario') :
+             'Panel' }}
+        </h1>
+        <p class="page-subtitle">
+          {{ currentView === 'users' ? (filteredUsuarios.length + ' registros encontrados') :
+             currentView === 'citas' ? (citas.length + ' citas registradas — solo lectura') :
+             currentView === 'stats' ? 'Resumen del equipo' :
+             (editingUserId ? 'Modifica los datos del usuario' : 'Completa el formulario para registrar personal') }}
+        </p>
       </div>
     </header>
 
-    <!-- SECCIÓN: ESTADÍSTICAS -->
-    <section *ngIf="currentView === 'stats'" class="stats-grid">
-      <div *ngFor="let item of stats" class="stat-card">
-        <div class="stat-icon"><i class="fa-solid" [ngClass]="item.icon"></i></div>
-        <div class="stat-data">
-          <span class="stat-label">{{ item.label }}</span>
-          <span class="stat-value">{{ item.value }}</span>
+    <!-- ── PANEL DE ESTADÍSTICAS ── -->
+    <section *ngIf="currentView === 'stats'" class="section-fade">
+      <div *ngIf="cargandoUsuarios" class="empty-state">
+        <i class="fa-solid fa-spinner fa-spin"></i>
+        <p>Cargando datos...</p>
+      </div>
+
+      <div *ngIf="!cargandoUsuarios" class="metrics-grid">
+        <div *ngFor="let s of statsPersonal" class="metric-card">
+          <i class="fa-solid metric-icon" [ngClass]="s.icon"></i>
+          <span class="metric-value">{{ s.value }}</span>
+          <span class="metric-label">{{ s.label }}</span>
         </div>
+      </div>
+
+      <div *ngIf="!cargandoUsuarios" class="hint-box">
+        <i class="fa-solid fa-circle-info"></i>
+        Estadísticas basadas en el personal activo en la base de datos.
+        <button class="link-btn" (click)="setView('users')">Ver listado completo</button>
       </div>
     </section>
 
-    <!-- SECCIÓN: TABLA DE USUARIOS -->
-    <section *ngIf="currentView === 'users'" class="table-card fade-in">
-      <div class="card-header">
-        <h2>Personal Registrado</h2>
-        <button class="btn-client-primary" (click)="setView('create')"><i class="fa-solid fa-plus"></i> Nuevo Registro</button>
+    <!-- ── TABLA DE USUARIOS ── -->
+    <section *ngIf="currentView === 'users'" class="section-fade">
+      <div class="toolbar">
+        <input
+          type="search"
+          class="search-input"
+          placeholder="Buscar por nombre, correo o rol..."
+          (input)="filterText = $any($event.target).value"
+          aria-label="Buscar usuarios">
+        <button class="btn-primary" (click)="setView('create')">
+          <i class="fa-solid fa-plus"></i> Nuevo
+        </button>
       </div>
-      <table class="admin-table">
+
+      <div *ngIf="exito" class="alert success">{{ exito }}</div>
+      <div *ngIf="error" class="alert error">{{ error }}</div>
+
+      <div *ngIf="cargandoUsuarios" class="empty-state">
+        <i class="fa-solid fa-spinner fa-spin"></i>
+        <p>Cargando personal...</p>
+      </div>
+
+      <div *ngIf="!cargandoUsuarios && filteredUsuarios.length === 0" class="empty-state">
+        <i class="fa-solid fa-users-slash"></i>
+        <p>No se encontraron usuarios</p>
+        <button class="btn-primary" (click)="setView('create')">Registrar primero</button>
+      </div>
+
+      <table *ngIf="!cargandoUsuarios && filteredUsuarios.length > 0" class="data-table">
         <thead>
           <tr>
             <th>Nombre</th>
             <th>Correo</th>
             <th>Teléfono</th>
             <th>Rol</th>
-            <th>Acciones</th>
+            <th></th>
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let user of usuariosRegistrados">
-            <td>{{ user.nombre }}</td>
-            <td>{{ user.correo }}</td>
-            <td>{{ user.telefono }}</td>
-            <td><span class="role-badge" [ngClass]="user.rol">{{ user.rol }}</span></td>
-            <td class="actions">
-              <button class="btn-icon edit" (click)="onEditUser(user)"><i class="fa-solid fa-pen"></i></button>
-              <button class="btn-icon delete" (click)="onDeleteUser(user.id)"><i class="fa-solid fa-trash"></i></button>
+          <tr *ngFor="let user of filteredUsuarios">
+            <td>
+              <div class="user-cell">
+                <div class="avatar-sm">{{ (user.nombre || '?').charAt(0).toUpperCase() }}</div>
+                <span>{{ user.nombre }}</span>
+              </div>
+            </td>
+            <td class="text-muted">{{ user.correo }}</td>
+            <td class="text-muted">{{ user.telefono || '—' }}</td>
+            <td>
+              <span class="role-badge" [ngClass]="(user.rol || '').toLowerCase()">
+                {{ user.rol }}
+              </span>
+            </td>
+            <td class="actions-cell">
+              <button class="btn-icon" (click)="onEditUser(user)" title="Editar">
+                <i class="fa-solid fa-pen-to-square"></i>
+              </button>
+              <button class="btn-icon danger" (click)="onDeleteUser(user.id ?? user.userId ?? 0)" title="Eliminar">
+                <i class="fa-solid fa-trash-can"></i>
+              </button>
             </td>
           </tr>
         </tbody>
       </table>
     </section>
 
-    <!-- SECCIÓN: FORMULARIO (Tu código original mejorado) -->
-    <section *ngIf="currentView === 'create'" class="form-card-container fade-in">
-      <div class="form-card">
-        <div class="form-header">
-          <h2>{{ editingUserId ? 'Editar miembro' : 'Registro de nuevo personal' }}</h2>
-          <p>Complete los datos para dar de alta a un nuevo recepcionista o administrador.</p>
-        </div>
-        
-        <form [formGroup]="userForm" (ngSubmit)="onSubmitUser()">
-          <div class="form-grid">
-            <div class="form-group">
-              <label><i class="fa-solid fa-user"></i> Nombre Completo</label>
-              <input type="text" formControlName="nombre" placeholder="Ej. Juan Pérez">
-            </div>
-            <div class="form-group">
-              <label><i class="fa-solid fa-fingerprint"></i> Documento Identidad</label>
-              <input type="text" formControlName="documentoIdentidad" placeholder="Solo números">
-            </div>
-            <div class="form-group">
-              <label><i class="fa-solid fa-envelope"></i> Correo Electrónico</label>
-              <input type="email" formControlName="email" placeholder="correo@vetapp.com">
-            </div>
-            <div class="form-group">
-              <label><i class="fa-solid fa-lock"></i> Contraseña Provisional</label>
-              <input type="password" formControlName="password" placeholder="Min. 6 caracteres">
-            </div>
-            <div class="form-group">
-              <label><i class="fa-solid fa-phone"></i> Teléfono</label>
-              <input type="text" formControlName="telefono" placeholder="Ej. 3001234567">
-            </div>
-            <div class="form-group">
-              <label><i class="fa-solid fa-id-card"></i> Rol del Usuario</label>
-              <select formControlName="rol">
-                <option value="RECEPCIONISTA">Recepcionista</option>
-                <option value="ADMINISTRADOR">Administrador</option>
-                <option value="VETERINARIO">Veterinario</option>
-                <option value="JEFEINVENTARIO">Jefe de Inventario</option>
-              </select>
-            </div>
-          </div>
-          <div style="display:flex;gap:12px;align-items:center">
-            <button type="submit" class="btn-submit" [disabled]="!userForm.valid || cargando">
-              {{ cargando ? (editingUserId ? 'Actualizando...' : 'Creando...') : (editingUserId ? 'Actualizar Miembro' : 'Registrar Miembro') }}
-            </button>
-            <button type="button" class="btn-submit" style="background:#999;" *ngIf="editingUserId" (click)="onCancelEdit()">Cancelar</button>
-          </div>
-        </form>
-        <p *ngIf="exito" class="alert-msg success">{{ exito }}</p>
-        <p *ngIf="error" class="alert-msg error">{{ error }}</p>
+    <!-- ── CITAS (solo lectura, AC4) ── -->
+    <section *ngIf="currentView === 'citas'" class="section-fade">
+      <div *ngIf="cargandoCitas" class="empty-state">
+        <i class="fa-solid fa-spinner fa-spin"></i>
+        <p>Cargando citas...</p>
       </div>
+
+      <div *ngIf="!cargandoCitas && citas.length === 0" class="empty-state">
+        <i class="fa-solid fa-calendar-xmark"></i>
+        <p>No hay citas registradas.</p>
+      </div>
+
+      <table *ngIf="!cargandoCitas && citas.length > 0" class="data-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Fecha</th>
+            <th>Motivo</th>
+            <th>Estado</th>
+            <th>Cliente</th>
+            <th>Veterinario</th>
+            <th>Recepcionista</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let cita of citas">
+            <td>{{ cita.idCita }}</td>
+            <td>{{ cita.fecha | date:'dd/MM/yyyy HH:mm' }}</td>
+            <td>{{ cita.motivo }}</td>
+            <td>
+              <span class="role-badge" [ngClass]="(cita.estado || '').toLowerCase()">{{ cita.estado }}</span>
+            </td>
+            <td>{{ cita.cliente?.nombre || 'N/D' }}</td>
+            <td>{{ cita.veterinario?.nombre || 'Sin asignar' }}</td>
+            <td>{{ cita.recepcionista?.nombre || '—' }}</td>
+          </tr>
+        </tbody>
+      </table>
     </section>
+
+    <!-- ── FORMULARIO ── -->
+    <section *ngIf="currentView === 'create'" class="section-fade">
+      <form [formGroup]="userForm" (ngSubmit)="onSubmitUser()" class="user-form">
+        <div class="form-grid">
+
+          <div class="field">
+            <label for="f-nombre">Nombre completo</label>
+            <input id="f-nombre" type="text" formControlName="nombre" placeholder="Ej. Juan Pérez">
+            <span class="field-error"
+              *ngIf="userForm.get('nombre')?.invalid && userForm.get('nombre')?.touched">
+              Mínimo 2 caracteres
+            </span>
+          </div>
+
+          <div class="field">
+            <label for="f-doc">Documento de identidad</label>
+            <input id="f-doc" type="text" formControlName="documentoIdentidad" placeholder="Solo números">
+            <span class="field-error"
+              *ngIf="userForm.get('documentoIdentidad')?.invalid && userForm.get('documentoIdentidad')?.touched">
+              Solo números
+            </span>
+          </div>
+
+          <div class="field">
+            <label for="f-email">Correo electrónico</label>
+            <input id="f-email" type="email" formControlName="email" placeholder="correo@ejemplo.com">
+            <span class="field-error"
+              *ngIf="userForm.get('email')?.invalid && userForm.get('email')?.touched">
+              Correo inválido
+            </span>
+          </div>
+
+          <div class="field">
+            <label for="f-pass">
+              Contraseña
+              <span *ngIf="editingUserId" class="optional-hint">(dejar vacío para no cambiar)</span>
+            </label>
+            <input id="f-pass" type="password" formControlName="password" placeholder="Min. 6 caracteres">
+            <span class="field-error"
+              *ngIf="userForm.get('password')?.invalid && userForm.get('password')?.touched">
+              Mínimo 6 caracteres
+            </span>
+          </div>
+
+          <div class="field">
+            <label for="f-tel">Teléfono</label>
+            <input id="f-tel" type="text" formControlName="telefono" placeholder="Ej. 3001234567">
+            <span class="field-error"
+              *ngIf="userForm.get('telefono')?.invalid && userForm.get('telefono')?.touched">
+              Teléfono requerido
+            </span>
+          </div>
+
+          <div class="field">
+            <label for="f-rol">Rol</label>
+            <select id="f-rol" formControlName="rol">
+              <option value="RECEPCIONISTA">Recepcionista</option>
+              <option value="VETERINARIO">Veterinario</option>
+              <option value="JEFEINVENTARIO">Jefe de Inventario</option>
+              <option value="ADMINISTRADOR">Administrador</option>
+            </select>
+          </div>
+
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" class="btn-primary" [disabled]="userForm.invalid || cargando">
+            <i class="fa-solid"
+              [ngClass]="cargando ? 'fa-spinner fa-spin' : (editingUserId ? 'fa-floppy-disk' : 'fa-plus')"></i>
+            {{ cargando ? 'Guardando...' : (editingUserId ? 'Guardar cambios' : 'Registrar') }}
+          </button>
+          <button type="button" class="btn-ghost" *ngIf="editingUserId" (click)="onCancelEdit()">
+            Cancelar
+          </button>
+        </div>
+
+        <div *ngIf="exito" class="alert success">{{ exito }}</div>
+        <div *ngIf="error" class="alert error">{{ error }}</div>
+      </form>
+    </section>
+
   </main>
 </div>
