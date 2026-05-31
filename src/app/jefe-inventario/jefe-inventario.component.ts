@@ -2,15 +2,8 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormGroup, FormControl, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
-import { AuthService } from '../Core/Service/auth.service';
-
-interface Producto {
-  id: number;
-  nombre: string;
-  categoria: string;
-  precio: number;
-  cantidad: number;
-}
+import { InventarioService } from '../Core/Service/inventario.service';
+import { InventarioProducto } from '../Models/inventario.model';
 
 interface Stat {
   label: string;
@@ -20,7 +13,6 @@ interface Stat {
 
 type CategoriaFiltro = 'TODAS' | 'ALIMENTOS' | 'MEDICAMENTOS' | 'ACCESORIOS' | 'HIGIENE';
 
-const STORAGE_KEY = 'jefe-inventario-productos';
 const STOCK_BAJO_UMBRAL = 10;
 
 @Component({
@@ -33,22 +25,26 @@ const STOCK_BAJO_UMBRAL = 10;
     ReactiveFormsModule
   ],
   templateUrl: './jefe-inventario.component.html',
-  styleUrls: ['./jefe-inventario.component.scss'
-  ]
+  styleUrls: ['./jefe-inventario.component.scss']
 })
 export class JefeInventarioComponent implements OnInit {
   currentView: string = 'stats';
   editingId: number | null = null;
-  usuario: { nombre?: string } | null = null;
-  productos: Producto[] = [];
+  usuario: { nombre?: string; id?: number } | null = null;
+  productos: InventarioProducto[] = [];
   stats: Stat[] = [];
   searchTerm = '';
   categoriaFiltro: CategoriaFiltro = 'TODAS';
+  isLoading = false;
+  errorMessage = '';
   readonly categorias: CategoriaFiltro[] = ['TODAS', 'ALIMENTOS', 'MEDICAMENTOS', 'ACCESORIOS', 'HIGIENE'];
 
   productForm: FormGroup;
 
-  constructor(private router: Router) {
+  constructor(
+    private router: Router,
+    private inventarioService: InventarioService
+  ) {
     this.productForm = new FormGroup({
       nombre: new FormControl('', [Validators.required, Validators.minLength(2)]),
       categoria: new FormControl<CategoriaFiltro>('ALIMENTOS', [Validators.required]),
@@ -65,8 +61,7 @@ export class JefeInventarioComponent implements OnInit {
       this.usuario = { nombre: 'Jefe de Inventario' };
     }
 
-    this.loadProducts();
-    this.refreshStats();
+    this.cargarProductos();
   }
 
   setView(view: string): void {
@@ -79,8 +74,8 @@ export class JefeInventarioComponent implements OnInit {
     this.router.navigate(['/login']);
   }
 
-  onEdit(prod: Producto): void {
-    this.editingId = prod.id;
+  onEdit(prod: InventarioProducto): void {
+    this.editingId = prod.idInventarioMedicamento ?? null;
     this.productForm.patchValue({
       nombre: prod.nombre,
       categoria: prod.categoria,
@@ -90,14 +85,21 @@ export class JefeInventarioComponent implements OnInit {
     this.setView('add');
   }
 
-  onDelete(id: number): void {
+  onDelete(id: number | undefined): void {
+    if (!id) return;
     if (confirm('¿Estás seguro de que deseas eliminar este producto?')) {
-      this.productos = this.productos.filter(p => p.id !== id);
-      this.persistProducts();
-      if (this.editingId === id) {
-        this.cancelEdit();
-      }
-      this.refreshStats();
+      this.inventarioService.eliminar(id).subscribe({
+        next: () => {
+          this.productos = this.productos.filter(p => p.idInventarioMedicamento !== id);
+          this.refreshStats();
+          if (this.editingId === id) {
+            this.cancelEdit();
+          }
+        },
+        error: () => {
+          this.errorMessage = 'Error al eliminar el producto. Inténtalo de nuevo.';
+        }
+      });
     }
   }
 
@@ -108,23 +110,46 @@ export class JefeInventarioComponent implements OnInit {
     }
 
     const formValue = this.productForm.value;
-    const payload: Producto = {
-      id: this.editingId ?? this.getNextId(),
+    const payload: InventarioProducto = {
       nombre: String(formValue.nombre ?? '').trim(),
       categoria: String(formValue.categoria ?? 'ALIMENTOS'),
       precio: Number(formValue.precio ?? 0),
-      cantidad: Number(formValue.cantidad ?? 0)
+      cantidad: Number(formValue.cantidad ?? 0),
+      jefeInventario: this.usuario?.id ? { id: this.usuario.id } : undefined
     };
 
-    if (this.editingId) {
-      this.productos = this.productos.map(producto => producto.id === this.editingId ? payload : producto);
-    } else {
-      this.productos = [payload, ...this.productos];
-    }
+    this.isLoading = true;
+    this.errorMessage = '';
 
-    this.persistProducts();
-    this.refreshStats();
-    this.cancelEdit();
+    if (this.editingId) {
+      this.inventarioService.actualizar(this.editingId, payload).subscribe({
+        next: (updated) => {
+          this.productos = this.productos.map(p =>
+            p.idInventarioMedicamento === this.editingId ? updated : p
+          );
+          this.refreshStats();
+          this.cancelEdit();
+          this.isLoading = false;
+        },
+        error: () => {
+          this.errorMessage = 'Error al actualizar el producto.';
+          this.isLoading = false;
+        }
+      });
+    } else {
+      this.inventarioService.crear(payload).subscribe({
+        next: (nuevo) => {
+          this.productos = [nuevo, ...this.productos];
+          this.refreshStats();
+          this.cancelEdit();
+          this.isLoading = false;
+        },
+        error: () => {
+          this.errorMessage = 'Error al registrar el producto.';
+          this.isLoading = false;
+        }
+      });
+    }
   }
 
   cancelEdit(): void {
@@ -143,29 +168,27 @@ export class JefeInventarioComponent implements OnInit {
     this.categoriaFiltro = 'TODAS';
   }
 
-  trackByProductoId(_: number, producto: Producto): number {
-    return producto.id;
+  trackByProductoId(_: number, producto: InventarioProducto): number {
+    return producto.idInventarioMedicamento ?? 0;
   }
 
-  get productosFiltrados(): Producto[] {
+  get productosFiltrados(): InventarioProducto[] {
     const search = this.searchTerm.trim().toLowerCase();
-
     return this.productos.filter(producto => {
       const coincideBusqueda = !search || [producto.nombre, producto.categoria].some(campo => campo.toLowerCase().includes(search));
       const coincideCategoria = this.categoriaFiltro === 'TODAS' || producto.categoria === this.categoriaFiltro;
-
       return coincideBusqueda && coincideCategoria;
     });
   }
 
-  get productosBajoStock(): Producto[] {
+  get productosBajoStock(): InventarioProducto[] {
     return this.productos
       .filter(producto => producto.cantidad <= STOCK_BAJO_UMBRAL)
       .slice(0, 4);
   }
 
   get totalStock(): number {
-    return this.productos.reduce((acumulado, producto) => acumulado + producto.cantidad, 0);
+    return this.productos.reduce((acc, p) => acc + p.cantidad, 0);
   }
 
   get totalProductos(): number {
@@ -173,47 +196,63 @@ export class JefeInventarioComponent implements OnInit {
   }
 
   get totalCategorias(): number {
-    return new Set(this.productos.map(producto => producto.categoria)).size;
+    return new Set(this.productos.map(p => p.categoria)).size;
   }
 
   get productosAgotados(): number {
-    return this.productos.filter(producto => producto.cantidad === 0).length;
+    return this.productos.filter(p => p.cantidad === 0).length;
   }
 
   get stockBajo(): number {
-    return this.productos.filter(producto => producto.cantidad > 0 && producto.cantidad <= STOCK_BAJO_UMBRAL).length;
+    return this.productos.filter(p => p.cantidad > 0 && p.cantidad <= STOCK_BAJO_UMBRAL).length;
   }
 
-  estadoProducto(producto: Producto): string {
-    if (producto.cantidad === 0) {
-      return 'Agotado';
-    }
-
-    if (producto.cantidad <= STOCK_BAJO_UMBRAL) {
-      return 'Stock bajo';
-    }
-
+  estadoProducto(producto: InventarioProducto): string {
+    if (producto.cantidad === 0) return 'Agotado';
+    if (producto.cantidad <= STOCK_BAJO_UMBRAL) return 'Stock bajo';
     return 'Normal';
   }
 
-  estadoClase(producto: Producto): string {
-    if (producto.cantidad === 0) {
-      return 'agotado';
-    }
-
-    if (producto.cantidad <= STOCK_BAJO_UMBRAL) {
-      return 'bajo';
-    }
-
+  estadoClase(producto: InventarioProducto): string {
+    if (producto.cantidad === 0) return 'agotado';
+    if (producto.cantidad <= STOCK_BAJO_UMBRAL) return 'bajo';
     return 'normal';
   }
 
-  reabastecer(producto: Producto): void {
-    this.productos = this.productos.map(item => item.id === producto.id
-      ? { ...item, cantidad: item.cantidad + 10 }
-      : item);
-    this.persistProducts();
-    this.refreshStats();
+  reabastecer(producto: InventarioProducto): void {
+    if (!producto.idInventarioMedicamento) return;
+    const actualizado: InventarioProducto = {
+      ...producto,
+      cantidad: producto.cantidad + 10,
+      jefeInventario: this.usuario?.id ? { id: this.usuario.id } : undefined
+    };
+    this.inventarioService.actualizar(producto.idInventarioMedicamento, actualizado).subscribe({
+      next: (updated) => {
+        this.productos = this.productos.map(p =>
+          p.idInventarioMedicamento === producto.idInventarioMedicamento ? updated : p
+        );
+        this.refreshStats();
+      },
+      error: () => {
+        this.errorMessage = 'Error al reabastecer el producto.';
+      }
+    });
+  }
+
+  private cargarProductos(): void {
+    this.isLoading = true;
+    this.errorMessage = '';
+    this.inventarioService.listar().subscribe({
+      next: (productos) => {
+        this.productos = productos;
+        this.refreshStats();
+        this.isLoading = false;
+      },
+      error: () => {
+        this.errorMessage = 'Error al cargar el inventario. Verifica la conexión con el servidor.';
+        this.isLoading = false;
+      }
+    });
   }
 
   private refreshStats(): void {
@@ -223,43 +262,5 @@ export class JefeInventarioComponent implements OnInit {
       { label: 'Bajo stock', value: this.stockBajo, icon: 'fa-triangle-exclamation' },
       { label: 'Agotados', value: this.productosAgotados, icon: 'fa-circle-xmark' }
     ];
-  }
-
-  private loadProducts(): void {
-    const fallback: Producto[] = [
-      { id: 1, nombre: 'Concentrado premium', categoria: 'ALIMENTOS', precio: 125000, cantidad: 18 },
-      { id: 2, nombre: 'Vacuna antirrábica', categoria: 'MEDICAMENTOS', precio: 38000, cantidad: 6 },
-      { id: 3, nombre: 'Jeringa 5ml', categoria: 'ACCESORIOS', precio: 1200, cantidad: 32 },
-      { id: 4, nombre: 'Shampoo antipulgas', categoria: 'HIGIENE', precio: 25000, cantidad: 0 }
-    ];
-
-    try {
-      const storedProducts = localStorage.getItem(STORAGE_KEY);
-      const parsedProducts = storedProducts ? JSON.parse(storedProducts) : null;
-
-      if (Array.isArray(parsedProducts) && parsedProducts.length > 0) {
-        this.productos = parsedProducts.map((producto, index) => ({
-          id: Number(producto.id ?? index + 1),
-          nombre: String(producto.nombre ?? ''),
-          categoria: String(producto.categoria ?? 'ALIMENTOS'),
-          precio: Number(producto.precio ?? 0),
-          cantidad: Number(producto.cantidad ?? 0)
-        }));
-        return;
-      }
-    } catch (error) {
-      console.warn('No se pudo leer el inventario guardado.', error);
-    }
-
-    this.productos = fallback;
-    this.persistProducts();
-  }
-
-  private persistProducts(): void {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(this.productos));
-  }
-
-  private getNextId(): number {
-    return this.productos.reduce((maximo, producto) => Math.max(maximo, producto.id), 0) + 1;
   }
 }

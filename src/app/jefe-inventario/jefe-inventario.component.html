@@ -36,13 +36,26 @@
       </div>
     </header>
 
+    <!-- MENSAJE DE ERROR GLOBAL -->
+    <div *ngIf="errorMessage" class="error-banner">
+      <i class="fa-solid fa-circle-exclamation"></i>
+      <span>{{ errorMessage }}</span>
+      <button (click)="errorMessage = ''" class="btn-dismiss"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+
+    <!-- INDICADOR DE CARGA -->
+    <div *ngIf="isLoading" class="loading-overlay">
+      <i class="fa-solid fa-spinner fa-spin"></i>
+      <span>Cargando inventario...</span>
+    </div>
+
     <!-- SECCIÓN: ESTADÍSTICAS -->
     <section *ngIf="currentView === 'stats'" class="stats-panel fade-in">
       <div class="hero-card">
         <div>
           <p class="hero-kicker">Operación de inventario en tiempo real</p>
           <h2>Controla stock, alertas y productos críticos desde una sola vista.</h2>
-          <p>Los cambios se guardan en este navegador para que la gestión sea persistente durante la sesión.</p>
+          <p>Los cambios se sincronizan con el servidor para que el inventario sea consistente en toda la organización.</p>
         </div>
         <div class="hero-actions">
           <button class="hero-button primary" (click)="setView('list')">Ver inventario</button>
@@ -126,7 +139,7 @@
             <td>
               <div class="product-cell">
                 <strong>{{ prod.nombre }}</strong>
-                <span>Id {{ prod.id }}</span>
+                <span>Id {{ prod.idInventarioMedicamento }}</span>
               </div>
             </td>
             <td>{{ prod.categoria }}</td>
@@ -140,7 +153,7 @@
             <td class="actions">
               <button class="btn-icon restock" (click)="reabastecer(prod)" title="Reabastecer +10"><i class="fa-solid fa-rotate"></i></button>
               <button class="btn-icon edit" (click)="onEdit(prod)"><i class="fa-solid fa-pen"></i></button>
-              <button class="btn-icon delete" (click)="onDelete(prod.id)"><i class="fa-solid fa-trash"></i></button>
+              <button class="btn-icon delete" (click)="onDelete(prod.idInventarioMedicamento)"><i class="fa-solid fa-trash"></i></button>
             </td>
           </tr>
         </tbody>
@@ -164,7 +177,7 @@
           <h2>{{ editingId ? 'Editar producto' : 'Registrar nuevo producto' }}</h2>
           <p>Completa los datos para mantener el inventario consistente.</p>
         </div>
-        
+
         <form [formGroup]="productForm" (ngSubmit)="onSubmit()">
           <div class="form-grid">
             <div class="form-group">
@@ -193,8 +206,8 @@
             </div>
           </div>
           <div class="form-actions">
-            <button type="submit" class="btn-submit" [disabled]="productForm.invalid">
-              {{ editingId ? 'Guardar cambios' : 'Registrar producto' }}
+            <button type="submit" class="btn-submit" [disabled]="productForm.invalid || isLoading">
+              {{ isLoading ? 'Guardando...' : (editingId ? 'Guardar cambios' : 'Registrar producto') }}
             </button>
             <button type="button" class="btn-secondary" (click)="cancelEdit()">Cancelar</button>
           </div>
