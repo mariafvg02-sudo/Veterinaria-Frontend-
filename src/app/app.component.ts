@@ -2,7 +2,7 @@ import { Component } from '@angular/core';
 import { RouterOutlet, Router, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs/operators';
 
-const DASHBOARD_ROUTES = ['/recepcionista', '/veterinario', '/administrador', '/jefe-inventario'];
+const DASHBOARD_ROUTES = ['/recepcionista', '/veterinario', '/administrador', '/jefe-inventario', '/cliente'];
 
 @Component({
   selector: 'app-root',

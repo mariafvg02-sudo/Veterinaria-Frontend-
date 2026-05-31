@@ -2,12 +2,10 @@ import { inject } from '@angular/core';
 import { Router, CanActivateFn } from '@angular/router';
 import { AuthService } from '../Core/Service/auth.service';
 
-export const clienteGuard: CanActivateFn = (route, state) => {
+export const clienteGuard: CanActivateFn = (_route, _state) => {
   const authService = inject(AuthService);
   const router = inject(Router);
   const usuario = authService.obtenerUsuarioActual();
-
-  console.log('Verificando acceso para:', usuario);
 
   // Si hay usuario y su rol es cliente, permitir acceso
   if (usuario && usuario.rol?.toLowerCase() === 'cliente') {

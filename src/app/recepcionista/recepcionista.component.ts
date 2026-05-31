@@ -6,7 +6,9 @@ import { Observable, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { AuthService, Usuario } from '../Core/Service/auth.service';
 import { CitaService } from '../Core/Service/cita.service';
+import { MascotaService } from '../Core/Service/mascota.service';
 import { Cita } from '../Models/cita.model';
+import { Mascota } from '../Models/mascota.model';
 import { PagosFacturasComponent } from './pagos-facturas.component';
 
 @Component({
@@ -32,10 +34,31 @@ export class RecepcionistaComponent implements OnInit {
   citaForm!: FormGroup;
   today = new Date().toISOString().split('T')[0];
 
+  // Autocomplete: clientes
+  clientes: Usuario[] = [];
+  clientesFiltrados: Usuario[] = [];
+  clienteSearch = '';
+  showClienteDropdown = false;
+  clienteSeleccionado: Usuario | null = null;
+
+  // Autocomplete: mascotas
+  mascotas: Mascota[] = [];
+  mascotasFiltradas: Mascota[] = [];
+  mascotaSearch = '';
+  showMascotaDropdown = false;
+  mascotaSeleccionada: Mascota | null = null;
+
+  // Autocomplete: veterinarios
+  veterinariosFiltrados: Usuario[] = [];
+  veterinarioSearch = '';
+  showVeterinarioDropdown = false;
+  veterinarioSeleccionado: Usuario | null = null;
+
   constructor(
     private fb: FormBuilder,
     private authService: AuthService,
     private citaService: CitaService,
+    private mascotaService: MascotaService,
     private router: Router
   ) {
     this.usuario$ = this.authService.usuario$;
@@ -51,17 +74,19 @@ export class RecepcionistaComponent implements OnInit {
     }
 
     this.citaForm = this.fb.group({
-      mascotaId: [1, [Validators.required, Validators.min(1)]],
+      clienteId: [null, Validators.required],
+      mascotaId: [null, Validators.required],
       fecha: [this.today, Validators.required],
       hora: ['09:00', Validators.required],
-      veterinarioId: [1, [Validators.required, Validators.min(1)]],
+      veterinarioId: [null, Validators.required],
       motivo: ['Revisión general', Validators.required],
-      estado: ['pendiente' as any, Validators.required],
+      estado: ['asignada'],
       notas: ['']
     });
 
     this.cargarAgenda();
     this.cargarVeterinarios();
+    this.cargarClientes();
   }
 
   setActiveTab(tab: 'citas' | 'registro' | 'pagos'): void {
@@ -97,6 +122,125 @@ export class RecepcionistaComponent implements OnInit {
     });
   }
 
+  cargarClientes(): void {
+    this.authService.obtenerTodosLosUsuarios().subscribe({
+      next: (usuarios) => {
+        this.clientes = usuarios.filter(u => u.rol === 'CLIENTE');
+      },
+      error: () => {}
+    });
+  }
+
+  onClienteFocus(): void {
+    this.clientesFiltrados = this.clienteSearch.trim()
+      ? this.clientes.filter(c => c.nombre?.toLowerCase().includes(this.clienteSearch.toLowerCase())).slice(0, 10)
+      : this.clientes.slice(0, 10);
+    this.showClienteDropdown = true;
+  }
+
+  onClienteSearchChange(term: string): void {
+    this.clienteSearch = term;
+    const lower = term.toLowerCase();
+    this.clientesFiltrados = term.trim()
+      ? this.clientes.filter(c => c.nombre?.toLowerCase().includes(lower)).slice(0, 10)
+      : this.clientes.slice(0, 10);
+    this.showClienteDropdown = true;
+    if (this.clienteSeleccionado) {
+      this.clienteSeleccionado = null;
+      this.mascotaSeleccionada = null;
+      this.mascotaSearch = '';
+      this.mascotas = [];
+      this.mascotasFiltradas = [];
+      this.citaForm.patchValue({ clienteId: null, mascotaId: null });
+    }
+  }
+
+  seleccionarCliente(cliente: Usuario): void {
+    this.clienteSeleccionado = cliente;
+    this.clienteSearch = cliente.nombre || '';
+    this.showClienteDropdown = false;
+    const clienteId = cliente.id ?? cliente.userId;
+    this.citaForm.patchValue({ clienteId });
+    this.mascotaSeleccionada = null;
+    this.mascotaSearch = '';
+    this.citaForm.patchValue({ mascotaId: null });
+    if (clienteId) {
+      this.mascotaService.obtenerMascotasPorUsuario(clienteId).subscribe({
+        next: (mascotas) => {
+          this.mascotas = mascotas;
+          this.mascotasFiltradas = mascotas;
+        },
+        error: () => { this.mascotas = []; this.mascotasFiltradas = []; }
+      });
+    }
+  }
+
+  onClienteBlur(): void {
+    setTimeout(() => { this.showClienteDropdown = false; }, 150);
+  }
+
+  onMascotaFocus(): void {
+    this.mascotasFiltradas = this.mascotaSearch.trim()
+      ? this.mascotas.filter(m => m.nombre.toLowerCase().includes(this.mascotaSearch.toLowerCase()))
+      : this.mascotas;
+    this.showMascotaDropdown = true;
+  }
+
+  onMascotaSearchChange(term: string): void {
+    this.mascotaSearch = term;
+    const lower = term.toLowerCase();
+    this.mascotasFiltradas = term.trim()
+      ? this.mascotas.filter(m => m.nombre.toLowerCase().includes(lower))
+      : this.mascotas;
+    this.showMascotaDropdown = true;
+    if (this.mascotaSeleccionada) {
+      this.mascotaSeleccionada = null;
+      this.citaForm.patchValue({ mascotaId: null });
+    }
+  }
+
+  seleccionarMascota(mascota: Mascota): void {
+    this.mascotaSeleccionada = mascota;
+    this.mascotaSearch = mascota.nombre;
+    this.showMascotaDropdown = false;
+    this.citaForm.patchValue({ mascotaId: mascota.idMascota ?? mascota.id_mascota });
+  }
+
+  onMascotaBlur(): void {
+    setTimeout(() => { this.showMascotaDropdown = false; }, 150);
+  }
+
+  onVeterinarioFocus(): void {
+    this.veterinariosFiltrados = this.veterinarioSearch.trim()
+      ? this.veterinarios.filter(v => v.nombre?.toLowerCase().includes(this.veterinarioSearch.toLowerCase())).slice(0, 10)
+      : this.veterinarios.slice(0, 10);
+    this.showVeterinarioDropdown = true;
+  }
+
+  onVeterinarioSearchChange(term: string): void {
+    this.veterinarioSearch = term;
+    const lower = term.toLowerCase();
+    this.veterinariosFiltrados = term.trim()
+      ? this.veterinarios.filter(v => v.nombre?.toLowerCase().includes(lower)).slice(0, 10)
+      : this.veterinarios.slice(0, 10);
+    this.showVeterinarioDropdown = true;
+    if (this.veterinarioSeleccionado) {
+      this.veterinarioSeleccionado = null;
+      this.citaForm.patchValue({ veterinarioId: null });
+    }
+  }
+
+  seleccionarVeterinario(vet: Usuario): void {
+    this.veterinarioSeleccionado = vet;
+    this.veterinarioSearch = vet.nombre || '';
+    this.showVeterinarioDropdown = false;
+    this.citaForm.patchValue({ veterinarioId: vet.id ?? vet.userId });
+  }
+
+  onVeterinarioBlur(): void {
+    setTimeout(() => { this.showVeterinarioDropdown = false; }, 150);
+  }
+
   registrarCita(): void {
     if (this.citaForm.invalid) {
       this.citaForm.markAllAsTouched();
@@ -111,7 +255,8 @@ export class RecepcionistaComponent implements OnInit {
       motivo: this.citaForm.value.motivo,
       estado: this.citaForm.value.estado,
       notas: this.citaForm.value.notas || undefined,
-      cliente: { id: Number(this.citaForm.value.mascotaId) },
+      cliente: { id: Number(this.citaForm.value.clienteId) },
+      mascota: { idMascota: Number(this.citaForm.value.mascotaId) },
       recepcionista: recepcionistaId ? { id: recepcionistaId } : undefined,
       veterinario: { id: Number(this.citaForm.value.veterinarioId) }
     };
@@ -124,9 +269,17 @@ export class RecepcionistaComponent implements OnInit {
         this.loading = false;
         this.message = `Cita para "${cita.motivo}" agendada correctamente.`;
         this.citaForm.reset({
-          mascotaId: 1, fecha: this.today, hora: '09:00',
-          veterinarioId: 1, motivo: 'Revisión general', estado: 'pendiente', notas: ''
+          clienteId: null, mascotaId: null, fecha: this.today, hora: '09:00',
+          veterinarioId: null, motivo: 'Revisión general', estado: 'asignada', notas: ''
         });
+        this.clienteSearch = '';
+        this.mascotaSearch = '';
+        this.veterinarioSearch = '';
+        this.clienteSeleccionado = null;
+        this.mascotaSeleccionada = null;
+        this.veterinarioSeleccionado = null;
+        this.mascotas = [];
+        this.mascotasFiltradas = [];
       },
       error: () => {
         this.loading = false;

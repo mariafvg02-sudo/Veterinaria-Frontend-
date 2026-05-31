@@ -163,13 +163,11 @@ export class PagosFacturasComponent implements OnInit {
   }
 
   descargarFactura(pago: Pago): void {
-    console.log('Descargando factura:', pago.id);
     this.message = `Factura #${pago.id} descargada exitosamente.`;
     setTimeout(() => (this.message = null), 3000);
   }
 
   enviarComprobante(pago: Pago): void {
-    console.log('Enviando comprobante:', pago.id);
     this.message = `Comprobante enviado a ${pago.cliente}.`;
     setTimeout(() => (this.message = null), 3000);
   }
