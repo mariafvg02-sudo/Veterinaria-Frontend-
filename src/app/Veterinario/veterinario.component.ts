@@ -79,7 +79,7 @@ export class VeterinarioComponent implements OnInit {
 
   ngOnInit(): void {
     const usuario = this.authService.obtenerUsuarioActual();
-    this.usuarioId = usuario?.id ?? usuario?.Userid ?? null;
+    this.usuarioId = usuario?.id ?? usuario?.userId ?? null;
     this.procesamientoForm = this.fb.group({
       diagnostico: ['', [Validators.required, Validators.minLength(1)]],
       tratamiento: ['', [Validators.required, Validators.minLength(1)]]
