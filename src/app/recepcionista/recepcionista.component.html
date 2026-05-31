@@ -152,31 +152,85 @@
             </div>
           </div>
 
-          <div class="actions-row">
-            <div>
-              <label>Mascota (ID)</label>
-              <input type="number" min="1" formControlName="mascotaId">
+          <div class="actions-row autocomplete-row">
+            <div class="autocomplete-wrapper">
+              <label>Cliente</label>
+              <input
+                type="text"
+                [value]="clienteSearch"
+                (input)="onClienteSearchChange($any($event.target).value)"
+                (focus)="onClienteFocus()"
+                (blur)="onClienteBlur()"
+                placeholder="Buscar por nombre de cliente"
+                autocomplete="off">
+              <div class="autocomplete-dropdown" *ngIf="showClienteDropdown">
+                <div
+                  *ngFor="let c of clientesFiltrados"
+                  class="autocomplete-item"
+                  (mousedown)="$event.preventDefault()"
+                  (click)="seleccionarCliente(c)">
+                  {{ c.nombre }}
+                  <span class="autocomplete-sub">{{ c.correo }}</span>
+                </div>
+                <div *ngIf="clientesFiltrados.length === 0" class="autocomplete-empty">
+                  No se encontraron clientes
+                </div>
+              </div>
             </div>
-            <div>
+            <div class="autocomplete-wrapper">
+              <label>Mascota</label>
+              <input
+                type="text"
+                [value]="mascotaSearch"
+                (input)="onMascotaSearchChange($any($event.target).value)"
+                (focus)="onMascotaFocus()"
+                (blur)="onMascotaBlur()"
+                [disabled]="!clienteSeleccionado"
+                [placeholder]="clienteSeleccionado ? 'Buscar mascota...' : 'Selecciona un cliente primero'"
+                autocomplete="off">
+              <div class="autocomplete-dropdown" *ngIf="showMascotaDropdown">
+                <div
+                  *ngFor="let m of mascotasFiltradas"
+                  class="autocomplete-item"
+                  (mousedown)="$event.preventDefault()"
+                  (click)="seleccionarMascota(m)">
+                  {{ m.nombre }}
+                  <span class="autocomplete-sub">{{ m.especie }} · {{ m.raza }}</span>
+                </div>
+                <div *ngIf="mascotasFiltradas.length === 0 && clienteSeleccionado" class="autocomplete-empty">
+                  Este cliente no tiene mascotas registradas
+                </div>
+              </div>
+            </div>
+            <div class="autocomplete-wrapper">
               <label>Veterinario</label>
-              <input type="number" min="1" formControlName="veterinarioId">
+              <input
+                type="text"
+                [value]="veterinarioSearch"
+                (input)="onVeterinarioSearchChange($any($event.target).value)"
+                (focus)="onVeterinarioFocus()"
+                (blur)="onVeterinarioBlur()"
+                placeholder="Buscar veterinario por nombre"
+                autocomplete="off">
+              <div class="autocomplete-dropdown" *ngIf="showVeterinarioDropdown">
+                <div
+                  *ngFor="let v of veterinariosFiltrados"
+                  class="autocomplete-item"
+                  (mousedown)="$event.preventDefault()"
+                  (click)="seleccionarVeterinario(v)">
+                  {{ v.nombre }}
+                  <span class="autocomplete-sub">{{ v.correo }}</span>
+                </div>
+                <div *ngIf="veterinariosFiltrados.length === 0" class="autocomplete-empty">
+                  No se encontraron veterinarios
+                </div>
+              </div>
             </div>
           </div>
 
-          <div class="actions-row">
-            <div>
-              <label>Motivo de la cita</label>
-              <input type="text" formControlName="motivo" placeholder="Vacunación, revisión, emergencia">
-            </div>
-            <div>
-              <label>Estado</label>
-              <select formControlName="estado">
-                <option value="pendiente">Pendiente</option>
-                <option value="confirmada">Confirmada</option>
-                <option value="completada">Completada</option>
-                <option value="cancelada">Cancelada</option>
-              </select>
-            </div>
+          <div>
+            <label>Motivo de la cita</label>
+            <textarea formControlName="motivo" rows="3" placeholder="Vacunación, revisión, emergencia..."></textarea>
           </div>
 
           <div>

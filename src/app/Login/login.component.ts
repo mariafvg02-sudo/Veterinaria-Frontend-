@@ -44,12 +44,9 @@ export class LoginComponent {
     const correo = this.loginForm.value.correo?.trim().toLowerCase();
     const clave = this.loginForm.value.clave;
     
-    console.log('Intentando login con:', { correo, clave });
-
     // 1. FILTRO EXCLUSIVO PARA EL ADMINISTRADOR ÚNICO (Hardcoded local)
     // Puedes cambiar aquí el correo y la contraseña por los que tú quieras usar
     if (correo === 'admin@veterinaria.com' && clave === '12345678') {
-      console.log('¡Acceso concedido al administrador maestro!');
       this.cargando = false;
       
       // Guardamos el rol en el almacenamiento local para que lo lea tu "adminGuard"
@@ -63,8 +60,6 @@ export class LoginComponent {
     // 2. LOGICA NORMAL PARA EL RESTO DE ROLES (Clientes, Veterinarios, etc.)
     this.authService.login(correo, clave).subscribe({
       next: (response) => {
-        console.log('Login exitoso, respuesta del servidor:', response);
-        
         this.cargando = false;
         // // Guardamos también un rol general por si tus otros guardians lo necesitan
         // localStorage.setItem('userRole', response.usuario?.rol?.toUpperCase() || 'CLIENTE');

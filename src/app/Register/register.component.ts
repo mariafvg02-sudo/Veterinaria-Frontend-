@@ -61,7 +61,6 @@ export class RegisterComponent {
 
     this.authService.register(payload).subscribe({
       next: (response) => {
-        console.log('Registro exitoso:', response);
         this.cargando = false;
 
         if (response.mensaje?.toLowerCase().includes('jdbc') || response.mensaje?.toLowerCase().includes('exception')) {

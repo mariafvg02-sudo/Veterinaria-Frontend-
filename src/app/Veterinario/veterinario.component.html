@@ -93,12 +93,15 @@
 
               <button class="btn-submit" style="padding:5px 10px;"
                 *ngIf="cita.estado === 'Asignada'"
+                [disabled]="cita.veterinarioId !== usuarioId"
+                [title]="cita.veterinarioId !== usuarioId ? 'Esta cita está asignada a otro veterinario' : ''"
                 (click)="abrirModalProcesar(cita)">
                 Procesar
               </button>
 
               <button class="btn-icon" title="Cancelar con observación"
                 *ngIf="cita.estado === 'Asignada'"
+                [disabled]="cita.veterinarioId !== usuarioId"
                 (click)="cancelarConObservacion(cita)">
                 Cancelar
               </button>

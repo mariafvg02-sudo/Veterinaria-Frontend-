@@ -14,6 +14,7 @@ interface CitaRow {
   dueno: string;
   estado: 'Pendiente' | 'Asignada' | 'En consulta' | 'Completada' | 'Cancelada';
   estadoOriginal: string;
+  veterinarioId?: number;
 }
 
 @Component({
@@ -134,7 +135,8 @@ export class VeterinarioComponent implements OnInit {
       paciente: cita.mascota?.nombre || 'N/A',
       dueno: cita.cliente?.nombre || 'N/A',
       estado: this.normalizarEstado(cita.estado),
-      estadoOriginal: cita.estado
+      estadoOriginal: cita.estado,
+      veterinarioId: cita.veterinario?.id
     };
   }
 

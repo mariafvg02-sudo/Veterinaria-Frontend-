@@ -1,6 +1,6 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule, FormBuilder, FormGroup, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
+import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { RouterModule, Router } from '@angular/router';
 import { AuthService, Usuario } from '../Core/Service/auth.service';
 import { MascotaService } from '../Core/Service/mascota.service';
@@ -49,7 +49,6 @@ export class ClienteComponent implements OnInit {
         return;
       }
       
-      console.log('Usuario autenticado:', this.usuario);
       this.inicializarFormularios();
       this.cargarDatos();
     } catch (error) {
@@ -101,7 +100,6 @@ export class ClienteComponent implements OnInit {
         this.mascotaSeleccionada = this.mascotaSeleccionada
           ? this.mascotas.find(m => this.obtenerMascotaId(m) === this.obtenerMascotaId(this.mascotaSeleccionada)) || this.mascotas[0] || null
           : this.mascotas[0] || null;
-        console.log('Mascotas cargadas:', this.mascotas);
         this.cargandoMascotas = false;
         try {
           localStorage.setItem('mascotas_cache', JSON.stringify(this.mascotas));
@@ -256,9 +254,7 @@ export class ClienteComponent implements OnInit {
       idMascota: this.mascotaEditando?.idMascota
     };
 
-    // Ocultar banner de error visual (si estaba visible) y registrar payload para depuración
     this.errorCarga = '';
-    console.log('Enviar mascota al backend:', mascotaData);
 
     const mascotaId = this.obtenerMascotaId(this.mascotaEditando || undefined);
 
