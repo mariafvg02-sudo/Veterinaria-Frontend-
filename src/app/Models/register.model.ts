@@ -1,5 +1,5 @@
 export interface Register {
-  Userid? : number; // El '?' indica que es opcional (generado por la DB)
+  userId? : number; // El '?' indica que es opcional (generado por la DB)
   nombre: string;
   correo: string;
   documentoIdentidad: number;

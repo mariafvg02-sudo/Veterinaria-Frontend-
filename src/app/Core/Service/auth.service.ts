@@ -7,13 +7,13 @@ import { Register } from '../../Models/register.model';
 
 export interface Usuario {
   id?: number;
-  Userid?: number; 
+  userId?: number;
   nombre?: string;
   documentoIdentidad: number;
   correo: string;
   clave?: string;
   telefono?: string;
-  rol?: 'ADMINISTRADOR' | 'VETERINARIO' | 'RECEPCIONISTA' | 'JEFE_INVENTARIO' | 'CLIENTE';
+  rol?: 'ADMINISTRADOR' | 'VETERINARIO' | 'RECEPCIONISTA' | 'JEFE_INVENTARIO' | 'JEFEINVENTARIO' | 'CLIENTE';
 }
 
 export interface LoginResponse {
@@ -24,7 +24,8 @@ export interface LoginResponse {
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
-  private apiUrl = '/api/auth';
+  private apiUrl = 'http://localhost:8080/api/auth';
+  private usersUrl = 'http://localhost:8080/api/users';
   private usuarioSubject = new BehaviorSubject<Usuario | null>(null);
   public usuario$ = this.usuarioSubject.asObservable();
 
@@ -53,95 +54,63 @@ export class AuthService {
     );
   }
 
-  // Nuevo método para que el Admin cree usuarios sin perder su sesión
   adminCrearUsuario(usuario: Register): Observable<LoginResponse> {
     return this.http.post<LoginResponse>(`${this.apiUrl}/register`, usuario);
   }
 
-login(correo: string, clave: string): Observable<LoginResponse> {
-
-  return this.http.post<LoginResponse>(
-    `${this.apiUrl}/login`,
-    { correo, clave }
-  ).pipe(
-
-    tap((response) => {
-
-      if (response.usuario) {
-
-        localStorage.setItem(
-          'usuario',
-          JSON.stringify(response.usuario)
-        );
-
-        if (response.token) {
-          localStorage.setItem('token', response.token);
+  login(correo: string, clave: string): Observable<LoginResponse> {
+    return this.http.post<LoginResponse>(`${this.apiUrl}/login`, { correo, clave }).pipe(
+      tap((response) => {
+        if (response.usuario) {
+          localStorage.setItem('usuario', JSON.stringify(response.usuario));
+          if (response.token) {
+            localStorage.setItem('token', response.token);
+          }
+          this.usuarioSubject.next(response.usuario);
         }
+      })
+    );
+  }
 
-        this.usuarioSubject.next(response.usuario);
-      }
-    })
-  );
-}
+  forgotPassword(correo: string): Observable<any> {
+    return this.http.post(`${this.apiUrl}/forgot-password`, { correo }, { responseType: 'text' });
+  }
 
+  verifyCode(correo: string, code: string): Observable<any> {
+    return this.http.post(`${this.apiUrl}/verify-code`, { correo, code }, { responseType: 'text' });
+  }
 
-forgotPassword(correo: string): Observable<any> {
+  resetPassword(correo: string, code: string, nuevaClave: string): Observable<any> {
+    return this.http.post(`${this.apiUrl}/reset-password`, { correo, code, nuevaClave }, { responseType: 'text' });
+  }
 
-  return this.http.post(
-    `${this.apiUrl}/forgot-password`,
-    { correo },
-    { responseType: 'text' }
-  );
-}
+  logout(): void {
+    localStorage.removeItem('usuario');
+    localStorage.removeItem('token');
+    this.usuarioSubject.next(null);
+  }
 
+  obtenerUsuarioActual(): Usuario | null {
+    return this.usuarioSubject.value;
+  }
 
-verifyCode(correo: string, code: string): Observable<any> {
+  obtenerToken(): string | null {
+    return localStorage.getItem('token');
+  }
 
-  return this.http.post(
-    `${this.apiUrl}/verify-code`,
-    { correo, code },
-    { responseType: 'text' }
-  );
-}
+  estaAutenticado(): boolean {
+    return !!this.obtenerUsuarioActual();
+  }
 
+  obtenerTodosLosUsuarios(): Observable<Usuario[]> {
+    return this.http.get<Usuario[]>(this.usersUrl);
+  }
 
-resetPassword(
-  correo: string,
-  code: string,
-  nuevaClave: string
-): Observable<any> {
+  actualizarUsuario(id: number, datos: Partial<Usuario>): Observable<Usuario> {
+    return this.http.put<Usuario>(`${this.usersUrl}/${id}`, datos);
+  }
 
-  return this.http.post(
-    `${this.apiUrl}/reset-password`,
-    { correo, code, nuevaClave },
-    { responseType: 'text' }
-  );
-}
-
-
-logout(): void {
-
-  localStorage.removeItem('usuario');
-  localStorage.removeItem('token');
-
-  this.usuarioSubject.next(null);
-}
-
-
-obtenerUsuarioActual(): Usuario | null {
-
-  return this.usuarioSubject.value;
-}
-
-
-obtenerToken(): string | null {
-
-  return localStorage.getItem('token');
-}
-
-
-estaAutenticado(): boolean {
-
-  return !!this.obtenerUsuarioActual();
-}
+  eliminarUsuario(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.usersUrl}/${id}`);
+  }
 }

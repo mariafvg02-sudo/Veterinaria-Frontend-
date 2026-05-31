@@ -1,10 +1,11 @@
 :host {
-    display: block;
-    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
     background: #f6f8fb;
     color: #243447;
-
 }
+
 .app-shell {
     flex: 1;
     display: flex;
@@ -14,6 +15,14 @@
     width: 100%;
     margin: 0 auto;
     padding: 20px;
+    box-sizing: border-box;
+
+    &.dashboard-mode {
+        max-width: 100%;
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+    }
 }
 header {
     margin-bottom: 1rem;

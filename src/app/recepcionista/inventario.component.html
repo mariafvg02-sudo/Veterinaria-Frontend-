@@ -10,7 +10,7 @@
       </button>
     </nav>
     <div class="sidebar-footer">
-      <button routerLink="/home" class="btn-back"><i class="fa-solid fa-arrow-left"></i> Salir</button>
+      <button type="button" (click)="logout()" class="btn-back"><i class="fa-solid fa-arrow-left"></i> Salir</button>
     </div>
   </aside>
 
@@ -21,7 +21,14 @@
 
     <section *ngIf="activeTab === 'productos'" class="table-container fade-in">
       <div class="table-header"><h2>Catálogo de Existencias</h2></div>
-      <table class="admin-table">
+
+      <div class="table-controls">
+        <label for="filter-products" class="sr-only">Filtrar productos</label>
+        <input id="filter-products" type="search" placeholder="Buscar producto" (input)="filterText = $any($event.target).value">
+      </div>
+
+      <table class="admin-table" role="table" aria-describedby="stock-desc">
+        <caption id="stock-desc">Tabla de productos disponibles y su stock</caption>
         <thead>
           <tr>
             <th>Producto</th>
@@ -31,12 +38,12 @@
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let prod of productos">
+          <tr *ngFor="let prod of filteredProducts">
             <td>{{ prod.nombre }}</td>
             <td>{{ prod.categoria }}</td>
             <td>{{ prod.stock }}</td>
             <td>
-              <span class="role-badge" [ngClass]="prod.alerta ? 'administrador' : 'veterinario'">
+              <span class="role-badge" [ngClass]="prod.alerta ? 'administrador' : 'veterinario'" aria-live="polite">
                 {{ prod.alerta ? 'STOCK BAJO' : 'OK' }}
               </span>
             </td>
@@ -46,6 +53,10 @@
     </section>
   </main>
 </div>
+
+
+
+
 
 
 

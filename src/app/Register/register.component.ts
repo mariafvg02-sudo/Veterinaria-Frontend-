@@ -51,11 +51,11 @@ export class RegisterComponent {
     // Estructuramos el objeto idéntico a tu clase User.java
     const payload = {
       nombre: this.registerForm.value.nombre,
-      correo: this.registerForm.value.email,
+      correo: this.registerForm.value.email.trim().toLowerCase(),
       clave: this.registerForm.value.password,
       telefono: this.registerForm.value.telefono,
       documentoIdentidad: Number(this.registerForm.value.documentoIdentidad), // Mapeado a Long
-      direccion: '', // Mandamos un texto vacío por defecto para que no pida la dirección en el HTML
+      direccion: 'N/A', // Evita que el backend rechace el registro por una dirección vacía
       rol: 'CLIENTE' // Ajustado a tu Enum en mayúsculas
     };
 

@@ -26,15 +26,31 @@
   <!-- MAIN CONTENT -->
   <main class="main-content">
     <header class="content-header">
-      <h1>{{ currentView === 'stats' ? 'Panel de Control' : currentView === 'list' ? 'Gestión de Productos' : 'Registro de Mercancía' }}</h1>
+      <div>
+        <p class="eyebrow">Jefatura de inventario</p>
+        <h1>{{ currentView === 'stats' ? 'Panel de control' : currentView === 'list' ? 'Gestión de productos' : 'Registro de mercancía' }}</h1>
+      </div>
       <div class="user-info">
         <span class="welcome-text">Hola, <strong>{{ usuario?.nombre || 'Jefe de Inventario' }}</strong></span>
-        <button (click)="logout()" class="btn-logout" title="Cerrar Sesión"><i class="fa-solid fa-right-from-bracket"></i></button>
+        <button (click)="logout()" class="btn-logout" title="Cerrar sesión"><i class="fa-solid fa-right-from-bracket"></i></button>
       </div>
     </header>
 
     <!-- SECCIÓN: ESTADÍSTICAS -->
-    <section *ngIf="currentView === 'stats'" class="stats-grid">
+    <section *ngIf="currentView === 'stats'" class="stats-panel fade-in">
+      <div class="hero-card">
+        <div>
+          <p class="hero-kicker">Operación de inventario en tiempo real</p>
+          <h2>Controla stock, alertas y productos críticos desde una sola vista.</h2>
+          <p>Los cambios se guardan en este navegador para que la gestión sea persistente durante la sesión.</p>
+        </div>
+        <div class="hero-actions">
+          <button class="hero-button primary" (click)="setView('list')">Ver inventario</button>
+          <button class="hero-button secondary" (click)="setView('add')">Nuevo producto</button>
+        </div>
+      </div>
+
+      <div class="stats-grid">
       <div *ngFor="let item of stats" class="stat-card">
         <div class="stat-icon"><i class="fa-solid" [ngClass]="item.icon"></i></div>
         <div class="stat-data">
@@ -42,15 +58,59 @@
           <span class="stat-value">{{ item.value }}</span>
         </div>
       </div>
+      </div>
+
+      <div class="low-stock-panel">
+        <div class="panel-header">
+          <h3>Alertas activas</h3>
+          <button class="ghost-button" (click)="setView('list')">Abrir inventario</button>
+        </div>
+        <div *ngIf="productosBajoStock.length; else noAlerts" class="alert-list">
+          <article *ngFor="let prod of productosBajoStock; trackBy: trackByProductoId" class="alert-item">
+            <div>
+              <strong>{{ prod.nombre }}</strong>
+              <span>{{ prod.categoria }}</span>
+            </div>
+            <div class="alert-meta">
+              <span class="alert-stock">{{ prod.cantidad }} unidades</span>
+              <button class="mini-action" (click)="reabastecer(prod)">Reabastecer +10</button>
+            </div>
+          </article>
+        </div>
+        <ng-template #noAlerts>
+          <p class="empty-copy">No hay alertas activas. El stock está por encima del umbral mínimo.</p>
+        </ng-template>
+      </div>
     </section>
 
     <!-- SECCIÓN: TABLA DE INVENTARIO -->
-    <section *ngIf="currentView === 'list'" class="table-container fade-in">
+    <section *ngIf="currentView === 'list'" class="table-shell fade-in">
       <div class="card-header">
-        <h2>Inventario en Tiempo Real</h2>
-        <button class="btn-client-primary" (click)="setView('add')"><i class="fa-solid fa-plus"></i> Añadir Item</button>
+        <div>
+          <p class="section-kicker">Consulta y control</p>
+          <h2>Inventario en tiempo real</h2>
+        </div>
+        <div class="header-actions">
+          <button class="btn-ghost" (click)="clearFilters()">Limpiar filtros</button>
+          <button class="btn-client-primary" (click)="setView('add')"><i class="fa-solid fa-plus"></i> Añadir producto</button>
+        </div>
       </div>
-      <table class="admin-table">
+
+      <div class="filters-row">
+        <label class="search-box">
+          <i class="fa-solid fa-magnifying-glass"></i>
+          <input type="search" [(ngModel)]="searchTerm" placeholder="Buscar por nombre o categoría">
+        </label>
+
+        <label class="select-box">
+          <span>Categoría</span>
+          <select [(ngModel)]="categoriaFiltro">
+            <option *ngFor="let categoria of categorias" [value]="categoria">{{ categoria === 'TODAS' ? 'Todas' : categoria }}</option>
+          </select>
+        </label>
+      </div>
+
+      <table class="admin-table" *ngIf="productosFiltrados.length; else emptyTable">
         <thead>
           <tr>
             <th>Producto</th>
@@ -62,31 +122,47 @@
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let prod of productos">
-            <td>{{ prod.nombre }}</td>
+          <tr *ngFor="let prod of productosFiltrados; trackBy: trackByProductoId">
+            <td>
+              <div class="product-cell">
+                <strong>{{ prod.nombre }}</strong>
+                <span>Id {{ prod.id }}</span>
+              </div>
+            </td>
             <td>{{ prod.categoria }}</td>
             <td>{{ prod.cantidad }}</td>
-            <td>{{ prod.precio | currency }}</td>
+            <td>{{ prod.precio | currency:'COP':'symbol':'1.0-0' }}</td>
             <td>
-              <span class="role-badge" [ngClass]="prod.cantidad === 0 ? 'administrador' : (prod.cantidad < 10 ? 'veterinario' : 'recepcionista')">
-                {{ prod.cantidad === 0 ? 'Agotado' : (prod.cantidad < 10 ? 'Stock Bajo' : 'Normal') }}
+              <span class="state-badge" [ngClass]="estadoClase(prod)">
+                {{ estadoProducto(prod) }}
               </span>
             </td>
             <td class="actions">
+              <button class="btn-icon restock" (click)="reabastecer(prod)" title="Reabastecer +10"><i class="fa-solid fa-rotate"></i></button>
               <button class="btn-icon edit" (click)="onEdit(prod)"><i class="fa-solid fa-pen"></i></button>
               <button class="btn-icon delete" (click)="onDelete(prod.id)"><i class="fa-solid fa-trash"></i></button>
             </td>
           </tr>
         </tbody>
       </table>
+
+      <ng-template #emptyTable>
+        <div class="empty-state">
+          <i class="fa-solid fa-box-open"></i>
+          <h3>No hay productos que coincidan con el filtro</h3>
+          <p>Prueba limpiando la búsqueda o registra un nuevo producto para empezar.</p>
+          <button class="btn-client-primary" (click)="setView('add')">Registrar producto</button>
+        </div>
+      </ng-template>
     </section>
 
     <!-- SECCIÓN: FORMULARIO PRODUCTO -->
-    <section *ngIf="currentView === 'add'" class="form-card-container fade-in">
+    <section *ngIf="currentView === 'add'" class="form-layout fade-in">
       <div class="form-card">
         <div class="form-header">
-          <h2>{{ editingId ? 'Editar Item' : 'Registrar Nuevo Item' }}</h2>
-          <p>Complete los datos para actualizar el stock.</p>
+          <p class="section-kicker">{{ editingId ? 'Actualiza el inventario' : 'Nuevo producto' }}</p>
+          <h2>{{ editingId ? 'Editar producto' : 'Registrar nuevo producto' }}</h2>
+          <p>Completa los datos para mantener el inventario consistente.</p>
         </div>
         
         <form [formGroup]="productForm" (ngSubmit)="onSubmit()">
@@ -94,6 +170,7 @@
             <div class="form-group">
               <label><i class="fa-solid fa-tag"></i> Nombre</label>
               <input type="text" formControlName="nombre">
+              <small *ngIf="productForm.get('nombre')?.touched && productForm.get('nombre')?.invalid">Ingresa un nombre válido.</small>
             </div>
             <div class="form-group">
               <label><i class="fa-solid fa-folder"></i> Categoría</label>
@@ -107,20 +184,45 @@
             <div class="form-group">
               <label><i class="fa-solid fa-hashtag"></i> Cantidad</label>
               <input type="number" formControlName="cantidad">
+              <small *ngIf="productForm.get('cantidad')?.touched && productForm.get('cantidad')?.invalid">La cantidad debe ser mayor o igual a cero.</small>
             </div>
             <div class="form-group">
               <label><i class="fa-solid fa-dollar-sign"></i> Precio</label>
               <input type="number" formControlName="precio">
+              <small *ngIf="productForm.get('precio')?.touched && productForm.get('precio')?.invalid">Ingresa un precio válido.</small>
             </div>
           </div>
-          <div style="display:flex;gap:12px;margin-top:20px">
+          <div class="form-actions">
             <button type="submit" class="btn-submit" [disabled]="productForm.invalid">
-              {{ editingId ? 'Guardar Cambios' : 'Registrar Producto' }}
+              {{ editingId ? 'Guardar cambios' : 'Registrar producto' }}
             </button>
-            <button type="button" class="btn-submit" style="background:#9e8e81;" *ngIf="editingId" (click)="cancelEdit()">Cancelar</button>
+            <button type="button" class="btn-secondary" (click)="cancelEdit()">Cancelar</button>
           </div>
         </form>
       </div>
+
+      <aside class="summary-card">
+        <p class="section-kicker">Resumen rápido</p>
+        <h3>Movimientos recientes</h3>
+        <div class="summary-list">
+          <div class="summary-row">
+            <span>Total productos</span>
+            <strong>{{ totalProductos }}</strong>
+          </div>
+          <div class="summary-row">
+            <span>Stock total</span>
+            <strong>{{ totalStock }}</strong>
+          </div>
+          <div class="summary-row">
+            <span>Agotados</span>
+            <strong>{{ productosAgotados }}</strong>
+          </div>
+          <div class="summary-row">
+            <span>Categorías</span>
+            <strong>{{ totalCategorias }}</strong>
+          </div>
+        </div>
+      </aside>
     </section>
   </main>
 </div>
