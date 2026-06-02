@@ -2,13 +2,13 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { HistorialMedico } from '../Models/historial-medico.model';
+import { environment } from '../../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class HistorialMedicoService {
-  // Asegúrate de que este puerto coincida con tu Server de Spring Boot
-  private apiUrl = '/api/historiales'; 
+  private apiUrl = `${environment.apiUrl}/historiales`;
 
   constructor(private http: HttpClient) { }
 

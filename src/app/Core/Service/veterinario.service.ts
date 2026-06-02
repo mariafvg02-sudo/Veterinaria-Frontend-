@@ -2,10 +2,11 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Veterinario } from '../../Models/veterinario.model';
+import { environment } from '../../../environments/environment';
 
 @Injectable({ providedIn: 'root' })
 export class VeterinarioService {
-  private url = '/api/veterinarios'; // Ajusta tu puerto
+  private url = `${environment.apiUrl}/veterinarios`;
 
   constructor(private http: HttpClient) {}
 

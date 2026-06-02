@@ -4,6 +4,7 @@ import { Observable, BehaviorSubject } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { Login } from '../../Models/login.model';
 import { Register } from '../../Models/register.model';
+import { environment } from '../../../environments/environment';
 
 export interface Usuario {
   id?: number;
@@ -24,8 +25,8 @@ export interface LoginResponse {
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
-  private apiUrl = 'http://localhost:8080/api/auth';
-  private usersUrl = 'http://localhost:8080/api/users';
+  private apiUrl = `${environment.apiUrl}/auth`;
+  private usersUrl = `${environment.apiUrl}/users`;
   private usuarioSubject = new BehaviorSubject<Usuario | null>(null);
   public usuario$ = this.usuarioSubject.asObservable();
 
