@@ -60,21 +60,25 @@
     padding: 20px 0;
     button {
       width: 100%;
-      background: none;
-      border: none;
+      background: var(--primary-soft);
+      border: 1px solid var(--border);
       padding: 12px 25px;
       display: flex;
       align-items: center;
       gap: 14px;
       color: var(--text-dark);
       font-size: 14px;
+      font-weight: 600;
       cursor: pointer;
-      transition: 0.3s;
+      transition: 0.25s ease;
       text-align: left;
+      border-radius: 14px;
+      margin-bottom: 8px;
+      box-shadow: 0 8px 18px rgba(73, 53, 38, 0.04);
 
       i { width: 20px; color: var(--primary); font-size: 16px; }
       
-      &:hover { background: var(--primary-soft); color: var(--primary); }
+      &:hover { background: #efe7de; color: var(--primary); border-color: var(--primary); }
       
       &.active {
         background: var(--primary);
@@ -89,17 +93,27 @@
 
   .sidebar-footer {
     padding: 20px 25px;
-    .btn-back {
-      background: none;
+    border-top: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+
+    .btn-sidebar-action {
+      background: var(--primary-soft);
       border: 1px solid var(--border);
-      color: var(--text-dark);
-      padding: 10px;
-      border-radius: 10px;
+      color: var(--primary);
+      padding: 12px 14px;
+      border-radius: 14px;
       cursor: pointer;
       width: 100%;
-      font-weight: 600;
-      transition: 0.3s;
-      &:hover { background: var(--primary-soft); color: var(--primary); }
+      font-weight: 700;
+      transition: 0.25s ease;
+      box-shadow: 0 8px 18px rgba(73, 53, 38, 0.04);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      &:hover { background: #efe7de; color: var(--primary); border-color: var(--primary); }
+      &.danger { color: var(--primary); }
     }
   }
 }
