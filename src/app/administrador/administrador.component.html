@@ -1,10 +1,22 @@
-<div class="admin-layout" style="border: 1px solid red;">
+<div class="admin-layout">
 
   <!-- SIDEBAR -->
   <aside class="sidebar">
     <div class="sidebar-brand">
       <i class="fa-solid fa-paw"></i>
-      <span>Vet App</span>
+      <span>VETAPP</span>
+    </div>
+
+    <div class="sidebar-subtitle">
+      <p>Panel del administrador</p>
+    </div>
+
+    <div class="sidebar-profile">
+      <span class="profile-avatar">{{ (usuario?.nombre || usuario?.correo || 'A').charAt(0).toUpperCase() }}</span>
+      <div>
+        <strong>{{ usuario?.nombre || 'Administrador' }}</strong>
+        <small>{{ usuario?.correo }}</small>
+      </div>
     </div>
 
     <nav class="sidebar-nav">
@@ -26,13 +38,6 @@
     </nav>
 
     <div class="sidebar-footer">
-      <div class="admin-info">
-        <div class="avatar-circle">{{ (usuario?.nombre || 'A').charAt(0).toUpperCase() }}</div>
-        <div class="admin-meta">
-          <span class="admin-name">{{ usuario?.nombre || 'Admin' }}</span>
-          <span class="admin-role">Administrador</span>
-        </div>
-      </div>
       <button routerLink="/home" class="btn-sidebar-action">
         <i class="fa-solid fa-arrow-left"></i> Inicio
       </button>
@@ -48,6 +53,7 @@
     <!-- HEADER -->
     <header class="page-header">
       <div>
+        <span class="header-kicker">Tu espacio de control</span>
         <h1>
           {{ currentView === 'users' ? 'Personal' :
              currentView === 'citas' ? 'Citas' :
@@ -63,214 +69,216 @@
       </div>
     </header>
 
-    <!-- ── PANEL DE ESTADÍSTICAS ── -->
-    <section *ngIf="currentView === 'stats'" class="section-fade">
-      <div *ngIf="cargandoUsuarios" class="empty-state">
-        <i class="fa-solid fa-spinner fa-spin"></i>
-        <p>Cargando datos...</p>
-      </div>
-
-      <div *ngIf="!cargandoUsuarios" class="metrics-grid">
-        <div *ngFor="let s of statsPersonal" class="metric-card">
-          <i class="fa-solid metric-icon" [ngClass]="s.icon"></i>
-          <span class="metric-value">{{ s.value }}</span>
-          <span class="metric-label">{{ s.label }}</span>
-        </div>
-      </div>
-
-      <div *ngIf="!cargandoUsuarios" class="hint-box">
-        <i class="fa-solid fa-circle-info"></i>
-        Estadísticas basadas en el personal activo en la base de datos.
-        <button class="link-btn" (click)="setView('users')">Ver listado completo</button>
-      </div>
-    </section>
-
-    <!-- ── TABLA DE USUARIOS ── -->
-    <section *ngIf="currentView === 'users'" class="section-fade">
-      <div class="toolbar">
-        <input
-          type="search"
-          class="search-input"
-          placeholder="Buscar por nombre, correo o rol..."
-          (input)="filterText = $any($event.target).value"
-          aria-label="Buscar usuarios">
-        <button class="btn-primary" (click)="setView('create')">
-          <i class="fa-solid fa-plus"></i> Nuevo
-        </button>
-      </div>
-
-      <div *ngIf="exito" class="alert success">{{ exito }}</div>
-      <div *ngIf="error" class="alert error">{{ error }}</div>
-
-      <div *ngIf="cargandoUsuarios" class="empty-state">
-        <i class="fa-solid fa-spinner fa-spin"></i>
-        <p>Cargando personal...</p>
-      </div>
-
-      <div *ngIf="!cargandoUsuarios && filteredUsuarios.length === 0" class="empty-state">
-        <i class="fa-solid fa-users-slash"></i>
-        <p>No se encontraron usuarios</p>
-        <button class="btn-primary" (click)="setView('create')">Registrar primero</button>
-      </div>
-
-      <table *ngIf="!cargandoUsuarios && filteredUsuarios.length > 0" class="data-table">
-        <thead>
-          <tr>
-            <th>Nombre</th>
-            <th>Correo</th>
-            <th>Teléfono</th>
-            <th>Rol</th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let user of filteredUsuarios">
-            <td>
-              <div class="user-cell">
-                <div class="avatar-sm">{{ (user.nombre || '?').charAt(0).toUpperCase() }}</div>
-                <span>{{ user.nombre }}</span>
-              </div>
-            </td>
-            <td class="text-muted">{{ user.correo }}</td>
-            <td class="text-muted">{{ user.telefono || '—' }}</td>
-            <td>
-              <span class="role-badge" [ngClass]="(user.rol || '').toLowerCase()">
-                {{ user.rol }}
-              </span>
-            </td>
-            <td class="actions-cell">
-              <button class="btn-icon" (click)="onEditUser(user)" title="Editar">
-                <i class="fa-solid fa-pen-to-square"></i>
-              </button>
-              <button class="btn-icon danger" (click)="onDeleteUser(user.id ?? user.userId ?? 0)" title="Eliminar">
-                <i class="fa-solid fa-trash-can"></i>
-              </button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </section>
-
-    <!-- ── CITAS (solo lectura, AC4) ── -->
-    <section *ngIf="currentView === 'citas'" class="section-fade">
-      <div *ngIf="cargandoCitas" class="empty-state">
-        <i class="fa-solid fa-spinner fa-spin"></i>
-        <p>Cargando citas...</p>
-      </div>
-
-      <div *ngIf="!cargandoCitas && citas.length === 0" class="empty-state">
-        <i class="fa-solid fa-calendar-xmark"></i>
-        <p>No hay citas registradas.</p>
-      </div>
-
-      <table *ngIf="!cargandoCitas && citas.length > 0" class="data-table">
-        <thead>
-          <tr>
-            <th>#</th>
-            <th>Fecha</th>
-            <th>Motivo</th>
-            <th>Estado</th>
-            <th>Cliente</th>
-            <th>Veterinario</th>
-            <th>Recepcionista</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let cita of citas">
-            <td>{{ cita.idCita }}</td>
-            <td>{{ cita.fecha | date:'dd/MM/yyyy HH:mm' }}</td>
-            <td>{{ cita.motivo }}</td>
-            <td>
-              <span class="role-badge" [ngClass]="(cita.estado || '').toLowerCase()">{{ cita.estado }}</span>
-            </td>
-            <td>{{ cita.cliente?.nombre || 'N/D' }}</td>
-            <td>{{ cita.veterinario?.nombre || 'Sin asignar' }}</td>
-            <td>{{ cita.recepcionista?.nombre || '—' }}</td>
-          </tr>
-        </tbody>
-      </table>
-    </section>
-
-    <!-- ── FORMULARIO ── -->
-    <section *ngIf="currentView === 'create'" class="section-fade">
-      <form [formGroup]="userForm" (ngSubmit)="onSubmitUser()" class="user-form">
-        <div class="form-grid">
-
-          <div class="field">
-            <label for="f-nombre">Nombre completo</label>
-            <input id="f-nombre" type="text" formControlName="nombre" placeholder="Ej. Juan Pérez">
-            <span class="field-error"
-              *ngIf="userForm.get('nombre')?.invalid && userForm.get('nombre')?.touched">
-              Mínimo 2 caracteres
-            </span>
-          </div>
-
-          <div class="field">
-            <label for="f-doc">Documento de identidad</label>
-            <input id="f-doc" type="text" formControlName="documentoIdentidad" placeholder="Solo números">
-            <span class="field-error"
-              *ngIf="userForm.get('documentoIdentidad')?.invalid && userForm.get('documentoIdentidad')?.touched">
-              Solo números
-            </span>
-          </div>
-
-          <div class="field">
-            <label for="f-email">Correo electrónico</label>
-            <input id="f-email" type="email" formControlName="email" placeholder="correo@ejemplo.com">
-            <span class="field-error"
-              *ngIf="userForm.get('email')?.invalid && userForm.get('email')?.touched">
-              Correo inválido
-            </span>
-          </div>
-
-          <div class="field">
-            <label for="f-pass">
-              Contraseña
-              <span *ngIf="editingUserId" class="optional-hint">(dejar vacío para no cambiar)</span>
-            </label>
-            <input id="f-pass" type="password" formControlName="password" placeholder="Min. 6 caracteres">
-            <span class="field-error"
-              *ngIf="userForm.get('password')?.invalid && userForm.get('password')?.touched">
-              Mínimo 6 caracteres
-            </span>
-          </div>
-
-          <div class="field">
-            <label for="f-tel">Teléfono</label>
-            <input id="f-tel" type="text" formControlName="telefono" placeholder="Ej. 3001234567">
-            <span class="field-error"
-              *ngIf="userForm.get('telefono')?.invalid && userForm.get('telefono')?.touched">
-              Teléfono requerido
-            </span>
-          </div>
-
-          <div class="field">
-            <label for="f-rol">Rol</label>
-            <select id="f-rol" formControlName="rol">
-              <option value="RECEPCIONISTA">Recepcionista</option>
-              <option value="VETERINARIO">Veterinario</option>
-              <option value="JEFEINVENTARIO">Jefe de Inventario</option>
-              <option value="ADMINISTRADOR">Administrador</option>
-            </select>
-          </div>
-
+    <div class="page-stack">
+      <!-- ── PANEL DE ESTADÍSTICAS ── -->
+      <section *ngIf="currentView === 'stats'" class="section-fade content-card">
+        <div *ngIf="cargandoUsuarios" class="empty-state">
+          <i class="fa-solid fa-spinner fa-spin"></i>
+          <p>Cargando datos...</p>
         </div>
 
-        <div class="form-actions">
-          <button type="submit" class="btn-primary" [disabled]="userForm.invalid || cargando">
-            <i class="fa-solid"
-              [ngClass]="cargando ? 'fa-spinner fa-spin' : (editingUserId ? 'fa-floppy-disk' : 'fa-plus')"></i>
-            {{ cargando ? 'Guardando...' : (editingUserId ? 'Guardar cambios' : 'Registrar') }}
-          </button>
-          <button type="button" class="btn-ghost" *ngIf="editingUserId" (click)="onCancelEdit()">
-            Cancelar
+        <div *ngIf="!cargandoUsuarios" class="metrics-grid">
+          <div *ngFor="let s of statsPersonal" class="metric-card">
+            <i class="fa-solid metric-icon" [ngClass]="s.icon"></i>
+            <span class="metric-value">{{ s.value }}</span>
+            <span class="metric-label">{{ s.label }}</span>
+          </div>
+        </div>
+
+        <div *ngIf="!cargandoUsuarios" class="hint-box">
+          <i class="fa-solid fa-circle-info"></i>
+          Estadísticas basadas en el personal activo en la base de datos.
+          <button class="link-btn" (click)="setView('users')">Ver listado completo</button>
+        </div>
+      </section>
+
+      <!-- ── TABLA DE USUARIOS ── -->
+      <section *ngIf="currentView === 'users'" class="section-fade content-card">
+        <div class="toolbar">
+          <input
+            type="search"
+            class="search-input"
+            placeholder="Buscar por nombre, correo o rol..."
+            (input)="filterText = $any($event.target).value"
+            aria-label="Buscar usuarios">
+          <button class="btn-primary" (click)="setView('create')">
+            <i class="fa-solid fa-plus"></i> Nuevo
           </button>
         </div>
 
         <div *ngIf="exito" class="alert success">{{ exito }}</div>
         <div *ngIf="error" class="alert error">{{ error }}</div>
-      </form>
-    </section>
+
+        <div *ngIf="cargandoUsuarios" class="empty-state">
+          <i class="fa-solid fa-spinner fa-spin"></i>
+          <p>Cargando personal...</p>
+        </div>
+
+        <div *ngIf="!cargandoUsuarios && filteredUsuarios.length === 0" class="empty-state">
+          <i class="fa-solid fa-users-slash"></i>
+          <p>No se encontraron usuarios</p>
+          <button class="btn-primary" (click)="setView('create')">Registrar primero</button>
+        </div>
+
+        <table *ngIf="!cargandoUsuarios && filteredUsuarios.length > 0" class="data-table">
+          <thead>
+            <tr>
+              <th>Nombre</th>
+              <th>Correo</th>
+              <th>Teléfono</th>
+              <th>Rol</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let user of filteredUsuarios">
+              <td>
+                <div class="user-cell">
+                  <div class="avatar-sm">{{ (user.nombre || '?').charAt(0).toUpperCase() }}</div>
+                  <span>{{ user.nombre }}</span>
+                </div>
+              </td>
+              <td class="text-muted">{{ user.correo }}</td>
+              <td class="text-muted">{{ user.telefono || '—' }}</td>
+              <td>
+                <span class="role-badge" [ngClass]="(user.rol || '').toLowerCase()">
+                  {{ user.rol }}
+                </span>
+              </td>
+              <td class="actions-cell">
+                <button class="btn-icon" (click)="onEditUser(user)" title="Editar">
+                  <i class="fa-solid fa-pen-to-square"></i>
+                </button>
+                <button class="btn-icon danger" (click)="onDeleteUser(user.id ?? user.userId ?? 0)" title="Eliminar">
+                  <i class="fa-solid fa-trash-can"></i>
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <!-- ── CITAS (solo lectura, AC4) ── -->
+      <section *ngIf="currentView === 'citas'" class="section-fade content-card">
+        <div *ngIf="cargandoCitas" class="empty-state">
+          <i class="fa-solid fa-spinner fa-spin"></i>
+          <p>Cargando citas...</p>
+        </div>
+
+        <div *ngIf="!cargandoCitas && citas.length === 0" class="empty-state">
+          <i class="fa-solid fa-calendar-xmark"></i>
+          <p>No hay citas registradas.</p>
+        </div>
+
+        <table *ngIf="!cargandoCitas && citas.length > 0" class="data-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Fecha</th>
+              <th>Motivo</th>
+              <th>Estado</th>
+              <th>Cliente</th>
+              <th>Veterinario</th>
+              <th>Recepcionista</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let cita of citas">
+              <td>{{ cita.idCita }}</td>
+              <td>{{ cita.fecha | date:'dd/MM/yyyy HH:mm' }}</td>
+              <td>{{ cita.motivo }}</td>
+              <td>
+                <span class="role-badge" [ngClass]="(cita.estado || '').toLowerCase()">{{ cita.estado }}</span>
+              </td>
+              <td>{{ cita.cliente?.nombre || 'N/D' }}</td>
+              <td>{{ cita.veterinario?.nombre || 'Sin asignar' }}</td>
+              <td>{{ cita.recepcionista?.nombre || '—' }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <!-- ── FORMULARIO ── -->
+      <section *ngIf="currentView === 'create'" class="section-fade content-card content-card--form">
+        <form [formGroup]="userForm" (ngSubmit)="onSubmitUser()" class="user-form">
+          <div class="form-grid">
+
+            <div class="field">
+              <label for="f-nombre">Nombre completo</label>
+              <input id="f-nombre" type="text" formControlName="nombre" placeholder="Ej. Juan Pérez">
+              <span class="field-error"
+                *ngIf="userForm.get('nombre')?.invalid && userForm.get('nombre')?.touched">
+                Mínimo 2 caracteres
+              </span>
+            </div>
+
+            <div class="field">
+              <label for="f-doc">Documento de identidad</label>
+              <input id="f-doc" type="text" formControlName="documentoIdentidad" placeholder="Solo números">
+              <span class="field-error"
+                *ngIf="userForm.get('documentoIdentidad')?.invalid && userForm.get('documentoIdentidad')?.touched">
+                Solo números
+              </span>
+            </div>
+
+            <div class="field">
+              <label for="f-email">Correo electrónico</label>
+              <input id="f-email" type="email" formControlName="email" placeholder="correo@ejemplo.com">
+              <span class="field-error"
+                *ngIf="userForm.get('email')?.invalid && userForm.get('email')?.touched">
+                Correo inválido
+              </span>
+            </div>
+
+            <div class="field">
+              <label for="f-pass">
+                Contraseña
+                <span *ngIf="editingUserId" class="optional-hint">(dejar vacío para no cambiar)</span>
+              </label>
+              <input id="f-pass" type="password" formControlName="password" placeholder="Min. 6 caracteres">
+              <span class="field-error"
+                *ngIf="userForm.get('password')?.invalid && userForm.get('password')?.touched">
+                Mínimo 6 caracteres
+              </span>
+            </div>
+
+            <div class="field">
+              <label for="f-tel">Teléfono</label>
+              <input id="f-tel" type="text" formControlName="telefono" placeholder="Ej. 3001234567">
+              <span class="field-error"
+                *ngIf="userForm.get('telefono')?.invalid && userForm.get('telefono')?.touched">
+                Teléfono requerido
+              </span>
+            </div>
+
+            <div class="field">
+              <label for="f-rol">Rol</label>
+              <select id="f-rol" formControlName="rol">
+                <option value="RECEPCIONISTA">Recepcionista</option>
+                <option value="VETERINARIO">Veterinario</option>
+                <option value="JEFEINVENTARIO">Jefe de Inventario</option>
+                <option value="ADMINISTRADOR">Administrador</option>
+              </select>
+            </div>
+
+          </div>
+
+          <div class="form-actions">
+            <button type="submit" class="btn-primary" [disabled]="userForm.invalid || cargando">
+              <i class="fa-solid"
+                [ngClass]="cargando ? 'fa-spinner fa-spin' : (editingUserId ? 'fa-floppy-disk' : 'fa-plus')"></i>
+              {{ cargando ? 'Guardando...' : (editingUserId ? 'Guardar cambios' : 'Registrar') }}
+            </button>
+            <button type="button" class="btn-ghost" *ngIf="editingUserId" (click)="onCancelEdit()">
+              Cancelar
+            </button>
+          </div>
+
+          <div *ngIf="exito" class="alert success">{{ exito }}</div>
+          <div *ngIf="error" class="alert error">{{ error }}</div>
+        </form>
+      </section>
+    </div>
 
   </main>
 </div>

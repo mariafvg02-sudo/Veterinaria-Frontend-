@@ -11,195 +11,171 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    min-height: 100vh; /* Use min-height for better content handling */
-    background: var(--bg-main); /* Changed to a lighter background */
-    font-family: 'Segoe UI', Roboto, sans-serif; /* Consistent font */
+    padding: 1rem;
+    min-height: 100vh;
+    background:
+        radial-gradient(circle at top left, rgba(141, 119, 95, 0.08), transparent 32%),
+        radial-gradient(circle at bottom right, rgba(141, 119, 95, 0.06), transparent 28%),
+        var(--bg-main);
+    font-family: 'Segoe UI', Roboto, sans-serif;
     color: var(--text-dark);
-
-    /* Forzamos el color a todos los elementos de texto */
-    h1, h2, h3, p, label, input, a, span {
-      color: var(--text-dark);
-    }
 }
 
-/* TARJETA */
+/* Card */
 .login-card {
     background: var(--white);
-    padding: 3rem; /* Increased padding */
-    border-radius: 24px; /* More rounded corners */
-    width: 360px;
-    border: 1px solid var(--border); /* Added border */
-    box-shadow: 0 10px 30px rgba(74, 60, 49, 0.08); /* Usando valores RGB directos */
+    padding: clamp(1rem, 2vw, 1.5rem);
+    border-radius: 18px;
+    width: min(360px, 100%);
+    border: 1px solid var(--border);
+    box-shadow: 0 14px 32px rgba(74, 60, 49, 0.08);
 }
 
-/* ICONO SUPERIOR */
 .header-icon {
     display: flex;
     justify-content: center;
-    margin-bottom: 15px;
-    /* Added for better icon styling */
-    i {
-      font-size: 2.5rem;
-      color: var(--primary);
-    }
+    margin-bottom: 12px;
 }
 
-.circle {
-    display: none; /* Hide the circle as we're using header-icon directly */
+.header-icon i {
+    font-size: 2rem;
+    color: var(--primary);
 }
 
-/* HEADER */
 header {
     text-align: center;
-    margin-bottom: 20px;
+    margin-bottom: 12px;
 }
 
 header h1 {
     margin: 0;
-    font-size: 2rem;
+    font-size: 1.45rem;
     font-weight: 700;
-    color: var(--text-dark); /* Aseguramos el color café oscuro */
+    color: var(--text-dark);
 }
 
 header p {
-    color: var(--text-muted); /* Consistent muted text color */
-    font-size: 0.95rem; /* Consistent font size */
+    color: var(--text-muted);
+    font-size: 0.88rem;
+    margin-top: 0.25rem;
 }
 
-/* FORMULARIO */
 .form-group {
-    margin-bottom: 15px;
-    position: relative; /* For icon positioning */
+    padding: 0.45rem 0;
+    margin-bottom: 8px;
+    position: relative;
 }
 
 label {
-    font-size: 14px;
+    font-size: 0.88rem;
     margin-bottom: 5px;
     display: block;
-    color: var(--text-dark); /* Consistent label color */
-    font-weight: 600;
+    color: var(--text-dark);
 }
 
-/* INPUTS */
+/* Inputs */
 input {
     width: 100%;
-    padding: 12px 16px; /* Increased padding */
-    border-radius: 12px; /* More rounded corners */
-    border: 1px solid var(--border); /* Consistent border color */
+    padding: 10px 13px;
+    border-radius: 10px;
+    border: 1px solid #d9cec1;
     background: var(--bg-input);
-    color: var(--text-dark);
-    font-size: 1rem; /* Consistent font size */
-    transition: all 0.3s ease; /* Add transition */
-
-    &:focus {
-      outline: none;
-      border-color: var(--primary);
-      background-color: var(--white);
-      box-shadow: 0 0 0 4px var(--primary-light); /* Focus effect */
-    }
-    &::placeholder {
-      color: var(--text-muted); /* Consistent placeholder color */
-    }
+    font-size: 0.98rem;
+    transition: all 0.18s ease;
+    min-height: 42px;
+    outline: none;
 }
 
-/* INPUT CON ICONO */
+input:focus {
+    box-shadow: 0 6px 18px rgba(141,119,95,0.06);
+    border-color: var(--primary);
+    background-color: var(--white);
+}
+
+input::placeholder {
+    color: var(--text-muted);
+}
+
 .input-with-icon {
     display: flex;
     align-items: center;
     background: var(--bg-input);
-    border-radius: 12px; /* More rounded corners */
-    padding: 0 15px; /* Adjusted padding */
-    border: 1px solid var(--border); /* Consistent border */
-    
-    i { /* Style for icons inside input */
-      color: var(--text-muted);
-      margin-right: 10px;
-    }
+    border-radius: 10px;
+    padding: 0 12px;
+    border: 1px solid #d9cec1;
+    min-height: 42px;
 }
 
 .input-with-icon input {
     border: none;
-    background: transparent;
     outline: none;
-    flex: 1;
-    padding: 12px 0; /* Adjust input padding inside icon group */
+    background: transparent;
+    flex: 1 1 auto;
+    padding: 12px 8px;
 }
 
-/* MENSAJES DE ERROR */
+.eye-icon {
+    cursor: pointer;
+    color: var(--text-muted);
+    transition: color 0.2s ease;
+}
+
+.eye-icon:hover { color: var(--primary); }
+
 .error-message {
-    margin-top: 5px;
-}
-
-.form-message {
+    margin-top: 6px;
+    min-height: 30px;
     background-color: #fde8e8;
     border: 1px solid #f8b4b4;
     border-radius: 8px;
-    padding: 10px;
-    margin-bottom: 20px;
+    padding: 7px 10px;
+    font-size: 0.84rem;
     text-align: center;
     color: #dc3545 !important;
-    font-size: 14px;
 }
 
-.error-message p {
-    color: #dc3545 !important;
-    font-size: 12px;
-    margin: 0;
-}
+.error-message p { margin: 0; font-size: 0.78rem; color: #dc3545 !important; }
 
-/* ICONO OJO */
-.eye-icon {
-    cursor: pointer;
-    color: var(--text-muted); 
-    transition: color 0.3s ease;
-    &:hover { color: var(--primary); }
-}
+.buttons { margin-top: 10px; }
 
-/* BOTONES */
-.buttons {
-    margin-top: 15px;
-}
-
-/* BOTÓN PRINCIPAL */
 .btn-ingresar {
     width: 100%;
-    padding: 14px; /* Increased padding */
+    padding: 11px;
     background: var(--primary);
     color: var(--white);
     border: none;
-    border-radius: 12px; /* More rounded corners */
-    font-weight: 700; /* Bolder font */
-    font-size: 1rem; /* Consistent font size */
+    border-radius: 10px;
+    font-weight: 700;
+    font-size: 0.98rem;
     cursor: pointer;
-    transition: 0.3s;
+    transition: transform 0.18s ease, background 0.18s ease;
 }
 
-.btn-ingresar:hover:not(:disabled) {
-    background: #75624d;
-    transform: translateY(-2px);
+.btn-ingresar:hover:not(:disabled) { transform: translateY(-2px); background: #75624d; }
+.btn-ingresar:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.login-footer { text-align: center; margin-top: 0.9rem; font-size: 0.84rem; color: var(--text-muted); }
+.login-footer a { color: var(--primary); text-decoration: none; font-weight: 600; }
+.login-footer a:hover { text-decoration: underline; }
+
+@media (max-width: 768px) {
+    :host { padding: 0.8rem; }
+    .login-card { width: min(100%, 380px); padding: 1.05rem; border-radius: 17px; }
+    header h1 { font-size: 1.4rem; }
+    .form-group { margin-bottom: 7px; }
 }
 
-.btn-ingresar:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
+@media (max-width: 480px) {
+    .login-card { width: calc(100vw - 1.2rem); padding: 1rem; border-radius: 16px; }
+    header h1 { font-size: 1.32rem; }
+    header p { font-size: 0.84rem; }
+    .form-group { margin-bottom: 8px; }
+    input, .input-with-icon { min-height: 40px; }
+    input { padding: 9px 11px; font-size: 0.95rem; }
+    .input-with-icon { padding: 0 12px; }
+    .btn-ingresar { padding: 10px; }
 }
 
-/* FOOTER */
-.login-footer {
-    text-align: center;
-    margin-top: 2rem; /* Increased margin */
-    font-size: 0.9rem; /* Consistent font size */
-    color: var(--text-muted); /* Consistent muted text color */
-}
-
-.login-footer a {
-    color: var(--primary);
-    text-decoration: none;
-    cursor: pointer;
-    font-weight: 600;
-    color: var(--primary); /* El enlace usa el color café claro */
-}
-
-.login-footer a:hover {
-    text-decoration: underline;
+@media (min-width: 1200px) {
+    .login-card { width: 360px; }
 }

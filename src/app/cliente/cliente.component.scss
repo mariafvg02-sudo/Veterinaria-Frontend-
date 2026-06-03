@@ -99,18 +99,20 @@
 .nav-btn {
   width: calc(100% - 28px);
   margin: 0 14px 8px;
-  background: none;
-  border: none;
+  background: var(--primary-light);
+  border: 1px solid var(--border);
   padding: 14px 16px;
   display: flex;
   align-items: center;
   gap: 14px;
   color: var(--text-dark);
   font-size: 14px;
+  font-weight: 600;
   cursor: pointer;
   transition: 0.25s ease;
   text-align: left;
   border-radius: 14px;
+  box-shadow: 0 8px 18px rgba(76, 60, 49, 0.04);
 
   i {
     width: 18px;
@@ -119,8 +121,9 @@
   }
 
   &:hover {
-    background: var(--primary-light);
+    background: #efe7de;
     color: var(--primary);
+    border-color: var(--primary);
   }
 
   &.active {
@@ -135,16 +138,54 @@
 
   &.logout {
     margin-top: 26px;
-    color: #b85f57;
-    font-weight: 600;
+    color: var(--primary);
+    font-weight: 700;
+    background: var(--primary-light);
+    border-color: var(--border);
 
     i {
-      color: #b85f57;
+      color: var(--primary);
     }
 
     &:hover {
-      background: #fff5f5;
+      background: #efe7de;
+      color: var(--primary);
+      border-color: var(--primary);
     }
+  }
+}
+
+.sidebar-footer {
+  padding: 18px 18px 14px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.btn-sidebar-action {
+  background: var(--primary-light);
+  border: 1px solid var(--border);
+  color: var(--primary);
+  padding: 12px 14px;
+  border-radius: 14px;
+  cursor: pointer;
+  width: 100%;
+  font-weight: 700;
+  transition: 0.25s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 8px 18px rgba(76, 60, 49, 0.04);
+
+  &:hover {
+    background: #efe7de;
+    color: var(--primary);
+    border-color: var(--primary);
+  }
+
+  &.danger {
+    color: var(--primary);
   }
 }
 

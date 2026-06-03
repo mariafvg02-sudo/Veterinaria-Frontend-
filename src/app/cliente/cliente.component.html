@@ -23,10 +23,16 @@
       <button type="button" (click)="setView('mascotas')" [class.active]="currentView === 'mascotas'" class="nav-btn">
         <i class="fa-solid fa-paw"></i> Mis Mascotas
       </button>
-      <button type="button" (click)="logout()" class="nav-btn logout">
-        <i class="fa-solid fa-right-from-bracket"></i> Salir
-      </button>
     </nav>
+
+    <div class="sidebar-footer">
+      <button type="button" routerLink="/home" class="btn-sidebar-action">
+        <i class="fa-solid fa-arrow-left"></i> Inicio
+      </button>
+      <button type="button" (click)="logout()" class="btn-sidebar-action danger">
+        <i class="fa-solid fa-right-from-bracket"></i> Cerrar sesión
+      </button>
+    </div>
   </aside>
 
   <main class="main-content">
