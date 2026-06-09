@@ -36,6 +36,7 @@ export class VeterinarioComponent implements OnInit {
   loading = false;
   error: string | null = null;
   usuarioId: number | null = null;
+  usuario: any = null;
 
   mostrarModalProcesar = false;
   citaEnProceso: any = null;
@@ -79,8 +80,8 @@ export class VeterinarioComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    const currentAuthUser = this.authService.obtenerUsuarioActual();
-    this.usuarioId = currentAuthUser?.id ?? currentAuthUser?.userId ?? null;
+    this.usuario = this.authService.obtenerUsuarioActual();
+    this.usuarioId = this.usuario?.id ?? this.usuario?.userId ?? null;
 
     this.procesamientoForm = this.fb.group({
       diagnostico: ['', [Validators.required, Validators.minLength(1)]],

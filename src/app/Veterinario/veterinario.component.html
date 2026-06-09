@@ -1,6 +1,21 @@
 <div class="admin-dashboard">
   <aside class="sidebar">
-    <div class="sidebar-header"><i class="fa-solid fa-user-doctor"></i> <span>Área Médica</span></div>
+    <div class="sidebar-brand">
+      <i class="fa-solid fa-paw"></i>
+      <span>VETAPP</span>
+    </div>
+
+    <div class="sidebar-subtitle">
+      <p>Área Médica</p>
+    </div>
+
+    <div class="sidebar-profile">
+      <span class="profile-avatar">{{ (usuario?.nombre || usuario?.correo || 'V').charAt(0).toUpperCase() }}</span>
+      <div>
+        <strong>{{ usuario?.nombre || 'Veterinario' }}</strong>
+        <small>{{ usuario?.correo || usuario?.email }}</small>
+      </div>
+    </div>
 
     <nav class="sidebar-nav">
       <button [class.active]="activeTab === 'agenda'" (click)="setActiveTab('agenda')">

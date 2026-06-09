@@ -25,10 +25,70 @@
 
 /* ── SIDEBAR ── */
 .sidebar {
-    padding: 18px 0 22px;
+    width: 280px;
+    flex-shrink: 0;
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    background: var(--white);
+    border-right: 1px solid var(--border);
+    height: 100vh; /* Asegura que la barra lateral ocupe toda la pantalla */
+    position: sticky;
+    top: 0;
+    padding: 24px 0;
+
+    .sidebar-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 0 24px;
+      color: var(--primary);
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+    }
+
+    .sidebar-subtitle {
+      padding: 8px 24px;
+      p {
+        margin: 0;
+        font-size: 12px;
+        text-transform: uppercase;
+        color: var(--text-muted);
+        letter-spacing: 1px;
+        font-weight: 700;
+      }
+    }
+
+    .sidebar-profile {
+      margin: 16px 16px 24px;
+      padding: 16px;
+      background: var(--primary-light);
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+
+      .profile-avatar {
+        width: 40px;
+        height: 40px;
+        background: var(--primary);
+        color: var(--white);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 16px;
+      }
+
+      div {
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+        strong { font-size: 14px; color: var(--text-dark); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        small { font-size: 12px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+      }
+    }
 
     .btn-sidebar-action {
       background: var(--primary-light);
@@ -52,7 +112,9 @@
       }
 
       &.danger {
-        color: var(--primary);
+        color: #c0392b;
+        border-color: #f5c6cb;
+        &:hover { background: #f8d7da; border-color: #c0392b; color: #721c24; }
       }
     }
 
@@ -94,23 +156,9 @@
   .sidebar-footer {
     padding: 20px 25px;
     border-top: 1px solid var(--border);
-    .btn-back {
-      background: var(--primary-light);
-      border: 1px solid var(--border);
-      color: var(--primary);
-      padding: 12px 14px;
-      border-radius: 14px;
-      cursor: pointer;
-      width: 100%;
-      font-weight: 700;
-      transition: 0.25s ease;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      box-shadow: 0 8px 18px rgba(76, 60, 49, 0.04);
-
-      &:hover { background: #efe7de; color: var(--primary); border-color: var(--primary); }
-    }
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
   }
 }
 
@@ -119,10 +167,10 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  height: 100vh; /* Ocupa todo el alto disponible */
+  height: 100vh; /* El contenido principal ocupa el 100% de la ventana */
   min-width: 0;
   padding: 40px;
-  overflow-y: auto;
+  overflow-y: auto; /* Activa el scroll vertical solo aquí */
 
   .content-header {
     display: flex;
@@ -248,10 +296,12 @@ input[type="search"] {
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
-  transition: 0.2s;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(141, 119, 95, 0.2);
 
-  &:hover { background: #7a6652; }
-  &:disabled { opacity: 0.5; cursor: not-allowed; }
+  &:hover { background: #7a6652; transform: translateY(-1px); box-shadow: 0 6px 15px rgba(141, 119, 95, 0.3); }
+  &:active { transform: translateY(0); }
+  &:disabled { opacity: 0.5; cursor: not-allowed; box-shadow: none; transform: none; }
 }
 
 .btn-icon {
@@ -261,11 +311,13 @@ input[type="search"] {
   padding: 6px 10px;
   font-size: 13px;
   font-weight: 600;
-  color: var(--text-dark);
+  color: var(--primary);
   cursor: pointer;
   margin-left: 6px;
-  transition: 0.2s;
-  &:hover { background: #ede7de; }
+  transition: all 0.2s ease;
+
+  &:hover { background: #efe7de; border-color: var(--primary); transform: translateY(-1px); }
+  &:active { transform: translateY(0); }
 }
 
 .text-muted { color: var(--text-muted); }

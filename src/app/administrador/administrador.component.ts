@@ -88,7 +88,7 @@ export class AdministradorComponent implements OnInit {
     this.cargandoCitas = true;
     this.citaService.obtenerTodas().subscribe({
       next: (citas) => { 
-        // Ordenar de forma descendente: la más nueva primero
+        // Se ordena por fecha de la más nueva a la más antigua
         this.citas = citas.sort((a, b) => 
           new Date(b.fecha).getTime() - new Date(a.fecha).getTime()
         ); 
