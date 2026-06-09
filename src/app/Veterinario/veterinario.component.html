@@ -1,6 +1,7 @@
 <div class="admin-dashboard">
   <aside class="sidebar">
     <div class="sidebar-header"><i class="fa-solid fa-user-doctor"></i> <span>Área Médica</span></div>
+
     <nav class="sidebar-nav">
       <button [class.active]="activeTab === 'agenda'" (click)="setActiveTab('agenda')">
         <i class="fa-solid fa-calendar-day"></i> Agenda de Hoy
@@ -19,7 +20,7 @@
     </div>
   </aside>
 
-  <main class="main-content">
+  <main class="main-content view-container">
     <header class="content-header">
       <h1>Bienvenido, Dr. Veterinario</h1>
     </header>

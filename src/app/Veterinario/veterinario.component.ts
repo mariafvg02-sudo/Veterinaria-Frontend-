@@ -79,8 +79,9 @@ export class VeterinarioComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    const usuario = this.authService.obtenerUsuarioActual();
-    this.usuarioId = usuario?.id ?? usuario?.userId ?? null;
+    const currentAuthUser = this.authService.obtenerUsuarioActual();
+    this.usuarioId = currentAuthUser?.id ?? currentAuthUser?.userId ?? null;
+
     this.procesamientoForm = this.fb.group({
       diagnostico: ['', [Validators.required, Validators.minLength(1)]],
       tratamiento: ['', [Validators.required, Validators.minLength(1)]]
@@ -99,7 +100,10 @@ export class VeterinarioComponent implements OnInit {
 
     this.citaService.obtenerTodas().subscribe({
       next: (citas) => {
-        this.citasHoy = citas.map(cita => this.mapearCita(cita));
+        // Mostrar lo más nuevo arriba (Orden descendente por Fecha)
+        this.citasHoy = citas
+          .map(cita => this.mapearCita(cita))
+          .sort((a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime());
         this.loading = false;
       },
       error: (err) => {
@@ -118,7 +122,9 @@ export class VeterinarioComponent implements OnInit {
       next: (citas) => {
         this.historialCitas = citas
           .filter(c => (c.estado || '').toLowerCase() === 'completada')
-          .map(c => this.mapearCita(c));
+          .map(c => this.mapearCita(c))
+          // Orden descendente por fecha (la más reciente primero)
+          .sort((a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime());
       },
       error: (err) => {
         console.error('Error cargando historial:', err);
