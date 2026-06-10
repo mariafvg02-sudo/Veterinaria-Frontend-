@@ -6,7 +6,7 @@ import { Cita } from '../../Models/cita.model';
 
 @Injectable({ providedIn: 'root' })
 export class CitaService {
-  private apiUrl = 'http://localhost:8080/api/citas';
+  private apiUrl = '/api/citas';
   readonly cupoMaximoPorHorario = 3;
 
   constructor(private http: HttpClient) {}

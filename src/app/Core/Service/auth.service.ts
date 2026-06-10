@@ -6,7 +6,7 @@ import { Login } from '../../Models/login.model';
 import { Register } from '../../Models/register.model';
 
 export interface Usuario {
-  id?: number;
+  id?: number; // Lo mantenemos por si el backend usa 'id' para la PK
   userId?: number;
   nombre?: string;
   documentoIdentidad: number;
@@ -24,8 +24,8 @@ export interface LoginResponse {
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
-  private apiUrl = 'http://localhost:8080/api/auth';
-  private usersUrl = 'http://localhost:8080/api/users';
+  private apiUrl = '/api/auth';
+  private usersUrl = '/api/users';
   private usuarioSubject = new BehaviorSubject<Usuario | null>(null);
   public usuario$ = this.usuarioSubject.asObservable();
 

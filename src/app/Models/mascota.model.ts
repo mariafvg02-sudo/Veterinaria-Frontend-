@@ -11,7 +11,7 @@ export interface Mascota {
   descripcion?: string;
   vacunas?: string | string[]; // el backend recibe texto y la UI también puede normalizar listas
   usuarioId?: number; // ID del cliente propietario
-  idCliente?: number;
+  idCliente?: number; 
   id_cliente?: number;
   idVeterinario?: number | null;
   id_veterinario?: number | null;

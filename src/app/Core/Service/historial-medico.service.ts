@@ -1,14 +1,17 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
-import { HistorialMedico } from '../Models/historial-medico.model';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { Observable, catchError, throwError } from 'rxjs';
+import { HistorialMedico } from '../../Models/historial-medico.model';
 
 @Injectable({
   providedIn: 'root'
 })
 export class HistorialMedicoService {
-  // Asegúrate de que este puerto coincida con tu Server de Spring Boot
-  private apiUrl = '/api/historiales'; 
+  /**
+   * Usamos una ruta relativa para que el proxy.conf.json redirija la petición.
+   * Esto evita problemas de CORS y facilita el despliegue.
+   */
+  private apiUrl = '/api/historial-medico'; 
 
   constructor(private http: HttpClient) { }
 
@@ -18,10 +21,21 @@ export class HistorialMedicoService {
 
   // Este método envía los datos al backend para persistirlos
   crearHistorial(h: HistorialMedico): Observable<HistorialMedico> {
-    return this.http.post<HistorialMedico>(this.apiUrl, h);
+    console.log('Datos enviados al backend:', JSON.stringify(h, null, 2));
+    return this.http.post<HistorialMedico>(this.apiUrl, h).pipe(
+      catchError(this.handleError)
+    );
   }
 
   eliminarHistorial(id: number): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/${id}`);
+  }
+
+  private handleError(error: HttpErrorResponse) {
+    // Imprimimos el error completo en consola para depurar
+    console.error('Error detallado del servidor:', error);
+    return throwError(() => new Error(
+      error.error?.mensaje || 'Error interno del servidor al procesar el historial.'
+    ));
   }
 }
