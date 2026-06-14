@@ -2,16 +2,13 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Observable, catchError, throwError } from 'rxjs';
 import { HistorialMedico } from '../../Models/historial-medico.model';
+import { environment } from '../../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class HistorialMedicoService {
-  /**
-   * Usamos una ruta relativa para que el proxy.conf.json redirija la petición.
-   * Esto evita problemas de CORS y facilita el despliegue.
-   */
-  private apiUrl = '/api/historial-medico'; 
+  private apiUrl = `${environment.apiUrl}/historiales`;
 
   constructor(private http: HttpClient) { }
 

@@ -3,10 +3,11 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { Cita } from '../../Models/cita.model';
+import { environment } from '../../../environments/environment';
 
 @Injectable({ providedIn: 'root' })
 export class CitaService {
-  private apiUrl = '/api/citas';
+  private apiUrl = `${environment.apiUrl}/citas`;
   readonly cupoMaximoPorHorario = 3;
 
   constructor(private http: HttpClient) {}
