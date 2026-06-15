@@ -1,6 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { PagoService } from '../Core/Service/pago.service';
+import { FacturaService } from '../Core/Service/factura.service';
 
 interface Pago {
   id: number;
@@ -21,12 +23,17 @@ interface Pago {
   styleUrls: ['./pagos-facturas.component.scss']
 })
 export class PagosFacturasComponent implements OnInit {
-  pagos: Pago[] = [];
-  filteredPagos: Pago[] = [];
+  pagos: any[] = [];
+  filteredPagos: any[] = [];
   searchTerm = '';
   selectedEstado = 'todos';
   loading = false;
   message: string | null = null;
+
+  constructor(
+    private pagoService: PagoService,
+    private facturaService: FacturaService
+  ) {}
 
   stats = [
     { label: 'Total recaudado', value: '$0', icon: 'fa-dollar-sign' },
@@ -43,73 +50,28 @@ export class PagosFacturasComponent implements OnInit {
     this.loading = true;
     this.message = null;
     
-    // Datos de ejemplo
-    this.pagos = [
-      {
-        id: 1,
-        cliente: 'Juan Pérez',
-        mascota: 'Firulais',
-        fecha: new Date('2024-05-25'),
-        monto: 150.00,
-        metodo: 'tarjeta',
-        estado: 'pagado',
-        descripcion: 'Consulta veterinaria + vacunación'
+    this.pagoService.listarPagos().subscribe({
+      next: (data) => {
+        this.pagos = data;
+        this.filtrarPagos();
+        this.actualizarEstadisticas();
+        this.loading = false;
       },
-      {
-        id: 2,
-        cliente: 'María López',
-        mascota: 'Mimi',
-        fecha: new Date('2024-05-26'),
-        monto: 85.50,
-        metodo: 'efectivo',
-        estado: 'pagado',
-        descripcion: 'Limpieza dental'
-      },
-      {
-        id: 3,
-        cliente: 'Carlos García',
-        mascota: 'Rex',
-        fecha: new Date('2024-05-27'),
-        monto: 220.00,
-        metodo: 'transferencia',
-        estado: 'pendiente',
-        descripcion: 'Cirugía menor'
-      },
-      {
-        id: 4,
-        cliente: 'Ana Martínez',
-        mascota: 'Bella',
-        fecha: new Date('2024-05-15'),
-        monto: 95.00,
-        metodo: 'tarjeta',
-        estado: 'vencido',
-        descripcion: 'Consulta dermatológica'
-      },
-      {
-        id: 5,
-        cliente: 'Roberto Torres',
-        mascota: 'Max',
-        fecha: new Date('2024-05-28'),
-        monto: 175.50,
-        metodo: 'efectivo',
-        estado: 'pagado',
-        descripcion: 'Baño y corte de uñas'
+      error: () => {
+        this.loading = false;
+        this.message = 'Error al conectar con el servicio de pagos.';
       }
-    ];
-
-    setTimeout(() => {
-      this.loading = false;
-      this.filtrarPagos();
-      this.actualizarEstadisticas();
-    }, 500);
+    });
   }
 
   filtrarPagos(): void {
     this.filteredPagos = this.pagos.filter(pago => {
-      const matchesSearch =
-        pago.cliente.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
-        pago.mascota.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
-        pago.descripcion.toLowerCase().includes(this.searchTerm.toLowerCase());
+      const clienteNombre = pago.cliente?.nombre || '';
+      const mascotaNombre = pago.mascota?.nombre || '';
+      
+      const matchesSearch = 
+        clienteNombre.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
+        mascotaNombre.toLowerCase().includes(this.searchTerm.toLowerCase());
 
       const matchesEstado =
         this.selectedEstado === 'todos' || pago.estado === this.selectedEstado;
@@ -162,9 +124,19 @@ export class PagosFacturasComponent implements OnInit {
     this.cargarPagos();
   }
 
-  descargarFactura(pago: Pago): void {
-    this.message = `Factura #${pago.id} descargada exitosamente.`;
-    setTimeout(() => (this.message = null), 3000);
+  descargarFactura(pago: any): void {
+    this.facturaService.descargarFacturaPdf(pago.id).subscribe({
+      next: (blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `factura-${pago.id}.pdf`;
+        a.click();
+        this.message = 'Factura descargada correctamente.';
+        setTimeout(() => (this.message = null), 3000);
+      },
+      error: () => alert('No se pudo generar la factura real.')
+    });
   }
 
   enviarComprobante(pago: Pago): void {

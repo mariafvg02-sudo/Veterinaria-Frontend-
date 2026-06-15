@@ -7,7 +7,7 @@ import { Register } from '../../Models/register.model';
 import { environment } from '../../../environments/environment';
 
 export interface Usuario {
-  id?: number;
+  id?: number; // Lo mantenemos por si el backend usa 'id' para la PK
   userId?: number;
   nombre?: string;
   documentoIdentidad: number;

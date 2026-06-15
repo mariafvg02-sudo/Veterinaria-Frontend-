@@ -7,8 +7,10 @@ import { catchError } from 'rxjs/operators';
 import { AuthService, Usuario } from '../Core/Service/auth.service';
 import { CitaService } from '../Core/Service/cita.service';
 import { MascotaService } from '../Core/Service/mascota.service';
+import { InventarioService } from '../Core/Service/inventario.service';
 import { Cita } from '../Models/cita.model';
 import { Mascota } from '../Models/mascota.model';
+import { InventarioProducto } from '../Models/inventario.model';
 import { PagosFacturasComponent } from './pagos-facturas.component';
 
 @Component({
@@ -21,7 +23,7 @@ import { PagosFacturasComponent } from './pagos-facturas.component';
 export class RecepcionistaComponent implements OnInit {
   @ViewChild('dashboardSection') dashboardSection?: ElementRef<HTMLElement>;
 
-  activeTab: 'citas' | 'registro' | 'pagos' = 'citas';
+  activeTab: 'citas' | 'registro' | 'pagos' | 'inventario' = 'citas';
   usuario: Usuario | null = null;
   readonly usuario$!: Observable<Usuario | null>;
   citas: Cita[] = [];
@@ -33,6 +35,9 @@ export class RecepcionistaComponent implements OnInit {
   message: string | null = null;
   citaForm!: FormGroup;
   today = new Date().toISOString().split('T')[0];
+
+  // Inventario
+  productos: InventarioProducto[] = [];
 
   // Autocomplete: clientes
   clientes: Usuario[] = [];
@@ -59,6 +64,7 @@ export class RecepcionistaComponent implements OnInit {
     private authService: AuthService,
     private citaService: CitaService,
     private mascotaService: MascotaService,
+    private inventarioService: InventarioService,
     private router: Router
   ) {
     this.usuario$ = this.authService.usuario$;
@@ -89,8 +95,23 @@ export class RecepcionistaComponent implements OnInit {
     this.cargarClientes();
   }
 
-  setActiveTab(tab: 'citas' | 'registro' | 'pagos'): void {
+  setActiveTab(tab: 'citas' | 'registro' | 'pagos' | 'inventario'): void {
     this.activeTab = tab;
+    if (tab === 'inventario') this.cargarInventario();
+  }
+
+  cargarInventario(): void {
+    this.loading = true;
+    this.inventarioService.listar().subscribe({
+      next: (data) => {
+        this.productos = data;
+        this.loading = false;
+      },
+      error: () => {
+        this.loading = false;
+        this.message = 'No se pudo cargar el inventario.';
+      }
+    });
   }
 
   cargarAgenda(): void {

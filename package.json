@@ -4,7 +4,8 @@
   "scripts": {
     "ng": "ng",
     "start": "ng serve --port 4200",
-    "build": "node generate-env.js && ng build",
+    "build": "ng build",
+    "build:prod": "node generate-env.js && ng build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test"
   },

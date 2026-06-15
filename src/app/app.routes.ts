@@ -1,6 +1,9 @@
 import { Routes } from '@angular/router';
 import { adminGuard } from './admin.guard';
 import { clienteGuard } from './cliente/auth.guard';
+import { recepcionistaGuard } from './recepcionista/recepcionista.guard';
+import { jefeInventarioGuard } from './jefe-inventario/jefe-inventario.guard';
+import { veterinarioGuard } from './Veterinario/veterinario.guard';
 
 export const routes: Routes = [
   {
@@ -27,6 +30,7 @@ export const routes: Routes = [
   {
     path: 'administrador',
     loadComponent: () => import('./administrador/administrador.component').then(m => m.AdministradorComponent),
+    canActivate: [adminGuard]
   },
   {
     path: 'cliente',
@@ -35,11 +39,13 @@ export const routes: Routes = [
   },
   {
     path: 'recepcionista',
-    loadComponent: () => import('./recepcionista/recepcionista.component').then(m => m.RecepcionistaComponent)
+    loadComponent: () => import('./recepcionista/recepcionista.component').then(m => m.RecepcionistaComponent),
+    canActivate: [recepcionistaGuard]
   },
   {
     path: 'jefe-inventario',
-    loadComponent: () => import('./jefe-inventario/jefe-inventario.component').then(m => m.JefeInventarioComponent)
+    loadComponent: () => import('./jefe-inventario/jefe-inventario.component').then(m => m.JefeInventarioComponent),
+    canActivate: [jefeInventarioGuard]
   },
   {
     path: 'inventario',
@@ -48,10 +54,12 @@ export const routes: Routes = [
   },
   {
     path: 'veterinario',
-    loadComponent: () => import('./Veterinario/veterinario.component').then(m => m.VeterinarioComponent)
+    loadComponent: () => import('./Veterinario/veterinario.component').then(m => m.VeterinarioComponent),
+    canActivate: [veterinarioGuard]
   },
   {
     path: 'veterinario/cita/:id',
-    loadComponent: () => import('./Veterinario/cita-detalle/cita-detalle.component').then(m => m.CitaDetalleComponent)
+    loadComponent: () => import('./Veterinario/cita-detalle/cita-detalle.component').then(m => m.CitaDetalleComponent),
+    canActivate: [veterinarioGuard]
   }
 ];

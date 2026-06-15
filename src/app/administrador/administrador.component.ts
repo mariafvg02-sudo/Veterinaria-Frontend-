@@ -87,7 +87,13 @@ export class AdministradorComponent implements OnInit {
   cargarCitas(): void {
     this.cargandoCitas = true;
     this.citaService.obtenerTodas().subscribe({
-      next: (citas) => { this.citas = citas; this.cargandoCitas = false; },
+      next: (citas) => { 
+        // Se ordena por fecha de la más nueva a la más antigua
+        this.citas = citas.sort((a, b) => 
+          new Date(b.fecha).getTime() - new Date(a.fecha).getTime()
+        ); 
+        this.cargandoCitas = false; 
+      },
       error: () => { this.cargandoCitas = false; }
     });
   }

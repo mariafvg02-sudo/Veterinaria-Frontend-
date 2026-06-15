@@ -15,6 +15,7 @@ const content = `export const environment = {
 };
 `;
 
-const outputPath = path.join(__dirname, 'src', 'environments', 'environment.prod.ts');
+// Generamos en environment.ts para que sea el archivo base usado por todos los servicios
+const outputPath = path.join(__dirname, 'src', 'environments', 'environment.ts');
 fs.writeFileSync(outputPath, content, 'utf8');
 console.log(`✓ environment.prod.ts generado con apiUrl: ${apiUrl}`);

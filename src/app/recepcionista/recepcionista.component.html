@@ -25,6 +25,9 @@
       <button type="button" class="menu-item" [class.active]="activeTab === 'pagos'" (click)="setActiveTab('pagos')">
         <i class="fa-solid fa-receipt"></i> Pagos y facturas
       </button>
+      <button type="button" class="menu-item" [class.active]="activeTab === 'inventario'" (click)="setActiveTab('inventario')">
+        <i class="fa-solid fa-boxes-stacked"></i> Inventario
+      </button>
     </nav>
 
     <div class="sidebar-footer">
@@ -260,6 +263,42 @@
     <!-- Vista de Pagos y Facturas -->
     <section class="info-panel" *ngIf="activeTab === 'pagos'">
       <app-pagos-facturas></app-pagos-facturas>
+    </section>
+
+    <!-- Vista de Inventario (Consulta) -->
+    <section class="dashboard-view" *ngIf="activeTab === 'inventario'">
+      <section class="dashboard-header">
+        <div>
+          <span class="subtitle">Consulta de Stock</span>
+          <h1>Inventario de Medicamentos</h1>
+          <p>Consulta la disponibilidad de suministros para informar a los clientes.</p>
+        </div>
+      </section>
+
+      <div class="table-section">
+        <table>
+          <thead>
+            <tr>
+              <th>Producto</th>
+              <th>Categoría</th>
+              <th>Cantidad</th>
+              <th>Precio Unit.</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let prod of productos">
+              <td><strong>{{ prod.nombre }}</strong></td>
+              <td>{{ prod.categoria }}</td>
+              <td>
+                <span class="status-badge" [ngClass]="prod.cantidad > 5 ? 'confirmada' : 'cancelada'">
+                  {{ prod.cantidad }} unidades
+                </span>
+              </td>
+              <td>{{ prod.precio | currency }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </section>
   </main>
 </div>

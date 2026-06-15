@@ -96,7 +96,10 @@ export class ClienteComponent implements OnInit {
     // Cargar mascotas
     this.mascotaService.obtenerMascotasPorUsuario(userId).subscribe({
       next: (mascotas) => {
-        this.mascotas = mascotas.map((mascota) => this.normalizarMascota(mascota));
+        // Ordenar mascotas de forma descendente (ID más alto primero)
+        this.mascotas = mascotas
+          .map((mascota) => this.normalizarMascota(mascota))
+          .sort((a, b) => (this.obtenerMascotaId(b) || 0) - (this.obtenerMascotaId(a) || 0));
         this.mascotaSeleccionada = this.mascotaSeleccionada
           ? this.mascotas.find(m => this.obtenerMascotaId(m) === this.obtenerMascotaId(this.mascotaSeleccionada)) || this.mascotas[0] || null
           : this.mascotas[0] || null;
@@ -137,8 +140,9 @@ export class ClienteComponent implements OnInit {
     // Cargar citas
     this.citaService.obtenerCitasPorUsuario(userId).subscribe({
       next: (citas) => {
+        // Cambio a orden descendente: b - a (La más nueva de primera)
         this.citas = citas.sort((a, b) => 
-          new Date(a.fecha).getTime() - new Date(b.fecha).getTime()
+          new Date(b.fecha).getTime() - new Date(a.fecha).getTime()
         );
         this.proximaCita = this.citas.find(c => c.estado?.toLowerCase() === 'confirmada' || c.estado?.toLowerCase() === 'pendiente') || null;
         this.cargandoCitas = false;

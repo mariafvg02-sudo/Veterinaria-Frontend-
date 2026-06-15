@@ -4,6 +4,7 @@ import { Router, RouterModule } from '@angular/router';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { AuthService } from '../Core/Service/auth.service';
 import { CitaService } from '../Core/Service/cita.service';
+import { HistorialMedicoService } from '../Core/Service/historial-medico.service';
 import { Cita } from '../Models/cita.model';
 
 interface CitaRow {
@@ -11,7 +12,9 @@ interface CitaRow {
   fecha: string;
   motivo: string;
   paciente: string;
+  idMascota?: number;
   dueno: string;
+  idCliente?: number;
   estado: 'Pendiente' | 'Asignada' | 'En consulta' | 'Completada' | 'Cancelada';
   estadoOriginal: string;
   veterinarioId?: number;
@@ -36,6 +39,7 @@ export class VeterinarioComponent implements OnInit {
   loading = false;
   error: string | null = null;
   usuarioId: number | null = null;
+  usuario: any = null;
 
   mostrarModalProcesar = false;
   citaEnProceso: any = null;
@@ -75,12 +79,14 @@ export class VeterinarioComponent implements OnInit {
     private authService: AuthService,
     private router: Router,
     private citaService: CitaService,
+    private historialService: HistorialMedicoService,
     private fb: FormBuilder
   ) {}
 
   ngOnInit(): void {
-    const usuario = this.authService.obtenerUsuarioActual();
-    this.usuarioId = usuario?.id ?? usuario?.userId ?? null;
+    this.usuario = this.authService.obtenerUsuarioActual();
+    this.usuarioId = this.usuario?.id ?? this.usuario?.userId ?? null;
+
     this.procesamientoForm = this.fb.group({
       diagnostico: ['', [Validators.required, Validators.minLength(1)]],
       tratamiento: ['', [Validators.required, Validators.minLength(1)]]
@@ -99,7 +105,10 @@ export class VeterinarioComponent implements OnInit {
 
     this.citaService.obtenerTodas().subscribe({
       next: (citas) => {
-        this.citasHoy = citas.map(cita => this.mapearCita(cita));
+        // Mostrar lo más nuevo arriba (Orden descendente por Fecha)
+        this.citasHoy = citas
+          .map(cita => this.mapearCita(cita))
+          .sort((a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime());
         this.loading = false;
       },
       error: (err) => {
@@ -118,7 +127,9 @@ export class VeterinarioComponent implements OnInit {
       next: (citas) => {
         this.historialCitas = citas
           .filter(c => (c.estado || '').toLowerCase() === 'completada')
-          .map(c => this.mapearCita(c));
+          .map(c => this.mapearCita(c))
+          // Orden descendente por fecha (la más reciente primero)
+          .sort((a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime());
       },
       error: (err) => {
         console.error('Error cargando historial:', err);
@@ -133,7 +144,9 @@ export class VeterinarioComponent implements OnInit {
       fecha: cita.fecha,
       motivo: cita.motivo,
       paciente: cita.mascota?.nombre || 'N/A',
+      idMascota: cita.mascota?.idMascota,
       dueno: cita.cliente?.nombre || 'N/A',
+      idCliente: cita.cliente?.id,
       estado: this.normalizarEstado(cita.estado),
       estadoOriginal: cita.estado,
       veterinarioId: cita.veterinario?.id
@@ -184,19 +197,38 @@ export class VeterinarioComponent implements OnInit {
     this.guardando = true;
     const { diagnostico, tratamiento } = this.procesamientoForm.value;
 
-    const citaActualizada: any = {
-      estado: 'completada',
+    // 1. Preparamos el objeto para el Historial Médico
+    const nuevoHistorial: any = {
+      fecha: new Date().toISOString().split('T')[0], // LocalDate espera YYYY-MM-DD
+      motivo: this.citaEnProceso.motivo,
       diagnostico: diagnostico.trim(),
-      tratamiento: tratamiento.trim()
+      tratamiento: tratamiento.trim(),
+      mascota: { idMascota: this.citaEnProceso.idMascota },
+      veterinario: { id: this.usuarioId },
+      cliente: { id: this.citaEnProceso.idCliente },
+      cita: { idCita: this.citaEnProceso.idCita }
     };
 
-    this.citaService.actualizarCita(this.citaEnProceso.idCita, citaActualizada).subscribe({
+    // 2. Guardamos primero en la tabla de historiales
+    this.historialService.crearHistorial(nuevoHistorial).subscribe({
       next: () => {
-        this.guardando = false;
-        this.mensajeExito = `Cita de ${this.citaEnProceso.paciente} procesada correctamente.`;
-        this.cargarCitas();
-        this.cargarHistorial();
-        setTimeout(() => this.cerrarModalProcesar(), 1800);
+        // 3. Si el historial se creó con éxito, actualizamos la cita a 'completada'
+        const citaActualizada: any = {
+          estado: 'completada',
+          diagnostico: diagnostico.trim(),
+          tratamiento: tratamiento.trim()
+        };
+
+        this.citaService.actualizarCita(this.citaEnProceso.idCita, citaActualizada).subscribe({
+          next: () => {
+            this.guardando = false;
+            this.mensajeExito = `Cita de ${this.citaEnProceso.paciente} procesada y guardada en historial clínico.`;
+            this.cargarCitas();
+            this.cargarHistorial();
+            setTimeout(() => this.cerrarModalProcesar(), 1800);
+          },
+          error: () => { this.guardando = false; alert('Historial guardado, pero no se pudo actualizar el estado de la cita.'); }
+        });
       },
       error: () => {
         this.guardando = false;
