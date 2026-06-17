@@ -101,7 +101,7 @@
     .btn-sidebar-action {
       background: var(--primary-soft);
       border: 1px solid var(--border);
-      color: var(--primary);
+      color: var(--text-dark);
       padding: 12px 14px;
       border-radius: 14px;
       cursor: pointer;
@@ -112,11 +112,12 @@
       display: flex;
       align-items: center;
       gap: 8px;
+      i { color: var(--primary); }
       &:hover { background: #efe7de; color: var(--primary); border-color: var(--primary); }
-      &.danger { color: var(--primary); }
     }
   }
 }
+
 
 .sidebar-footer,
 .btn-back,
