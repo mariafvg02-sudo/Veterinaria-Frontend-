@@ -1,9 +1,9 @@
 import { Routes } from '@angular/router';
-import { adminGuard } from './admin.guard';
-import { clienteGuard } from './cliente/auth.guard';
-import { recepcionistaGuard } from './recepcionista/recepcionista.guard';
-import { jefeInventarioGuard } from './jefe-inventario/jefe-inventario.guard';
-import { veterinarioGuard } from './Veterinario/veterinario.guard';
+import { adminGuard } from './Core/Service/Guards/admin.guard';
+import { clienteGuard } from './Core/Service/Guards/cliente.guard';
+import { recepcionistaGuard } from './Core/Service/Guards/recepcionista.guard';
+import { jefeInventarioGuard } from './Core/Service/Guards/jefe-inventario.guard';
+import { veterinarioGuard } from './Core/Service/Guards/veterinario.guard';
 
 export const routes: Routes = [
   {
@@ -11,6 +11,8 @@ export const routes: Routes = [
     redirectTo: 'home',
     pathMatch: 'full'
   },
+
+  // --- RUTAS PÚBLICAS ---
   {
     path: 'login',
     loadComponent: () => import('./Login/login.component').then(m => m.LoginComponent)
@@ -27,6 +29,8 @@ export const routes: Routes = [
     path: 'home',
     loadComponent: () => import('./home/home.component').then(m => m.HomeComponent)
   },
+
+  // --- RUTAS PROTEGIDAS POR ROL ---
   {
     path: 'administrador',
     loadComponent: () => import('./administrador/administrador.component').then(m => m.AdministradorComponent),
@@ -48,11 +52,6 @@ export const routes: Routes = [
     canActivate: [jefeInventarioGuard]
   },
   {
-    path: 'inventario',
-    redirectTo: 'jefe-inventario',
-    pathMatch: 'full'
-  },
-  {
     path: 'veterinario',
     loadComponent: () => import('./Veterinario/veterinario.component').then(m => m.VeterinarioComponent),
     canActivate: [veterinarioGuard]
@@ -61,5 +60,17 @@ export const routes: Routes = [
     path: 'veterinario/cita/:id',
     loadComponent: () => import('./Veterinario/cita-detalle/cita-detalle.component').then(m => m.CitaDetalleComponent),
     canActivate: [veterinarioGuard]
+  }
+  ,
+
+  // --- REDIRECCIONES Y COMODÍN ---
+  {
+    path: 'inventario',
+    redirectTo: 'jefe-inventario',
+    pathMatch: 'full'
+  },
+  {
+    path: '**',
+    redirectTo: 'home'
   }
 ];

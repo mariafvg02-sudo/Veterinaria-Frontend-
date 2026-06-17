@@ -3,11 +3,13 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { PagoService } from '../Core/Service/pago.service';
 import { FacturaService } from '../Core/Service/factura.service';
+import { Usuario } from '../Core/Service/auth.service'; // Importamos la interfaz Usuario
+import { Mascota } from '../Models/mascota.model'; // Importamos la interfaz Mascota
 
 interface Pago {
   id: number;
-  cliente: string;
-  mascota: string;
+  cliente: Usuario; // Ahora es un objeto Usuario
+  mascota: Mascota; // Ahora es un objeto Mascota
   fecha: Date;
   monto: number;
   metodo: 'efectivo' | 'tarjeta' | 'transferencia';
@@ -140,7 +142,8 @@ export class PagosFacturasComponent implements OnInit {
   }
 
   enviarComprobante(pago: Pago): void {
-    this.message = `Comprobante enviado a ${pago.cliente}.`;
+    const nombreCliente = pago.cliente?.nombre || 'el cliente';
+    this.message = `Comprobante enviado a ${nombreCliente}.`;
     setTimeout(() => (this.message = null), 3000);
   }
 }
