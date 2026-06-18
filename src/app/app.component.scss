@@ -10,7 +10,7 @@
     flex: 1;
     display: flex;
     flex-direction: column;
-    overflow-y: auto;
+    overflow: visible;
     // max-width: 1200px;
     width: 100%;
     margin: 0 auto;
@@ -21,7 +21,7 @@
         max-width: 100%;
         margin: 0;
         padding: 0;
-        overflow: hidden;
+        overflow-y: auto; // Permite scroll en modo dashboard si el contenido es largo
     }
 }
 header {
@@ -104,5 +104,12 @@ p {
 @media (max-width: 860px) {
     .app-footer {
         grid-template-columns: 1fr;
+        text-align: center;
+        gap: 32px;
+        padding: 24px 16px;
+        margin-top: 20px;
+    }
+    .footer-brand, .footer-social {
+        align-items: center;
     }
 }
