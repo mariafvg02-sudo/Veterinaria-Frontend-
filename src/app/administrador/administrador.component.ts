@@ -5,11 +5,12 @@ import { RouterModule, Router } from '@angular/router';
 import { AuthService, Usuario } from '../Core/Service/auth.service';
 import { CitaService } from '../Core/Service/cita.service';
 import { Cita } from '../Models/cita.model';
+import { DataTableComponent } from '../shared/data-table/data-table.component';
 
 @Component({
   selector: 'app-administrador',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterModule],
+  imports: [CommonModule, ReactiveFormsModule, RouterModule, DataTableComponent],
   templateUrl: './administrador.component.html',
   styleUrls: ['./administrador.component.scss']
 })

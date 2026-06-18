@@ -46,16 +46,22 @@
   </section>
 
   <!-- TABLA DE PAGOS -->
-  <section class="table-section">
+  <section class="content-card">
     <div class="table-header">
       <div>
         <h2>Historial de pagos</h2>
-        <span>{{ filteredPagos.length }} pagos registrados</span>
+        <span class="text-muted">{{ filteredPagos.length }} pagos registrados</span>
       </div>
-      <span>{{ loading ? 'Cargando...' : 'Actualizado' }}</span>
+      <span class="text-muted">{{ loading ? 'Cargando...' : 'Actualizado' }}</span>
     </div>
 
-    <table>
+    <app-data-table
+      [loading]="loading"
+      [empty]="filteredPagos.length === 0"
+      loadingText="Cargando pagos..."
+      emptyText="No hay pagos que coincidan con la búsqueda."
+      emptyIcon="fa-file-invoice-dollar">
+
       <thead>
         <tr>
           <th>Fecha</th>
@@ -71,36 +77,33 @@
       <tbody>
         <tr *ngFor="let pago of filteredPagos">
           <td>{{ pago.fecha | date: 'dd/MM/yyyy' }}</td>
-          <td class="cliente-name">{{ pago.cliente }}</td>
+          <td>{{ pago.cliente }}</td>
           <td>{{ pago.mascota }}</td>
-          <td class="description">{{ pago.descripcion }}</td>
-          <td class="monto">${{ pago.monto.toFixed(2) }}</td>
+          <td class="text-muted">{{ pago.descripcion }}</td>
+          <td>${{ pago.monto.toFixed(2) }}</td>
           <td>
-            <span class="method-badge" [ngClass]="pago.metodo">
-              {{ pago.metodo === 'tarjeta' ? '💳 Tarjeta' : pago.metodo === 'efectivo' ? '💵 Efectivo' : '🏦 Transferencia' }}
+            <span class="role-badge" [ngClass]="pago.metodo">
+              {{ pago.metodo === 'tarjeta' ? 'Tarjeta' : pago.metodo === 'efectivo' ? 'Efectivo' : 'Transferencia' }}
             </span>
           </td>
           <td>
-            <span class="status-badge" [ngClass]="pago.estado">
-              {{ pago.estado === 'pagado' ? '✓ Pagado' : pago.estado === 'pendiente' ? '⏳ Pendiente' : '⚠ Vencido' }}
+            <span class="role-badge" [ngClass]="pago.estado">
+              {{ pago.estado === 'pagado' ? 'Pagado' : pago.estado === 'pendiente' ? 'Pendiente' : 'Vencido' }}
             </span>
           </td>
           <td>
-            <div class="action-buttons">
-              <button class="btn-secondary" type="button" (click)="descargarFactura(pago)" title="Descargar factura">
+            <div class="actions-cell">
+              <button class="btn-icon" type="button" (click)="descargarFactura(pago)" title="Descargar factura">
                 <i class="fa-solid fa-download"></i>
               </button>
-              <button class="btn-secondary" type="button" (click)="enviarComprobante(pago)" title="Enviar comprobante">
+              <button class="btn-icon" type="button" (click)="enviarComprobante(pago)" title="Enviar comprobante">
                 <i class="fa-solid fa-envelope"></i>
               </button>
             </div>
           </td>
         </tr>
-        <tr *ngIf="filteredPagos.length === 0 && !loading">
-          <td colspan="8" class="empty-row">No hay pagos que coincidan con la búsqueda.</td>
-        </tr>
       </tbody>
-    </table>
+    </app-data-table>
   </section>
 
   <!-- MENSAJE DE FEEDBACK -->

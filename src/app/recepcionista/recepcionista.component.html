@@ -63,7 +63,13 @@
       </div>
     </section>
 
-      <table>
+      <app-data-table
+        [loading]="loading"
+        [empty]="filteredCitas.length === 0"
+        loadingText="Cargando citas..."
+        emptyText="No hay citas que coincidan con la búsqueda."
+        emptyIcon="fa-calendar-xmark">
+
         <thead>
           <tr>
             <th>Fecha</th>
@@ -79,46 +85,45 @@
             <td>{{ cita.fecha | date:'dd/MM/yyyy HH:mm' }}</td>
             <td>{{ cita.cliente?.nombre || 'N/D' }}</td>
             <td>{{ cita.motivo }}</td>
-            <td><span class="status-badge" [ngClass]="cita.estado">{{ cita.estado }}</span></td>
             <td>
-              <!-- AC3: asignar veterinario si la cita está pendiente -->
+              <span class="role-badge" [ngClass]="(cita.estado || '').toLowerCase()">{{ cita.estado }}</span>
+            </td>
+            <td>
               <ng-container *ngIf="cita.estado === 'pendiente'">
                 <select (change)="vetSeleccionadoPorCita[cita.idCita!] = +$any($event.target).value" style="max-width:130px;">
                   <option value="0">-- Veterinario --</option>
                   <option *ngFor="let v of veterinarios" [value]="v.id ?? v.userId">{{ v.nombre }}</option>
                 </select>
-                <button type="button" class="btn-finish" style="margin-left:4px;"
+                <button type="button" class="btn-icon" style="margin-left:4px;"
                   (click)="asignarVeterinario(cita)"
-                  [disabled]="!vetSeleccionadoPorCita[cita.idCita!]">
-                  Asignar
+                  [disabled]="!vetSeleccionadoPorCita[cita.idCita!]"
+                  title="Asignar">
+                  <i class="fa-solid fa-user-check"></i>
                 </button>
               </ng-container>
-              <!-- Mostrar vet asignado en otros estados -->
               <span *ngIf="cita.estado !== 'pendiente'">
                 {{ cita.veterinario?.nombre || 'Sin veterinario' }}
               </span>
             </td>
             <td>
-              <div class="action-buttons">
-                <button class="btn-finish" type="button"
+              <div class="actions-cell">
+                <button class="btn-icon" type="button"
                   (click)="actualizarEstado(cita, 'completada')"
-                  [disabled]="cita.estado === 'completada' || cita.estado === 'cancelada' || cita.estado === 'pendiente'">
-                  Finalizar
+                  [disabled]="cita.estado === 'completada' || cita.estado === 'cancelada' || cita.estado === 'pendiente'"
+                  title="Finalizar">
+                  <i class="fa-solid fa-check"></i>
                 </button>
-                <!-- AC6: cancelar con observación -->
-                <button class="btn-secondary" type="button"
+                <button class="btn-icon danger" type="button"
                   (click)="cancelarCita(cita)"
-                  [disabled]="cita.estado === 'cancelada' || cita.estado === 'completada'">
-                  Cancelar
+                  [disabled]="cita.estado === 'cancelada' || cita.estado === 'completada'"
+                  title="Cancelar">
+                  <i class="fa-solid fa-xmark"></i>
                 </button>
               </div>
             </td>
           </tr>
-          <tr *ngIf="filteredCitas.length === 0 && !loading">
-            <td colspan="6" class="empty-row">No hay citas que coincidan con la búsqueda.</td>
-          </tr>
         </tbody>
-      </table>
+      </app-data-table>
     </section>
 
     <!-- Vista de Registro (Nueva Cita) -->
@@ -286,30 +291,32 @@
         </div>
       </section>
 
-      <div class="table-section">
-        <table>
-          <thead>
-            <tr>
-              <th>Producto</th>
-              <th>Categoría</th>
-              <th>Cantidad</th>
-              <th>Precio Unit.</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let prod of productos; trackBy: trackByProductoId">
-              <td><strong>{{ prod.nombre }}</strong></td>
-              <td>{{ prod.categoria }}</td>
-              <td>
-                <span class="status-badge" [ngClass]="prod.cantidad > 5 ? 'confirmada' : 'cancelada'">
-                  {{ prod.cantidad }} unidades
-                </span>
-              </td>
-              <td>{{ prod.precio | currency }}</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+      <app-data-table
+        [empty]="productos.length === 0"
+        emptyText="No hay productos en el inventario."
+        emptyIcon="fa-box-open">
+
+        <thead>
+          <tr>
+            <th>Producto</th>
+            <th>Categoría</th>
+            <th>Cantidad</th>
+            <th>Precio Unit.</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let prod of productos; trackBy: trackByProductoId">
+            <td><strong>{{ prod.nombre }}</strong></td>
+            <td>{{ prod.categoria }}</td>
+            <td>
+              <span class="role-badge" [ngClass]="prod.cantidad > 5 ? 'veterinario' : 'recepcionista'">
+                {{ prod.cantidad }} unidades
+              </span>
+            </td>
+            <td>{{ prod.precio | currency }}</td>
+          </tr>
+        </tbody>
+      </app-data-table>
     </section>
   </main>
 </div>

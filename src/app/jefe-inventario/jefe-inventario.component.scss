@@ -268,56 +268,18 @@
   gap: 16px;
 }
 
-.admin-table {
-  width: 100%;
-  border-collapse: collapse;
-  overflow: hidden;
+.state-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 5px 12px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  font-weight: 800;
 
-  th { text-align: left; padding: 14px 12px; border-bottom: 1px solid var(--border); color: var(--text-muted); font-weight: 700; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.08em; }
-  td { padding: 14px 12px; border-bottom: 1px solid rgba(232, 221, 210, 0.75); vertical-align: middle; }
-
-  tr:hover td { background: rgba(139, 106, 82, 0.04); }
-
-  .product-cell {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    strong { font-size: 0.98rem; }
-    span { color: var(--text-muted); font-size: 0.82rem; }
-  }
-
-  .state-badge {
-    display: inline-flex;
-    align-items: center;
-    padding: 5px 12px;
-    border-radius: 999px;
-    font-size: 0.75rem;
-    text-transform: uppercase;
-    font-weight: 800;
-
-    &.agotado { background: #fde8e8; color: var(--danger); }
-    &.bajo { background: #fff3c4; color: var(--warn); }
-    &.normal { background: #daf2ea; color: var(--accent); }
-  }
-
-  .actions {
-    white-space: nowrap;
-  }
-
-  .btn-icon {
-    background: var(--white);
-    border: 1px solid var(--border);
-    cursor: pointer;
-    padding: 8px 10px;
-    border-radius: 12px;
-    margin-right: 6px;
-    font-size: 0.95rem;
-
-    &:hover { transform: translateY(-1px); }
-    &.edit { color: var(--primary-dark); }
-    &.delete { color: var(--danger); }
-    &.restock { color: var(--accent); }
-  }
+  &.agotado { background: #fde8e8; color: var(--danger); }
+  &.bajo { background: #fff3c4; color: var(--warn); }
+  &.normal { background: #daf2ea; color: var(--accent); }
 }
 
 /* FORM */
@@ -556,21 +518,6 @@
     gap: 10px;
   }
 
-  .admin-table {
-    display: block;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    white-space: nowrap;
-
-    th, td { padding: 10px 8px; }
-  }
-
-  .admin-table .btn-icon {
-    min-width: 44px;
-    min-height: 44px;
-    padding: 10px;
-  }
-
   /* Formulario */
   .form-layout {
     grid-template-columns: 1fr;
@@ -665,9 +612,4 @@
     grid-template-columns: 1fr 180px;
   }
 
-  .admin-table {
-    display: block;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-  }
 }

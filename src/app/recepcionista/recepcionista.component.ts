@@ -12,11 +12,12 @@ import { Cita } from '../Models/cita.model';
 import { Mascota } from '../Models/mascota.model';
 import { InventarioProducto } from '../Models/inventario.model';
 import { PagosFacturasComponent } from './pagos-facturas.component';
+import { DataTableComponent } from '../shared/data-table/data-table.component';
 
 @Component({
   selector: 'app-recepcionista',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, RouterModule, PagosFacturasComponent],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, RouterModule, PagosFacturasComponent, DataTableComponent],
   templateUrl: './recepcionista.component.html',
   styleUrls: ['./recepcionista.component.scss']
 })

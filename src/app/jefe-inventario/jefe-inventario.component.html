@@ -130,7 +130,13 @@
         </label>
       </div>
 
-      <table class="admin-table" *ngIf="productosFiltrados.length; else emptyTable">
+      <app-data-table
+        [empty]="productosFiltrados.length === 0"
+        emptyText="No hay productos que coincidan con el filtro"
+        emptyIcon="fa-box-open">
+
+        <button emptyAction class="btn-client-primary" (click)="setView('add')">Registrar producto</button>
+
         <thead>
           <tr>
             <th>Producto</th>
@@ -157,23 +163,14 @@
                 {{ estadoProducto(prod) }}
               </span>
             </td>
-            <td class="actions">
-              <button class="btn-icon restock" (click)="reabastecer(prod)" title="Reabastecer +10"><i class="fa-solid fa-rotate"></i></button>
-              <button class="btn-icon edit" (click)="onEdit(prod)"><i class="fa-solid fa-pen"></i></button>
-              <button class="btn-icon delete" (click)="onDelete(prod.idInventarioMedicamento)"><i class="fa-solid fa-trash"></i></button>
+            <td class="actions-cell">
+              <button class="btn-icon" (click)="reabastecer(prod)" title="Reabastecer +10"><i class="fa-solid fa-rotate"></i></button>
+              <button class="btn-icon" (click)="onEdit(prod)" title="Editar"><i class="fa-solid fa-pen"></i></button>
+              <button class="btn-icon danger" (click)="onDelete(prod.idInventarioMedicamento)" title="Eliminar"><i class="fa-solid fa-trash"></i></button>
             </td>
           </tr>
         </tbody>
-      </table>
-
-      <ng-template #emptyTable>
-        <div class="empty-state">
-          <i class="fa-solid fa-box-open"></i>
-          <h3>No hay productos que coincidan con el filtro</h3>
-          <p>Prueba limpiando la búsqueda o registra un nuevo producto para empezar.</p>
-          <button class="btn-client-primary" (click)="setView('add')">Registrar producto</button>
-        </div>
-      </ng-template>
+      </app-data-table>
     </section>
 
     <!-- SECCIÓN: FORMULARIO PRODUCTO -->
