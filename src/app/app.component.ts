@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component } from '@angular/core';
 import { RouterOutlet, Router, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs/operators';
 
@@ -11,24 +11,14 @@ const DASHBOARD_ROUTES = ['/recepcionista', '/veterinario', '/administrador', '/
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss']
 })
-export class AppComponent implements OnInit {
-  title = 'VET APP';
+export class AppComponent {
   isDashboardRoute = false;
 
   constructor(private router: Router) {
     this.router.events.pipe(
       filter(event => event instanceof NavigationEnd)
     ).subscribe((event: any) => {
-      this.checkDashboardRoute(event.urlAfterRedirects);
+      this.isDashboardRoute = DASHBOARD_ROUTES.some(r => event.urlAfterRedirects.startsWith(r));
     });
-  }
-
-  ngOnInit() {
-    // Comprobación inicial para evitar desorden al recargar la página
-    this.checkDashboardRoute(this.router.url);
-  }
-
-  private checkDashboardRoute(url: string) {
-    this.isDashboardRoute = DASHBOARD_ROUTES.some(r => url.startsWith(r));
   }
 }
