@@ -1,6 +1,7 @@
 <div class="inventario-dashboard">
+  <div class="sidebar-overlay" [class.visible]="sidebarOpen" (click)="sidebarOpen = false"></div>
   <!-- SIDEBAR -->
-  <aside class="sidebar">
+  <aside class="sidebar" [class.open]="sidebarOpen">
     <div class="sidebar-header">
       <i class="fa-solid fa-boxes-stacked"></i>
       <span>VET INVENTARIO</span>
@@ -29,6 +30,9 @@
   <!-- MAIN CONTENT -->
   <main class="main-content">
     <header class="content-header">
+      <button class="hamburger-btn" (click)="sidebarOpen = !sidebarOpen">
+        <i class="fa-solid fa-bars"></i>
+      </button>
       <div>
         <p class="eyebrow">Jefatura de inventario</p>
         <h1>{{ currentView === 'stats' ? 'Panel de control' : currentView === 'list' ? 'Gestión de productos' : 'Registro de mercancía' }}</h1>

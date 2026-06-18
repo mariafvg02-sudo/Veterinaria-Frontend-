@@ -29,6 +29,7 @@ const STOCK_BAJO_UMBRAL = 10;
 })
 export class JefeInventarioComponent implements OnInit {
   currentView: string = 'stats';
+  sidebarOpen = false;
   editingId: number | null = null;
   usuario: { nombre?: string; id?: number } | null = null;
   productos: InventarioProducto[] = [];
@@ -66,6 +67,7 @@ export class JefeInventarioComponent implements OnInit {
 
   setView(view: string): void {
     this.currentView = view;
+    this.sidebarOpen = false;
   }
 
   logout(): void {

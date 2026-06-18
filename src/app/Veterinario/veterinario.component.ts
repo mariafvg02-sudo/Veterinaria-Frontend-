@@ -29,6 +29,7 @@ interface CitaRow {
 })
 export class VeterinarioComponent implements OnInit {
   activeTab: string = 'agenda';
+  sidebarOpen = false;
 
   citasHoy: CitaRow[] = [];
   historialCitas: CitaRow[] = [];
@@ -97,6 +98,7 @@ export class VeterinarioComponent implements OnInit {
 
   setActiveTab(tab: string) {
     this.activeTab = tab;
+    this.sidebarOpen = false;
   }
 
   cargarCitas(): void {

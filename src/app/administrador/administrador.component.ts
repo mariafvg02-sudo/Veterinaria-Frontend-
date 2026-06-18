@@ -17,6 +17,7 @@ export class AdministradorComponent implements OnInit {
   usuario: Usuario | null = null;
   userForm: FormGroup;
   currentView: string = 'stats';
+  sidebarOpen = false;
   cargando = false;
   cargandoUsuarios = false;
   error: string | null = null;
@@ -79,6 +80,7 @@ export class AdministradorComponent implements OnInit {
 
   setView(view: string) {
     this.currentView = view;
+    this.sidebarOpen = false;
     this.error = null;
     this.exito = null;
     if (view === 'citas') this.cargarCitas();

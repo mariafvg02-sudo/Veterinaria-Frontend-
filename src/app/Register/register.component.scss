@@ -202,3 +202,59 @@ input {
 .login-footer a:hover {
     text-decoration: underline;
 }
+
+@media (max-width: 767px) {
+    :host {
+        padding: 0.8rem;
+        align-items: flex-start;
+        padding-top: 2rem;
+    }
+
+    .login-card {
+        width: calc(100vw - 1.6rem);
+        max-width: 380px;
+        padding: 1.25rem;
+        border-radius: 16px;
+    }
+
+    header h1 { font-size: 1.5rem; }
+    header p { font-size: 0.88rem; }
+    header { margin-bottom: 14px; }
+
+    .form-group { margin-bottom: 10px; }
+
+    input, .input-with-icon { min-height: 44px; }
+    input { padding: 10px 12px; font-size: 0.95rem; }
+
+    .btn-ingresar, .btn-crear {
+        min-height: 44px;
+        padding: 10px;
+    }
+
+    .eye-icon {
+        min-width: 44px;
+        min-height: 44px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .login-footer a {
+        display: inline-block;
+        min-height: 44px;
+        line-height: 44px;
+    }
+
+    .register-note { font-size: 0.85rem; }
+}
+
+@media (min-width: 768px) and (max-width: 1023px) {
+    .login-card {
+        width: min(400px, 100%);
+        padding: 2rem;
+    }
+}
+
+@media (min-width: 1024px) {
+    .login-card { width: 360px; }
+}

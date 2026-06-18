@@ -27,6 +27,7 @@ export class ClienteComponent implements OnInit {
   citas: Cita[] = [];
   proximaCita: Cita | null = null;
   currentView: string = 'dashboard';
+  sidebarOpen = false;
   mascotaSeleccionada: Mascota | null = null;
   busquedaMascota = '';
   filtroEspecie = 'Todas';
@@ -187,6 +188,7 @@ export class ClienteComponent implements OnInit {
 
   setView(view: string): void {
     this.currentView = view;
+    this.sidebarOpen = false;
     if (view === 'nueva-mascota') {
       this.mascotaEditando = null;
       this.mascotaForm.reset({

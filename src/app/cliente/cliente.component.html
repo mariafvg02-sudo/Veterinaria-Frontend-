@@ -1,5 +1,6 @@
 <div class="cliente-container" *ngIf="usuario">
-  <aside class="sidebar">
+  <div class="sidebar-overlay" [class.visible]="sidebarOpen" (click)="sidebarOpen = false"></div>
+  <aside class="sidebar" [class.open]="sidebarOpen">
     <div class="sidebar-header">
       <h1><i class="fa-solid fa-paw"></i> VETAPP</h1>
       <p>Panel del cliente</p>
@@ -37,6 +38,9 @@
 
   <main class="main-content">
     <header class="header">
+      <button class="hamburger-btn" (click)="sidebarOpen = !sidebarOpen">
+        <i class="fa-solid fa-bars"></i>
+      </button>
       <div>
         <span class="header-kicker">Tu espacio de control</span>
         <h2>Bienvenido(a), {{ usuario.nombre || usuario.correo }}</h2>

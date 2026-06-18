@@ -24,6 +24,7 @@ export class RecepcionistaComponent implements OnInit {
   @ViewChild('dashboardSection') dashboardSection?: ElementRef<HTMLElement>;
 
   activeTab: 'citas' | 'registro' | 'pagos' | 'inventario' = 'citas';
+  sidebarOpen = false;
   usuario: Usuario | null = null;
   readonly usuario$!: Observable<Usuario | null>;
   citas: Cita[] = [];
@@ -97,6 +98,7 @@ export class RecepcionistaComponent implements OnInit {
 
   setActiveTab(tab: 'citas' | 'registro' | 'pagos' | 'inventario'): void {
     this.activeTab = tab;
+    this.sidebarOpen = false;
     if (tab === 'inventario') this.cargarInventario();
   }
 

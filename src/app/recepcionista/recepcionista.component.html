@@ -1,6 +1,9 @@
 <div class="reception-dashboard" *ngIf="usuario">
+  <!-- OVERLAY MÓVIL -->
+  <div class="sidebar-overlay" [class.visible]="sidebarOpen" (click)="sidebarOpen = false"></div>
+
   <!-- SIDEBAR -->
-  <aside class="sidebar">
+  <aside class="sidebar" [class.open]="sidebarOpen">
     <div class="sidebar-title-bar">
       <span class="sidebar-section-title">Recepción</span>
     </div>
@@ -42,6 +45,14 @@
 
   <!-- MAIN CONTENT -->
   <main class="main-content">
+    <!-- MOBILE HEADER -->
+    <div class="mobile-header">
+      <button class="hamburger-btn" (click)="sidebarOpen = !sidebarOpen">
+        <i class="fa-solid fa-bars"></i>
+      </button>
+      <span class="mobile-title">Recepción</span>
+    </div>
+
     <!-- Vista de Citas -->
     <section class="dashboard-view" #dashboardSection *ngIf="activeTab === 'citas'">
       <section class="dashboard-header">

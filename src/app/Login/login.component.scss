@@ -158,24 +158,49 @@ input::placeholder {
 .login-footer a { color: var(--primary); text-decoration: none; font-weight: 600; }
 .login-footer a:hover { text-decoration: underline; }
 
-@media (max-width: 768px) {
+@media (max-width: 767px) {
     :host { padding: 0.8rem; }
-    .login-card { width: min(100%, 380px); padding: 1.05rem; border-radius: 17px; }
-    header h1 { font-size: 1.4rem; }
-    .form-group { margin-bottom: 7px; }
-}
 
-@media (max-width: 480px) {
-    .login-card { width: calc(100vw - 1.2rem); padding: 1rem; border-radius: 16px; }
-    header h1 { font-size: 1.32rem; }
+    .login-card {
+        width: calc(100vw - 1.6rem);
+        max-width: 380px;
+        padding: 1rem;
+        border-radius: 14px;
+    }
+
+    header h1 { font-size: 1.3rem; }
     header p { font-size: 0.84rem; }
-    .form-group { margin-bottom: 8px; }
-    input, .input-with-icon { min-height: 40px; }
-    input { padding: 9px 11px; font-size: 0.95rem; }
-    .input-with-icon { padding: 0 12px; }
-    .btn-ingresar { padding: 10px; }
+
+    input, .input-with-icon { min-height: 44px; }
+    input { padding: 10px 12px; font-size: 0.95rem; }
+
+    .btn-ingresar {
+        min-height: 44px;
+        padding: 10px;
+    }
+
+    .eye-icon {
+        min-width: 44px;
+        min-height: 44px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .login-footer a {
+        display: inline-block;
+        min-height: 44px;
+        line-height: 44px;
+    }
 }
 
-@media (min-width: 1200px) {
+@media (min-width: 768px) and (max-width: 1023px) {
+    .login-card {
+        width: min(380px, 100%);
+        padding: 1.25rem;
+    }
+}
+
+@media (min-width: 1024px) {
     .login-card { width: 360px; }
 }
