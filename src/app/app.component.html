@@ -1,5 +1,7 @@
 <main class="app-shell" [class.dashboard-mode]="isDashboardRoute">
-  <router-outlet></router-outlet>
+  <div class="view-container">
+    <router-outlet></router-outlet>
+  </div>
 
   @if (!isDashboardRoute) {
   <footer class="app-footer">
