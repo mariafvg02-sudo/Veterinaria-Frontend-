@@ -551,7 +551,7 @@ export class ClienteComponent implements OnInit {
     return cita.idCita ?? 0;
   }
 
-  trackByMascotaId(_: number, mascota: Mascota): number {
+  trackByMascotaId = (_: number, mascota: Mascota): number => {
     return this.obtenerMascotaId(mascota) ?? 0;
   }
 
