@@ -1,12 +1,11 @@
 const fs = require('fs');
 const path = require('path');
 
-const apiUrl = process.env.API_URL;
+let apiUrl = process.env.API_URL;
 
 if (!apiUrl) {
-  console.error('ERROR: La variable de entorno API_URL no está definida.');
-  console.error('Configúrala en el dashboard de Vercel: Settings → Environment Variables');
-  process.exit(1);
+  console.warn('⚠️ ADVERTENCIA: API_URL no definida. Usando fallback local.');
+  apiUrl = 'http://localhost:8080/api';
 }
 
 const content = `export const environment = {

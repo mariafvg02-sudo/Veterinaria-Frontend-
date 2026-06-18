@@ -108,6 +108,7 @@ p {
         gap: 32px;
         padding: 24px 16px;
         margin-top: 20px;
+        justify-items: center; /* Centra el contenido en móviles */
     }
     .footer-brand, .footer-social {
         align-items: center;
