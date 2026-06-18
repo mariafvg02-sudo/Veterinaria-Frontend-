@@ -75,7 +75,7 @@
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let cita of filteredCitas">
+          <tr *ngFor="let cita of filteredCitas; trackBy: trackByCitaId">
             <td>{{ cita.fecha | date:'dd/MM/yyyy HH:mm' }}</td>
             <td>{{ cita.cliente?.nombre || 'N/D' }}</td>
             <td>{{ cita.motivo }}</td>
@@ -179,7 +179,7 @@
                 autocomplete="off">
               <div class="autocomplete-dropdown" *ngIf="showClienteDropdown">
                 <div
-                  *ngFor="let c of clientesFiltrados"
+                  *ngFor="let c of clientesFiltrados; trackBy: trackByUsuarioId"
                   class="autocomplete-item"
                   (mousedown)="$event.preventDefault()"
                   (click)="seleccionarCliente(c)">
@@ -204,7 +204,7 @@
                 autocomplete="off">
               <div class="autocomplete-dropdown" *ngIf="showMascotaDropdown">
                 <div
-                  *ngFor="let m of mascotasFiltradas"
+                  *ngFor="let m of mascotasFiltradas; trackBy: trackByMascotaId"
                   class="autocomplete-item"
                   (mousedown)="$event.preventDefault()"
                   (click)="seleccionarMascota(m)">
@@ -228,7 +228,7 @@
                 autocomplete="off">
               <div class="autocomplete-dropdown" *ngIf="showVeterinarioDropdown">
                 <div
-                  *ngFor="let v of veterinariosFiltrados"
+                  *ngFor="let v of veterinariosFiltrados; trackBy: trackByUsuarioId"
                   class="autocomplete-item"
                   (mousedown)="$event.preventDefault()"
                   (click)="seleccionarVeterinario(v)">
@@ -297,7 +297,7 @@
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let prod of productos">
+            <tr *ngFor="let prod of productos; trackBy: trackByProductoId">
               <td><strong>{{ prod.nombre }}</strong></td>
               <td>{{ prod.categoria }}</td>
               <td>

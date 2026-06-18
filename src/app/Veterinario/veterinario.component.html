@@ -97,7 +97,7 @@
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let cita of filteredCitas">
+          <tr *ngFor="let cita of filteredCitas; trackBy: trackByCitaId">
             <td>{{ cita.idCita }}</td>
             <td>{{ cita.fecha }}</td>
             <td>{{ cita.paciente }}</td>
@@ -163,7 +163,7 @@
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let cita of filteredHistorial">
+          <tr *ngFor="let cita of filteredHistorial; trackBy: trackByCitaId">
             <td>{{ cita.paciente }}</td>
             <td>{{ cita.dueno }}</td>
             <td>{{ cita.fecha }}</td>

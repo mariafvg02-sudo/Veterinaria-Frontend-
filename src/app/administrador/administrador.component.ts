@@ -215,6 +215,14 @@ export class AdministradorComponent implements OnInit {
     this.setView('users');
   }
 
+  trackByUsuarioId(_: number, user: Usuario): number {
+    return user.id ?? user.userId ?? 0;
+  }
+
+  trackByCitaId(_: number, cita: Cita): number {
+    return cita.idCita ?? 0;
+  }
+
   logout(): void {
     this.authService.logout();
     this.router.navigate(['/login']);

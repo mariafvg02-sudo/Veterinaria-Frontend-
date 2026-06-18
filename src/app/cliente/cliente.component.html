@@ -180,7 +180,7 @@
       </div>
 
       <div *ngIf="!cargandoCitas && citas && citas.length > 0; else noCitas" class="citas-list">
-        <article *ngFor="let cita of citas" class="cita-item">
+        <article *ngFor="let cita of citas; trackBy: trackByCitaId" class="cita-item">
           <div class="cita-date-pill">
             <span>{{ cita.fecha | date:'dd' }}</span>
             <small>{{ cita.fecha | date:'MMM' }}</small>
@@ -252,7 +252,7 @@
 
           <div class="mascotas-grid">
             <article
-              *ngFor="let mascota of mascotasMostradas"
+              *ngFor="let mascota of mascotasMostradas; trackBy: trackByMascotaId"
               class="mascota-card"
               [class.selected]="obtenerMascotaId(mascotaSeleccionada) === obtenerMascotaId(mascota)"
               (click)="seleccionarMascota(mascota)"
@@ -381,7 +381,7 @@
           <ng-container *ngIf="mascotas.length > 0; else sinMascotas">
             <select id="mascotaId" formControlName="mascotaId" class="form-control">
               <option value="">— Selecciona una mascota —</option>
-              <option *ngFor="let m of mascotas" [value]="obtenerMascotaId(m)">
+              <option *ngFor="let m of mascotas; trackBy: trackByMascotaId" [value]="obtenerMascotaId(m)">
                 {{ m.nombre }} · {{ m.especie }}
               </option>
             </select>

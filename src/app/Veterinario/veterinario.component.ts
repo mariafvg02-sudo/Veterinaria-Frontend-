@@ -269,6 +269,10 @@ export class VeterinarioComponent implements OnInit {
     }
   }
 
+  trackByCitaId(_: number, cita: CitaRow): number {
+    return cita.idCita ?? 0;
+  }
+
   logout(): void {
     this.authService.logout();
     this.router.navigate(['/login']);

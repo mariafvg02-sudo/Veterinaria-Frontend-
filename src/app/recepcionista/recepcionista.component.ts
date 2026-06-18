@@ -1,8 +1,8 @@
-import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
+import { Component, ElementRef, OnInit, OnDestroy, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { RouterModule, Router } from '@angular/router';
-import { Observable, of } from 'rxjs';
+import { Observable, of, Subscription } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { AuthService, Usuario } from '../Core/Service/auth.service';
 import { CitaService } from '../Core/Service/cita.service';
@@ -20,8 +20,9 @@ import { PagosFacturasComponent } from './pagos-facturas.component';
   templateUrl: './recepcionista.component.html',
   styleUrls: ['./recepcionista.component.scss']
 })
-export class RecepcionistaComponent implements OnInit {
+export class RecepcionistaComponent implements OnInit, OnDestroy {
   @ViewChild('dashboardSection') dashboardSection?: ElementRef<HTMLElement>;
+  private usuarioSub?: Subscription;
 
   activeTab: 'citas' | 'registro' | 'pagos' | 'inventario' = 'citas';
   sidebarOpen = false;
@@ -72,7 +73,7 @@ export class RecepcionistaComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.authService.usuario$.subscribe(u => { this.usuario = u; });
+    this.usuarioSub = this.authService.usuario$.subscribe(u => { this.usuario = u; });
 
     const usuarioActual = this.authService.obtenerUsuarioActual();
     if (!usuarioActual) {
@@ -92,8 +93,11 @@ export class RecepcionistaComponent implements OnInit {
     });
 
     this.cargarAgenda();
-    this.cargarVeterinarios();
-    this.cargarClientes();
+    this.cargarUsuariosYVeterinarios();
+  }
+
+  ngOnDestroy(): void {
+    this.usuarioSub?.unsubscribe();
   }
 
   setActiveTab(tab: 'citas' | 'registro' | 'pagos' | 'inventario'): void {
@@ -136,18 +140,10 @@ export class RecepcionistaComponent implements OnInit {
     });
   }
 
-  cargarVeterinarios(): void {
+  private cargarUsuariosYVeterinarios(): void {
     this.authService.obtenerTodosLosUsuarios().subscribe({
       next: (usuarios) => {
         this.veterinarios = usuarios.filter(u => u.rol === 'VETERINARIO');
-      },
-      error: () => {}
-    });
-  }
-
-  cargarClientes(): void {
-    this.authService.obtenerTodosLosUsuarios().subscribe({
-      next: (usuarios) => {
         this.clientes = usuarios.filter(u => u.rol === 'CLIENTE');
       },
       error: () => {}
@@ -396,6 +392,22 @@ export class RecepcionistaComponent implements OnInit {
       const coincideBusqueda = !this.searchTerm || texto.includes(this.searchTerm.toLowerCase());
       return coincideEstado && coincideBusqueda;
     });
+  }
+
+  trackByCitaId(_: number, cita: Cita): number {
+    return cita.idCita ?? 0;
+  }
+
+  trackByUsuarioId(_: number, usuario: Usuario): number {
+    return usuario.id ?? usuario.userId ?? 0;
+  }
+
+  trackByMascotaId(_: number, mascota: Mascota): number {
+    return mascota.idMascota ?? mascota.id_mascota ?? 0;
+  }
+
+  trackByProductoId(_: number, producto: InventarioProducto): number {
+    return producto.idInventarioMedicamento ?? 0;
   }
 
   get stats(): Array<{ label: string; value: number; icon: string }> {

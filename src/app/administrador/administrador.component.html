@@ -137,7 +137,7 @@
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let user of filteredUsuarios">
+            <tr *ngFor="let user of filteredUsuarios; trackBy: trackByUsuarioId">
               <td>
                 <div class="user-cell">
                   <div class="avatar-sm">{{ (user.nombre || '?').charAt(0).toUpperCase() }}</div>
@@ -189,7 +189,7 @@
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let cita of citas">
+            <tr *ngFor="let cita of citas; trackBy: trackByCitaId">
               <td>{{ cita.idCita }}</td>
               <td>{{ cita.fecha | date:'dd/MM/yyyy HH:mm' }}</td>
               <td>{{ cita.motivo }}</td>
