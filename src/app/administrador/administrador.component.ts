@@ -1,16 +1,18 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { ReactiveFormsModule, FormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { RouterModule, Router } from '@angular/router';
 import { AuthService, Usuario } from '../Core/Service/auth.service';
 import { CitaService } from '../Core/Service/cita.service';
+import { InventarioService } from '../Core/Service/inventario.service';
 import { Cita } from '../Models/cita.model';
+import { InventarioProducto } from '../Models/inventario.model';
 import { DataTableComponent } from '../shared/data-table/data-table.component';
 
 @Component({
   selector: 'app-administrador',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterModule, DataTableComponent],
+  imports: [CommonModule, ReactiveFormsModule, FormsModule, RouterModule, DataTableComponent],
   templateUrl: './administrador.component.html',
   styleUrls: ['./administrador.component.scss']
 })
@@ -30,10 +32,16 @@ export class AdministradorComponent implements OnInit {
   citas: Cita[] = [];
   cargandoCitas = false;
 
+  inventario: InventarioProducto[] = [];
+  cargandoInventario = false;
+  filterInventario: string = '';
+  categoriaSeleccionada: string = '';
+
   constructor(
     private fb: FormBuilder,
     private authService: AuthService,
     private citaService: CitaService,
+    private inventarioService: InventarioService,
     private router: Router
   ) {
     this.userForm = this.fb.group({
@@ -85,6 +93,7 @@ export class AdministradorComponent implements OnInit {
     this.error = null;
     this.exito = null;
     if (view === 'citas') this.cargarCitas();
+    if (view === 'inventario') this.cargarInventario();
   }
 
   cargarCitas(): void {
@@ -99,6 +108,44 @@ export class AdministradorComponent implements OnInit {
       },
       error: () => { this.cargandoCitas = false; }
     });
+  }
+
+  cargarInventario(): void {
+    this.cargandoInventario = true;
+    this.inventarioService.listar().subscribe({
+      next: (productos) => {
+        this.inventario = productos;
+        this.cargandoInventario = false;
+      },
+      error: () => {
+        this.error = 'No se pudo cargar el inventario.';
+        this.cargandoInventario = false;
+      }
+    });
+  }
+
+  get categoriasInventario(): string[] {
+    const cats = new Set(this.inventario.map(p => p.categoria).filter(Boolean));
+    return Array.from(cats).sort();
+  }
+
+  get filteredInventario(): InventarioProducto[] {
+    let resultado = this.inventario;
+    const q = (this.filterInventario || '').trim().toLowerCase();
+    if (q) {
+      resultado = resultado.filter(p =>
+        (p.nombre || '').toLowerCase().includes(q) ||
+        (p.categoria || '').toLowerCase().includes(q)
+      );
+    }
+    if (this.categoriaSeleccionada) {
+      resultado = resultado.filter(p => p.categoria === this.categoriaSeleccionada);
+    }
+    return resultado;
+  }
+
+  trackByInventarioId(_: number, producto: InventarioProducto): number {
+    return producto.idInventarioMedicamento ?? 0;
   }
 
   onSubmitUser() {
