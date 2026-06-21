@@ -41,6 +41,8 @@ export class RecepcionistaComponent implements OnInit, OnDestroy {
 
   // Inventario
   productos: InventarioProducto[] = [];
+  filterInventario = '';
+  categoriaInventario = '';
 
   // Autocomplete: clientes
   clientes: Usuario[] = [];
@@ -393,6 +395,26 @@ export class RecepcionistaComponent implements OnInit, OnDestroy {
       const coincideBusqueda = !this.searchTerm || texto.includes(this.searchTerm.toLowerCase());
       return coincideEstado && coincideBusqueda;
     });
+  }
+
+  get categoriasInventario(): string[] {
+    const cats = new Set(this.productos.map(p => p.categoria).filter(Boolean));
+    return Array.from(cats).sort();
+  }
+
+  get filteredInventario(): InventarioProducto[] {
+    let resultado = this.productos;
+    const q = (this.filterInventario || '').trim().toLowerCase();
+    if (q) {
+      resultado = resultado.filter(p =>
+        (p.nombre || '').toLowerCase().includes(q) ||
+        (p.categoria || '').toLowerCase().includes(q)
+      );
+    }
+    if (this.categoriaInventario) {
+      resultado = resultado.filter(p => p.categoria === this.categoriaInventario);
+    }
+    return resultado;
   }
 
   trackByCitaId(_: number, cita: Cita): number {

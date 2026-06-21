@@ -281,19 +281,30 @@
       <app-pagos-facturas></app-pagos-facturas>
     </section>
 
-    <!-- Vista de Inventario (Consulta) -->
+    <!-- Vista de Inventario (Solo lectura) -->
     <section class="dashboard-view" *ngIf="activeTab === 'inventario'">
       <section class="dashboard-header">
         <div>
           <span class="subtitle">Consulta de Stock</span>
-          <h1>Inventario de Medicamentos</h1>
-          <p>Consulta la disponibilidad de suministros para informar a los clientes.</p>
+          <h1>Inventario de Productos</h1>
+          <p>Consulta la disponibilidad de suministros para informar a los clientes. Vista de solo lectura.</p>
         </div>
       </section>
 
+      <div class="inventario-filters">
+        <input type="text" class="inv-search" placeholder="Buscar por nombre..."
+               [(ngModel)]="filterInventario">
+        <select class="inv-select" [(ngModel)]="categoriaInventario">
+          <option value="">Todas las categorías</option>
+          <option *ngFor="let cat of categoriasInventario" [value]="cat">{{ cat }}</option>
+        </select>
+      </div>
+
       <app-data-table
-        [empty]="productos.length === 0"
-        emptyText="No hay productos en el inventario."
+        [loading]="loading"
+        [empty]="filteredInventario.length === 0"
+        loadingText="Cargando inventario..."
+        emptyText="No se encontraron productos."
         emptyIcon="fa-box-open">
 
         <thead>
@@ -302,18 +313,30 @@
             <th>Categoría</th>
             <th>Cantidad</th>
             <th>Precio Unit.</th>
+            <th>Estado</th>
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let prod of productos; trackBy: trackByProductoId">
+          <tr *ngFor="let prod of filteredInventario; trackBy: trackByProductoId">
             <td><strong>{{ prod.nombre }}</strong></td>
-            <td>{{ prod.categoria }}</td>
             <td>
-              <span class="role-badge" [ngClass]="prod.cantidad > 5 ? 'veterinario' : 'recepcionista'">
-                {{ prod.cantidad }} unidades
+              <span class="cat-badge" [ngClass]="(prod.categoria || '').toLowerCase()">
+                {{ prod.categoria }}
               </span>
             </td>
-            <td>{{ prod.precio | currency }}</td>
+            <td>
+              <span [class.stock-bajo]="prod.cantidad <= 10 && prod.cantidad > 0"
+                    [class.stock-agotado]="prod.cantidad === 0">
+                {{ prod.cantidad }}
+              </span>
+            </td>
+            <td>{{ prod.precio | currency:'COP':'symbol-narrow':'1.0-0' }}</td>
+            <td>
+              <span class="stock-badge"
+                [ngClass]="prod.cantidad === 0 ? 'agotado' : prod.cantidad <= 10 ? 'bajo' : 'disponible'">
+                {{ prod.cantidad === 0 ? 'Agotado' : prod.cantidad <= 10 ? 'Stock bajo' : 'Disponible' }}
+              </span>
+            </td>
           </tr>
         </tbody>
       </app-data-table>
