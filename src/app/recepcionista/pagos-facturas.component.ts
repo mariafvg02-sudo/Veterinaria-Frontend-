@@ -40,6 +40,15 @@ export class PagosFacturasComponent implements OnInit {
   selectedEstadoPago = 'todos';
   loadingPagos = false;
 
+  // Crear pago
+  showCrearPago = false;
+  facturasParaPago: any[] = [];
+  facturaSeleccionadaPago: any = null;
+  metodoPago: string = 'efectivo';
+  montoPago: number = 0;
+  loadingFacturasPago = false;
+  creandoPago = false;
+
   message: string | null = null;
   messageType: 'success' | 'error' = 'success';
 
@@ -56,6 +65,7 @@ export class PagosFacturasComponent implements OnInit {
   setSubTab(tab: 'facturas' | 'pagos'): void {
     this.activeSubTab = tab;
     this.showCrearFactura = false;
+    this.showCrearPago = false;
     this.facturaDetalle = null;
     if (tab === 'facturas' && this.facturas.length === 0) this.cargarFacturas();
     if (tab === 'pagos' && this.pagos.length === 0) this.cargarPagos();
@@ -233,6 +243,99 @@ export class PagosFacturasComponent implements OnInit {
       { label: 'Anulados', value: anulados, icon: 'fa-circle-xmark' },
       { label: 'Recaudado', value: '$' + totalRecaudado.toLocaleString('es-CO', { minimumFractionDigits: 0 }), icon: 'fa-dollar-sign' }
     ];
+  }
+
+  // ── CREAR PAGO ──
+
+  abrirCrearPago(): void {
+    this.showCrearPago = true;
+    this.facturaSeleccionadaPago = null;
+    this.metodoPago = 'efectivo';
+    this.montoPago = 0;
+    this.cargarFacturasParaPago();
+  }
+
+  cerrarCrearPago(): void {
+    this.showCrearPago = false;
+    this.facturaSeleccionadaPago = null;
+    this.montoPago = 0;
+  }
+
+  cargarFacturasParaPago(): void {
+    this.loadingFacturasPago = true;
+    this.facturaService.listarFacturas().subscribe({
+      next: (facturas) => {
+        this.facturasParaPago = facturas.filter(
+          (f: any) => (f.estado || '').toLowerCase() === 'emitida'
+        );
+        this.loadingFacturasPago = false;
+      },
+      error: () => {
+        this.loadingFacturasPago = false;
+        this.showMessage('Error al cargar facturas pendientes.', 'error');
+      }
+    });
+  }
+
+  seleccionarFacturaPago(factura: any): void {
+    this.facturaSeleccionadaPago = factura;
+    this.montoPago = factura?.total || 0;
+  }
+
+  crearPago(): void {
+    if (!this.facturaSeleccionadaPago || this.montoPago <= 0) return;
+
+    this.creandoPago = true;
+    const pago = {
+      fechaHora: new Date().toISOString(),
+      metodo: this.metodoPago,
+      monto: this.montoPago,
+      factura: { idFactura: this.facturaSeleccionadaPago.idFactura }
+    };
+
+    this.pagoService.crearPago(pago).subscribe({
+      next: (nuevoPago) => {
+        this.pagos = [nuevoPago, ...this.pagos];
+        this.filtrarPagos();
+
+        this.facturaService.actualizarFactura(
+          this.facturaSeleccionadaPago.idFactura,
+          { ...this.facturaSeleccionadaPago, estado: 'pagada' }
+        ).subscribe({
+          next: (facturaActualizada) => {
+            this.facturas = this.facturas.map(f =>
+              f.idFactura === facturaActualizada.idFactura ? facturaActualizada : f
+            );
+            this.filtrarFacturas();
+          }
+        });
+
+        this.creandoPago = false;
+        this.showCrearPago = false;
+        this.facturaSeleccionadaPago = null;
+        this.montoPago = 0;
+        this.showMessage('Pago registrado correctamente.', 'success');
+      },
+      error: () => {
+        this.creandoPago = false;
+        this.showMessage('Error al registrar el pago.', 'error');
+      }
+    });
+  }
+
+  anularPago(pago: any): void {
+    if (!confirm('¿Está seguro de anular este pago? Esta acción no se puede revertir.')) return;
+
+    this.pagoService.anularPago(pago.idPago).subscribe({
+      next: (pagoAnulado) => {
+        this.pagos = this.pagos.map(p =>
+          p.idPago === pagoAnulado.idPago ? pagoAnulado : p
+        );
+        this.filtrarPagos();
+        this.showMessage('Pago anulado correctamente.', 'success');
+      },
+      error: () => this.showMessage('Error al anular el pago.', 'error')
+    });
   }
 
   // ── UTILIDADES ──

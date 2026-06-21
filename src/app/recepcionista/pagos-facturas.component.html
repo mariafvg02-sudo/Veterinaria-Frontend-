@@ -252,12 +252,91 @@
       </article>
     </section>
 
+    <!-- CREAR PAGO -->
+    <section *ngIf="showCrearPago" class="content-card crear-card">
+      <div class="detalle-header-row">
+        <h2><i class="fa-solid fa-money-bill-wave"></i> Registrar Pago</h2>
+        <button class="btn-ghost" (click)="cerrarCrearPago()">
+          <i class="fa-solid fa-xmark"></i> Cancelar
+        </button>
+      </div>
+
+      <div *ngIf="loadingFacturasPago" class="empty-state">
+        <i class="fa-solid fa-spinner fa-spin"></i>
+        <p>Cargando facturas pendientes...</p>
+      </div>
+
+      <div *ngIf="!loadingFacturasPago && facturasParaPago.length === 0" class="empty-state">
+        <i class="fa-solid fa-file-circle-xmark"></i>
+        <p>No hay facturas emitidas pendientes de pago.</p>
+      </div>
+
+      <div *ngIf="!loadingFacturasPago && facturasParaPago.length > 0" class="crear-form">
+        <div class="field">
+          <label>Seleccionar factura pendiente</label>
+          <select (change)="seleccionarFacturaPago(facturasParaPago[$any($event.target).selectedIndex - 1])">
+            <option [selected]="!facturaSeleccionadaPago">-- Seleccione una factura --</option>
+            <option *ngFor="let f of facturasParaPago" [value]="f.idFactura">
+              #{{ f.idFactura }} — {{ f.cita?.cliente?.nombre || 'Cliente' }} · {{ f.cita?.mascota?.nombre || 'Mascota' }} · {{ f.total | currency:'COP':'symbol-narrow':'1.0-0' }}
+            </option>
+          </select>
+        </div>
+
+        <div *ngIf="facturaSeleccionadaPago" class="cita-preview">
+          <div class="preview-row">
+            <span class="detalle-label">Factura</span>
+            <span>#{{ facturaSeleccionadaPago.idFactura }}</span>
+          </div>
+          <div class="preview-row">
+            <span class="detalle-label">Cliente</span>
+            <span>{{ facturaSeleccionadaPago.cita?.cliente?.nombre || 'N/A' }}</span>
+          </div>
+          <div class="preview-row">
+            <span class="detalle-label">Mascota</span>
+            <span>{{ facturaSeleccionadaPago.cita?.mascota?.nombre || 'N/A' }}</span>
+          </div>
+          <div class="preview-row">
+            <span class="detalle-label">Total factura</span>
+            <span class="monto-destacado">{{ facturaSeleccionadaPago.total | currency:'COP':'symbol-narrow':'1.0-0' }}</span>
+          </div>
+        </div>
+
+        <ng-container *ngIf="facturaSeleccionadaPago">
+          <div class="field">
+            <label>Método de pago</label>
+            <select [(ngModel)]="metodoPago">
+              <option value="efectivo">Efectivo</option>
+              <option value="tarjeta">Tarjeta</option>
+              <option value="transferencia">Transferencia</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label>Monto (COP)</label>
+            <input type="number" [(ngModel)]="montoPago" min="1" placeholder="Monto del pago">
+          </div>
+
+          <div class="form-actions">
+            <button class="btn-primary" [disabled]="montoPago <= 0 || creandoPago" (click)="crearPago()">
+              <i class="fa-solid" [ngClass]="creandoPago ? 'fa-spinner fa-spin' : 'fa-check'"></i>
+              {{ creandoPago ? 'Registrando...' : 'Registrar Pago' }}
+            </button>
+          </div>
+        </ng-container>
+      </div>
+    </section>
+
     <!-- FILTROS Y TABLA PAGOS -->
-    <section class="content-card">
+    <section *ngIf="!showCrearPago" class="content-card">
       <div class="table-header">
         <div>
           <h2>Historial de Pagos</h2>
           <span class="text-muted">{{ filteredPagos.length }} pagos registrados</span>
+        </div>
+        <div class="table-header-actions">
+          <button class="btn-primary" (click)="abrirCrearPago()">
+            <i class="fa-solid fa-plus"></i> Nuevo Pago
+          </button>
         </div>
       </div>
 
@@ -298,6 +377,7 @@
             <th>Método</th>
             <th>Monto</th>
             <th>Estado</th>
+            <th>Acciones</th>
           </tr>
         </thead>
         <tbody>
@@ -316,6 +396,16 @@
               <span class="estado-badge" [ngClass]="getEstadoPagoClass(p.estado)">
                 {{ p.estado }}
               </span>
+            </td>
+            <td>
+              <div class="actions-cell">
+                <button class="btn-icon danger" title="Anular pago"
+                        *ngIf="(p.estado || '').toUpperCase() === 'COMPLETADO'"
+                        (click)="anularPago(p)">
+                  <i class="fa-solid fa-ban"></i>
+                </button>
+                <span *ngIf="(p.estado || '').toUpperCase() === 'ANULADO'" class="text-muted">—</span>
+              </div>
             </td>
           </tr>
         </tbody>

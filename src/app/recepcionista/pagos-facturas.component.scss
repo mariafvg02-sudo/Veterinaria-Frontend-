@@ -450,6 +450,11 @@
     background: var(--primary-light);
     color: var(--primary);
   }
+
+  &.danger:hover {
+    background: #fef2f2;
+    color: #dc2626;
+  }
 }
 
 .text-muted {
