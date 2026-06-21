@@ -16,9 +16,15 @@ export class HistorialMedicoService {
     return this.http.get<HistorialMedico[]>(this.apiUrl);
   }
 
-  // Este método envía los datos al backend para persistirlos
+  getHistorialesPorCliente(clienteId: number): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/cliente/${clienteId}`);
+  }
+
+  getHistorialesPorMascota(mascotaId: number): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/mascota/${mascotaId}`);
+  }
+
   crearHistorial(h: HistorialMedico): Observable<HistorialMedico> {
-    console.log('Datos enviados al backend:', JSON.stringify(h, null, 2));
     return this.http.post<HistorialMedico>(this.apiUrl, h).pipe(
       catchError(this.handleError)
     );
@@ -29,7 +35,6 @@ export class HistorialMedicoService {
   }
 
   private handleError(error: HttpErrorResponse) {
-    // Imprimimos el error completo en consola para depurar
     console.error('Error detallado del servidor:', error);
     return throwError(() => new Error(
       error.error?.mensaje || 'Error interno del servidor al procesar el historial.'

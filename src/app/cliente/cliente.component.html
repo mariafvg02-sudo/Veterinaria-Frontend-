@@ -24,6 +24,9 @@
       <button type="button" (click)="setView('mascotas')" [class.active]="currentView === 'mascotas'" class="nav-btn">
         <i class="fa-solid fa-paw"></i> Mis Mascotas
       </button>
+      <button type="button" (click)="setView('historial')" [class.active]="currentView === 'historial'" class="nav-btn">
+        <i class="fa-solid fa-file-medical"></i> Historial Médico
+      </button>
     </nav>
 
     <div class="sidebar-footer">
@@ -516,6 +519,85 @@
           </button>
         </div>
       </form>
+    </section>
+
+    <!-- ── HISTORIAL MÉDICO ── -->
+    <section *ngIf="currentView === 'historial'" class="view-section">
+      <div class="section-header">
+        <div>
+          <h2><i class="fa-solid fa-file-medical"></i> Historial Médico</h2>
+          <p class="section-subtitle">Consulta el historial clínico de tus mascotas</p>
+        </div>
+      </div>
+
+      <!-- Filtro por mascota -->
+      <div class="historial-filtro" *ngIf="mascotas.length > 0">
+        <label>Filtrar por mascota</label>
+        <select [(ngModel)]="filtroMascotaHistorial" [ngModelOptions]="{standalone: true}">
+          <option [ngValue]="0">Todas las mascotas</option>
+          <option *ngFor="let m of mascotas" [ngValue]="obtenerMascotaId(m)">{{ m.nombre }}</option>
+        </select>
+      </div>
+
+      <!-- Loading -->
+      <div *ngIf="cargandoHistorial" class="historial-empty">
+        <i class="fa-solid fa-spinner fa-spin"></i>
+        <p>Cargando historial médico...</p>
+      </div>
+
+      <!-- Sin historiales -->
+      <div *ngIf="!cargandoHistorial && historiales.length === 0" class="historial-empty">
+        <i class="fa-solid fa-file-medical"></i>
+        <p>No hay registros médicos para tus mascotas.</p>
+      </div>
+
+      <!-- Historiales agrupados por mascota -->
+      <div *ngIf="!cargandoHistorial && historialesFiltrados.length > 0" class="historial-grupos">
+        <div *ngFor="let grupo of historialesAgrupados" class="historial-grupo">
+          <div class="grupo-header">
+            <div class="grupo-avatar">
+              <i class="fa-solid fa-paw"></i>
+            </div>
+            <div>
+              <h3>{{ grupo.mascota }}</h3>
+              <span class="grupo-count">{{ grupo.registros.length }} {{ grupo.registros.length === 1 ? 'registro' : 'registros' }}</span>
+            </div>
+          </div>
+
+          <div class="historial-cards">
+            <article *ngFor="let h of grupo.registros" class="historial-card">
+              <div class="card-fecha">
+                <i class="fa-solid fa-calendar"></i>
+                {{ formatearFecha(h.fecha) }}
+              </div>
+              <div class="card-body">
+                <div class="card-campo" *ngIf="h.motivo">
+                  <span class="campo-label">Motivo</span>
+                  <span class="campo-valor">{{ h.motivo }}</span>
+                </div>
+                <div class="card-campo" *ngIf="h.diagnostico">
+                  <span class="campo-label">Diagnóstico</span>
+                  <span class="campo-valor campo-texto">{{ h.diagnostico }}</span>
+                </div>
+                <div class="card-campo" *ngIf="h.tratamiento">
+                  <span class="campo-label">Tratamiento</span>
+                  <span class="campo-valor campo-texto">{{ h.tratamiento }}</span>
+                </div>
+                <div class="card-campo" *ngIf="h.veterinario?.nombre">
+                  <span class="campo-label">Veterinario</span>
+                  <span class="campo-valor"><i class="fa-solid fa-user-doctor"></i> {{ h.veterinario.nombre }}</span>
+                </div>
+              </div>
+            </article>
+          </div>
+        </div>
+      </div>
+
+      <!-- Filtro sin resultados -->
+      <div *ngIf="!cargandoHistorial && historiales.length > 0 && historialesFiltrados.length === 0" class="historial-empty">
+        <i class="fa-solid fa-filter"></i>
+        <p>No hay registros médicos para la mascota seleccionada.</p>
+      </div>
     </section>
   </main>
 </div>

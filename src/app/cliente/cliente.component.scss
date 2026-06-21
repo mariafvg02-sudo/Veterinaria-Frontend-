@@ -554,6 +554,163 @@
   }
 }
 
+/* -- HISTORIAL MÉDICO -- */
+.historial-filtro {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 1.2rem;
+
+  label {
+    font-weight: 700;
+    font-size: 0.88rem;
+    color: var(--text-dark);
+  }
+
+  select {
+    padding: 10px 14px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: var(--white);
+    color: var(--text-dark);
+    font-size: 0.9rem;
+    font-family: inherit;
+    min-width: 220px;
+    cursor: pointer;
+
+    &:focus {
+      outline: none;
+      border-color: var(--primary);
+    }
+  }
+}
+
+.historial-empty {
+  text-align: center;
+  padding: 40px 16px;
+  color: var(--text-muted);
+
+  i {
+    font-size: 2rem;
+    color: var(--primary);
+    margin-bottom: 10px;
+    display: block;
+  }
+
+  p {
+    margin: 0;
+    font-size: 0.92rem;
+  }
+}
+
+.historial-grupos {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.historial-grupo {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 22px 24px;
+  box-shadow: 0 4px 16px rgba(74, 60, 49, 0.05);
+}
+
+.grupo-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 18px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--border);
+
+  h3 {
+    margin: 0;
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--text-dark);
+  }
+}
+
+.grupo-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: var(--primary-light);
+  color: var(--primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+
+.grupo-count {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+.historial-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.historial-card {
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+.card-fecha {
+  background: #faf7f3;
+  padding: 8px 16px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--primary);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-bottom: 1px solid var(--border);
+}
+
+.card-body {
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.card-campo {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.campo-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+}
+
+.campo-valor {
+  font-size: 0.9rem;
+  color: var(--text-dark);
+
+  i { color: var(--primary); margin-right: 4px; }
+}
+
+.campo-texto {
+  background: #faf7f3;
+  border-radius: 10px;
+  padding: 8px 12px;
+  line-height: 1.55;
+  font-size: 0.88rem;
+}
+
 /* -- RESPONSIVE -- */
 @media (max-width: 767px) {
   .main-content { width: 100%; }
@@ -678,6 +835,21 @@
     padding: 18px;
     border-radius: 16px;
   }
+
+  /* Historial */
+  .historial-filtro {
+    flex-direction: column;
+    align-items: stretch;
+
+    select { min-width: 0; width: 100%; min-height: 44px; }
+  }
+
+  .historial-grupo {
+    padding: 16px;
+    border-radius: 14px;
+  }
+
+  .grupo-header { gap: 10px; }
 }
 
 @media (min-width: 768px) and (max-width: 1023px) {

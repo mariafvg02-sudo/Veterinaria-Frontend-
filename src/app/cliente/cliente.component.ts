@@ -1,17 +1,18 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { ReactiveFormsModule, FormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { RouterModule, Router } from '@angular/router';
 import { AuthService, Usuario } from '../Core/Service/auth.service';
 import { MascotaService } from '../Core/Service/mascota.service';
 import { CitaService } from '../Core/Service/cita.service';
+import { HistorialMedicoService } from '../Core/Service/historial-medico.service';
 import { Mascota } from '../Models/mascota.model';
 import { Cita } from '../Models/cita.model';
 
 @Component({
   selector: 'app-cliente',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterModule],
+  imports: [CommonModule, ReactiveFormsModule, FormsModule, RouterModule],
   templateUrl: './cliente.component.html',
   styleUrl: './cliente.component.scss'
 })
@@ -19,6 +20,7 @@ export class ClienteComponent implements OnInit {
   private authService = inject(AuthService);
   private mascotaService = inject(MascotaService);
   private citaService = inject(CitaService);
+  private historialService = inject(HistorialMedicoService);
   private router = inject(Router);
   private fb = inject(FormBuilder);
 
@@ -47,6 +49,11 @@ export class ClienteComponent implements OnInit {
   mascotaForm!: FormGroup;
   citaForm!: FormGroup;
   mascotaEditando: Mascota | null = null;
+
+  // Historial médico
+  historiales: any[] = [];
+  cargandoHistorial = false;
+  filtroMascotaHistorial = 0;
 
   ngOnInit(): void {
     try {
@@ -211,6 +218,8 @@ export class ClienteComponent implements OnInit {
       });
     } else if (view === 'mascotas' && !this.mascotaSeleccionada && this.mascotas.length > 0) {
       this.mascotaSeleccionada = this.mascotas[0];
+    } else if (view === 'historial') {
+      this.cargarHistorial();
     } else if (view === 'nueva-cita') {
       this.citaForm.reset({
         mascotaId: '',
@@ -546,6 +555,54 @@ export class ClienteComponent implements OnInit {
     }
     return horarios;
   })();
+
+  // ── HISTORIAL MÉDICO ──
+
+  cargarHistorial(): void {
+    const userId = this.obtenerUsuarioId();
+    if (!userId) return;
+
+    this.cargandoHistorial = true;
+    this.historialService.getHistorialesPorCliente(userId).subscribe({
+      next: (data) => {
+        this.historiales = data.sort((a: any, b: any) =>
+          new Date(b.fecha).getTime() - new Date(a.fecha).getTime()
+        );
+        this.cargandoHistorial = false;
+      },
+      error: () => {
+        this.historiales = [];
+        this.cargandoHistorial = false;
+      }
+    });
+  }
+
+  get mascotasConHistorial(): string[] {
+    const nombres = new Set(
+      this.historiales.map((h: any) => h.mascota?.nombre).filter(Boolean)
+    );
+    return Array.from(nombres).sort();
+  }
+
+  get historialesFiltrados(): any[] {
+    if (!this.filtroMascotaHistorial) return this.historiales;
+    return this.historiales.filter(
+      (h: any) => h.mascota?.idMascota === this.filtroMascotaHistorial
+    );
+  }
+
+  get historialesAgrupados(): { mascota: string; mascotaId: number; registros: any[] }[] {
+    const mapa = new Map<number, { mascota: string; mascotaId: number; registros: any[] }>();
+    for (const h of this.historialesFiltrados) {
+      const id = h.mascota?.idMascota || 0;
+      const nombre = h.mascota?.nombre || 'Mascota desconocida';
+      if (!mapa.has(id)) {
+        mapa.set(id, { mascota: nombre, mascotaId: id, registros: [] });
+      }
+      mapa.get(id)!.registros.push(h);
+    }
+    return Array.from(mapa.values());
+  }
 
   trackByCitaId(_: number, cita: Cita): number {
     return cita.idCita ?? 0;
