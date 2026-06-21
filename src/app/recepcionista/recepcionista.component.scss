@@ -377,6 +377,36 @@
   margin: 0 0 12px;
 }
 
+/* ── CITAS ACCIONES ── */
+.actions-cell {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.vet-select {
+  padding: 6px 10px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--white);
+  color: var(--text-dark);
+  font-size: 0.85rem;
+  font-family: inherit;
+  max-width: 140px;
+  cursor: pointer;
+
+  &:focus {
+    outline: none;
+    border-color: var(--primary);
+  }
+}
+
+.text-muted {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
 /* ── INVENTARIO ── */
 .inventario-filters {
   display: flex;
