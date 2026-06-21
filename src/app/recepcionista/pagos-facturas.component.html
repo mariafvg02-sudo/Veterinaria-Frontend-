@@ -1,113 +1,330 @@
 <div class="pagos-container">
+
   <!-- HEADER -->
   <section class="dashboard-header">
     <div>
       <span class="subtitle">Panel de Finanzas</span>
       <h1>Pagos y Facturas</h1>
-      <p>Registra pagos, emite facturas y realiza seguimiento de transacciones de tus clientes.</p>
+      <p>Gestiona facturas, registra pagos y realiza seguimiento de las transacciones.</p>
     </div>
   </section>
 
-  <!-- ESTADÍSTICAS -->
-  <section class="stats-row">
-    <article class="stat-card" *ngFor="let stat of stats">
-      <div class="stat-icon">
-        <i class="fa-solid" [ngClass]="stat.icon"></i>
+  <!-- SUB-TABS -->
+  <div class="sub-tabs">
+    <button [class.active]="activeSubTab === 'facturas'" (click)="setSubTab('facturas')">
+      <i class="fa-solid fa-file-invoice"></i> Facturas
+    </button>
+    <button [class.active]="activeSubTab === 'pagos'" (click)="setSubTab('pagos')">
+      <i class="fa-solid fa-receipt"></i> Pagos
+    </button>
+  </div>
+
+  <!-- ═══════════════════════════════════════════ -->
+  <!--                 FACTURAS                    -->
+  <!-- ═══════════════════════════════════════════ -->
+  <ng-container *ngIf="activeSubTab === 'facturas'">
+
+    <!-- ESTADÍSTICAS FACTURAS -->
+    <section class="stats-row">
+      <article class="stat-card" *ngFor="let s of statsFacturas">
+        <div class="stat-icon"><i class="fa-solid" [ngClass]="s.icon"></i></div>
+        <div>
+          <p class="stat-label">{{ s.label }}</p>
+          <h2>{{ s.value }}</h2>
+        </div>
+      </article>
+    </section>
+
+    <!-- DETALLE DE FACTURA -->
+    <section *ngIf="facturaDetalle" class="content-card detalle-card">
+      <div class="detalle-header-row">
+        <h2><i class="fa-solid fa-file-invoice"></i> Factura #{{ facturaDetalle.idFactura }}</h2>
+        <button class="btn-ghost" (click)="cerrarDetalle()">
+          <i class="fa-solid fa-xmark"></i> Cerrar
+        </button>
       </div>
-      <div>
-        <p class="stat-label">{{ stat.label }}</p>
-        <h2>{{ stat.value }}</h2>
+      <div class="detalle-grid">
+        <div class="detalle-field">
+          <span class="detalle-label">Fecha</span>
+          <span>{{ facturaDetalle.fechaHora | date:'dd/MM/yyyy HH:mm' }}</span>
+        </div>
+        <div class="detalle-field">
+          <span class="detalle-label">Estado</span>
+          <span class="estado-badge" [ngClass]="getEstadoFacturaClass(facturaDetalle.estado)">
+            {{ facturaDetalle.estado }}
+          </span>
+        </div>
+        <div class="detalle-field">
+          <span class="detalle-label">Total</span>
+          <span class="monto-destacado">{{ facturaDetalle.total | currency:'COP':'symbol-narrow':'1.0-0' }}</span>
+        </div>
+        <div class="detalle-field">
+          <span class="detalle-label">Cliente</span>
+          <span>{{ facturaDetalle.cita?.cliente?.nombre || 'N/A' }}</span>
+        </div>
+        <div class="detalle-field">
+          <span class="detalle-label">Mascota</span>
+          <span>{{ facturaDetalle.cita?.mascota?.nombre || 'N/A' }}</span>
+        </div>
+        <div class="detalle-field">
+          <span class="detalle-label">Veterinario</span>
+          <span>{{ facturaDetalle.cita?.veterinario?.nombre || 'N/A' }}</span>
+        </div>
+        <div class="detalle-field">
+          <span class="detalle-label">Motivo consulta</span>
+          <span>{{ facturaDetalle.cita?.motivo || 'N/A' }}</span>
+        </div>
+        <div class="detalle-field">
+          <span class="detalle-label">Fecha consulta</span>
+          <span>{{ facturaDetalle.cita?.fecha | date:'dd/MM/yyyy HH:mm' }}</span>
+        </div>
       </div>
-    </article>
-  </section>
-
-  <!-- FILTROS Y BÚSQUEDA -->
-  <section class="actions-row">
-    <div>
-      <label>Buscar cliente o mascota</label>
-      <input 
-        type="text" 
-        placeholder="Nombre, mascota o descripción" 
-        [(ngModel)]="searchTerm"
-        (change)="onSearchChange()">
-    </div>
-    <div>
-      <label>Filtrar estado</label>
-      <select [(ngModel)]="selectedEstado" (change)="onEstadoChange()">
-        <option value="todos">Todos</option>
-        <option value="pagado">Pagado</option>
-        <option value="pendiente">Pendiente</option>
-        <option value="vencido">Vencido</option>
-      </select>
-    </div>
-    <div class="action-buttons">
-      <button class="btn-primary" type="button" (click)="refrescarPagos()">Refrescar</button>
-    </div>
-  </section>
-
-  <!-- TABLA DE PAGOS -->
-  <section class="content-card">
-    <div class="table-header">
-      <div>
-        <h2>Historial de pagos</h2>
-        <span class="text-muted">{{ filteredPagos.length }} pagos registrados</span>
+      <div class="detalle-actions">
+        <button class="btn-primary" (click)="descargarFactura(facturaDetalle)">
+          <i class="fa-solid fa-download"></i> Descargar PDF
+        </button>
       </div>
-      <span class="text-muted">{{ loading ? 'Cargando...' : 'Actualizado' }}</span>
-    </div>
+    </section>
 
-    <app-data-table
-      [loading]="loading"
-      [empty]="filteredPagos.length === 0"
-      loadingText="Cargando pagos..."
-      emptyText="No hay pagos que coincidan con la búsqueda."
-      emptyIcon="fa-file-invoice-dollar">
+    <!-- CREAR FACTURA -->
+    <section *ngIf="showCrearFactura && !facturaDetalle" class="content-card crear-card">
+      <div class="detalle-header-row">
+        <h2><i class="fa-solid fa-file-circle-plus"></i> Nueva Factura</h2>
+        <button class="btn-ghost" (click)="cerrarCrearFactura()">
+          <i class="fa-solid fa-xmark"></i> Cancelar
+        </button>
+      </div>
 
-      <thead>
-        <tr>
-          <th>Fecha</th>
-          <th>Cliente</th>
-          <th>Mascota</th>
-          <th>Descripción</th>
-          <th>Monto</th>
-          <th>Método</th>
-          <th>Estado</th>
-          <th>Acciones</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let pago of filteredPagos">
-          <td>{{ pago.fecha | date: 'dd/MM/yyyy' }}</td>
-          <td>{{ pago.cliente }}</td>
-          <td>{{ pago.mascota }}</td>
-          <td class="text-muted">{{ pago.descripcion }}</td>
-          <td>${{ pago.monto.toFixed(2) }}</td>
-          <td>
-            <span class="role-badge" [ngClass]="pago.metodo">
-              {{ pago.metodo === 'tarjeta' ? 'Tarjeta' : pago.metodo === 'efectivo' ? 'Efectivo' : 'Transferencia' }}
-            </span>
-          </td>
-          <td>
-            <span class="role-badge" [ngClass]="pago.estado">
-              {{ pago.estado === 'pagado' ? 'Pagado' : pago.estado === 'pendiente' ? 'Pendiente' : 'Vencido' }}
-            </span>
-          </td>
-          <td>
-            <div class="actions-cell">
-              <button class="btn-icon" type="button" (click)="descargarFactura(pago)" title="Descargar factura">
-                <i class="fa-solid fa-download"></i>
-              </button>
-              <button class="btn-icon" type="button" (click)="enviarComprobante(pago)" title="Enviar comprobante">
-                <i class="fa-solid fa-envelope"></i>
-              </button>
-            </div>
-          </td>
-        </tr>
-      </tbody>
-    </app-data-table>
-  </section>
+      <div *ngIf="loadingCitas" class="empty-state">
+        <i class="fa-solid fa-spinner fa-spin"></i>
+        <p>Cargando citas completadas...</p>
+      </div>
 
-  <!-- MENSAJE DE FEEDBACK -->
+      <div *ngIf="!loadingCitas && citasCompletadas.length === 0" class="empty-state">
+        <i class="fa-solid fa-calendar-xmark"></i>
+        <p>No hay citas completadas pendientes de facturación.</p>
+      </div>
+
+      <div *ngIf="!loadingCitas && citasCompletadas.length > 0" class="crear-form">
+        <div class="field">
+          <label>Seleccionar cita completada</label>
+          <select (change)="seleccionarCita(citasCompletadas[$any($event.target).selectedIndex - 1])">
+            <option [selected]="!citaSeleccionada">-- Seleccione una cita --</option>
+            <option *ngFor="let cita of citasCompletadas" [value]="cita.idCita">
+              #{{ cita.idCita }} — {{ cita.cliente?.nombre || 'Cliente' }} · {{ cita.mascota?.nombre || 'Mascota' }} · {{ cita.fecha | date:'dd/MM/yyyy' }} · {{ cita.motivo }}
+            </option>
+          </select>
+        </div>
+
+        <div *ngIf="citaSeleccionada" class="cita-preview">
+          <div class="preview-row">
+            <span class="detalle-label">Cliente</span>
+            <span>{{ citaSeleccionada.cliente?.nombre || 'N/A' }}</span>
+          </div>
+          <div class="preview-row">
+            <span class="detalle-label">Mascota</span>
+            <span>{{ citaSeleccionada.mascota?.nombre || 'N/A' }}</span>
+          </div>
+          <div class="preview-row">
+            <span class="detalle-label">Veterinario</span>
+            <span>{{ citaSeleccionada.veterinario?.nombre || 'N/A' }}</span>
+          </div>
+          <div class="preview-row">
+            <span class="detalle-label">Motivo</span>
+            <span>{{ citaSeleccionada.motivo }}</span>
+          </div>
+          <div class="preview-row">
+            <span class="detalle-label">Fecha consulta</span>
+            <span>{{ citaSeleccionada.fecha | date:'dd/MM/yyyy HH:mm' }}</span>
+          </div>
+        </div>
+
+        <div *ngIf="citaSeleccionada" class="field">
+          <label for="monto">Monto de la factura (COP)</label>
+          <input id="monto" type="number" [(ngModel)]="montoFactura" min="1" placeholder="Ingrese el monto">
+        </div>
+
+        <div *ngIf="citaSeleccionada" class="form-actions">
+          <button class="btn-primary" [disabled]="!citaSeleccionada || montoFactura <= 0 || creandoFactura"
+                  (click)="crearFactura()">
+            <i class="fa-solid" [ngClass]="creandoFactura ? 'fa-spinner fa-spin' : 'fa-check'"></i>
+            {{ creandoFactura ? 'Generando...' : 'Generar Factura' }}
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- FILTROS Y TABLA FACTURAS -->
+    <section *ngIf="!showCrearFactura && !facturaDetalle" class="content-card">
+      <div class="table-header">
+        <div>
+          <h2>Listado de Facturas</h2>
+          <span class="text-muted">{{ filteredFacturas.length }} facturas encontradas</span>
+        </div>
+        <div class="table-header-actions">
+          <button class="btn-primary" (click)="abrirCrearFactura()">
+            <i class="fa-solid fa-plus"></i> Nueva Factura
+          </button>
+        </div>
+      </div>
+
+      <div class="actions-row">
+        <div>
+          <label>Buscar</label>
+          <input type="text" placeholder="Cliente, mascota o # factura"
+                 [(ngModel)]="searchFactura" (input)="filtrarFacturas()">
+        </div>
+        <div>
+          <label>Estado</label>
+          <select [(ngModel)]="selectedEstadoFactura" (change)="filtrarFacturas()">
+            <option value="todos">Todos</option>
+            <option value="emitida">Emitida</option>
+            <option value="pagada">Pagada</option>
+            <option value="anulada">Anulada</option>
+          </select>
+        </div>
+        <div class="action-buttons">
+          <button class="btn-ghost" (click)="cargarFacturas()">
+            <i class="fa-solid fa-rotate"></i> Refrescar
+          </button>
+        </div>
+      </div>
+
+      <app-data-table
+        [loading]="loadingFacturas"
+        [empty]="filteredFacturas.length === 0"
+        loadingText="Cargando facturas..."
+        emptyText="No se encontraron facturas."
+        emptyIcon="fa-file-invoice">
+
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Fecha</th>
+            <th>Cliente</th>
+            <th>Mascota</th>
+            <th>Total</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let f of filteredFacturas">
+            <td>{{ f.idFactura }}</td>
+            <td>{{ f.fechaHora | date:'dd/MM/yyyy HH:mm' }}</td>
+            <td>{{ f.cita?.cliente?.nombre || 'N/A' }}</td>
+            <td>{{ f.cita?.mascota?.nombre || 'N/A' }}</td>
+            <td class="monto-cell">{{ f.total | currency:'COP':'symbol-narrow':'1.0-0' }}</td>
+            <td>
+              <span class="estado-badge" [ngClass]="getEstadoFacturaClass(f.estado)">
+                {{ f.estado }}
+              </span>
+            </td>
+            <td>
+              <div class="actions-cell">
+                <button class="btn-icon" title="Ver detalle" (click)="verDetalleFactura(f)">
+                  <i class="fa-solid fa-eye"></i>
+                </button>
+                <button class="btn-icon" title="Descargar PDF" (click)="descargarFactura(f)">
+                  <i class="fa-solid fa-download"></i>
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </app-data-table>
+    </section>
+  </ng-container>
+
+  <!-- ═══════════════════════════════════════════ -->
+  <!--                  PAGOS                      -->
+  <!-- ═══════════════════════════════════════════ -->
+  <ng-container *ngIf="activeSubTab === 'pagos'">
+
+    <!-- ESTADÍSTICAS PAGOS -->
+    <section class="stats-row">
+      <article class="stat-card" *ngFor="let s of statsPagos">
+        <div class="stat-icon"><i class="fa-solid" [ngClass]="s.icon"></i></div>
+        <div>
+          <p class="stat-label">{{ s.label }}</p>
+          <h2>{{ s.value }}</h2>
+        </div>
+      </article>
+    </section>
+
+    <!-- FILTROS Y TABLA PAGOS -->
+    <section class="content-card">
+      <div class="table-header">
+        <div>
+          <h2>Historial de Pagos</h2>
+          <span class="text-muted">{{ filteredPagos.length }} pagos registrados</span>
+        </div>
+      </div>
+
+      <div class="actions-row">
+        <div>
+          <label>Buscar</label>
+          <input type="text" placeholder="Cliente o # pago"
+                 [(ngModel)]="searchPago" (input)="filtrarPagos()">
+        </div>
+        <div>
+          <label>Estado</label>
+          <select [(ngModel)]="selectedEstadoPago" (change)="filtrarPagos()">
+            <option value="todos">Todos</option>
+            <option value="COMPLETADO">Completado</option>
+            <option value="ANULADO">Anulado</option>
+          </select>
+        </div>
+        <div class="action-buttons">
+          <button class="btn-ghost" (click)="cargarPagos()">
+            <i class="fa-solid fa-rotate"></i> Refrescar
+          </button>
+        </div>
+      </div>
+
+      <app-data-table
+        [loading]="loadingPagos"
+        [empty]="filteredPagos.length === 0"
+        loadingText="Cargando pagos..."
+        emptyText="No se encontraron pagos."
+        emptyIcon="fa-receipt">
+
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Fecha</th>
+            <th>Cliente</th>
+            <th>Factura</th>
+            <th>Método</th>
+            <th>Monto</th>
+            <th>Estado</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let p of filteredPagos">
+            <td>{{ p.idPago }}</td>
+            <td>{{ p.fechaHora | date:'dd/MM/yyyy HH:mm' }}</td>
+            <td>{{ p.factura?.cita?.cliente?.nombre || 'N/A' }}</td>
+            <td>#{{ p.factura?.idFactura || 'N/A' }}</td>
+            <td>
+              <span class="metodo-badge" [ngClass]="(p.metodo || '').toLowerCase()">
+                {{ p.metodo || 'N/A' }}
+              </span>
+            </td>
+            <td class="monto-cell">{{ p.monto | currency:'COP':'symbol-narrow':'1.0-0' }}</td>
+            <td>
+              <span class="estado-badge" [ngClass]="getEstadoPagoClass(p.estado)">
+                {{ p.estado }}
+              </span>
+            </td>
+          </tr>
+        </tbody>
+      </app-data-table>
+    </section>
+  </ng-container>
+
+  <!-- MENSAJE -->
   <section class="info-panel" *ngIf="message">
-    <div class="message success">{{ message }}</div>
+    <div class="message" [ngClass]="messageType">{{ message }}</div>
   </section>
 </div>
