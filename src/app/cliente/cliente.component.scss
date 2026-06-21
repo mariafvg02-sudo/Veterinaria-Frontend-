@@ -4,6 +4,7 @@
   background: linear-gradient(180deg, #fdfbf8 0%, #faf7f3 100%);
   color: var(--text-dark);
   font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  font-size: 14px;
 }
 
 .cliente-container {
@@ -76,11 +77,11 @@
 .mascota-card {
   background: var(--white);
   border: 1px solid var(--border);
-  box-shadow: 0 10px 26px rgba(76, 60, 49, 0.04);
+  box-shadow: 0 14px 30px rgba(76, 60, 49, 0.05);
 }
 
 .hero-panel {
-  border-radius: 24px;
+  border-radius: 20px;
   padding: 28px;
   display: flex;
   justify-content: space-between;
@@ -116,7 +117,7 @@
 }
 
 .panel-card {
-  border-radius: 22px;
+  border-radius: 20px;
   padding: 24px;
 }
 
@@ -153,7 +154,7 @@
   width: 100%;
   border: 1px solid var(--border);
   background: var(--primary-light);
-  border-radius: 18px;
+  border-radius: 16px;
   padding: 16px;
   display: flex;
   align-items: center;
@@ -264,7 +265,7 @@
 }
 
 .mascota-card {
-  border-radius: 22px;
+  border-radius: 20px;
   overflow: hidden;
   transition: 0.25s ease;
   cursor: pointer;
@@ -333,7 +334,7 @@
 .form {
   background: var(--white);
   padding: 28px;
-  border-radius: 22px;
+  border-radius: 20px;
   border: 1px solid var(--border);
   max-width: 760px;
 }
@@ -452,9 +453,9 @@
 .mascota-detail-panel {
   background: linear-gradient(180deg, var(--primary-light), var(--white));
   border: 1px solid var(--border);
-  border-radius: 22px;
+  border-radius: 20px;
   padding: 22px;
-  box-shadow: 0 10px 26px rgba(76, 60, 49, 0.04);
+  box-shadow: 0 14px 30px rgba(76, 60, 49, 0.05);
   position: sticky;
   top: 18px;
 
@@ -554,6 +555,28 @@
   }
 }
 
+.section-header {
+  margin-bottom: 20px;
+
+  h2 {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text-dark);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    i { color: var(--primary); }
+  }
+}
+
+.section-subtitle {
+  margin: 6px 0 0;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
 /* -- HISTORIAL MÉDICO -- */
 .historial-filtro {
   display: flex;
@@ -614,7 +637,7 @@
   border: 1px solid var(--border);
   border-radius: 20px;
   padding: 22px 24px;
-  box-shadow: 0 4px 16px rgba(74, 60, 49, 0.05);
+  box-shadow: 0 14px 30px rgba(76, 60, 49, 0.05);
 }
 
 .grupo-header {
@@ -846,7 +869,7 @@
 
   .historial-grupo {
     padding: 16px;
-    border-radius: 14px;
+    border-radius: 16px;
   }
 
   .grupo-header { gap: 10px; }

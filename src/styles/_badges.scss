@@ -37,6 +37,7 @@
   text-transform: uppercase;
 
   &.badge-pendiente { background: #fdf6ec; color: #e67e22; }
+  &.badge-asignada,
   &.badge-confirmada { background: #f0fdf4; color: #27ae60; }
   &.badge-cancelada { background: #fef2f2; color: #d9534f; }
   &.badge-completada { background: #eef2ff; color: #5b63c4; }
