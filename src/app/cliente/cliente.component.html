@@ -1,5 +1,6 @@
 <div class="cliente-container" *ngIf="usuario">
-  <aside class="sidebar">
+  <div class="sidebar-overlay" [class.visible]="sidebarOpen" (click)="sidebarOpen = false"></div>
+  <aside class="sidebar" [class.open]="sidebarOpen">
     <div class="sidebar-header">
       <h1><i class="fa-solid fa-paw"></i> VETAPP</h1>
       <p>Panel del cliente</p>
@@ -37,6 +38,9 @@
 
   <main class="main-content">
     <header class="header">
+      <button class="hamburger-btn" (click)="sidebarOpen = !sidebarOpen">
+        <i class="fa-solid fa-bars"></i>
+      </button>
       <div>
         <span class="header-kicker">Tu espacio de control</span>
         <h2>Bienvenido(a), {{ usuario.nombre || usuario.correo }}</h2>
@@ -176,7 +180,7 @@
       </div>
 
       <div *ngIf="!cargandoCitas && citas && citas.length > 0; else noCitas" class="citas-list">
-        <article *ngFor="let cita of citas" class="cita-item">
+        <article *ngFor="let cita of citas; trackBy: trackByCitaId" class="cita-item">
           <div class="cita-date-pill">
             <span>{{ cita.fecha | date:'dd' }}</span>
             <small>{{ cita.fecha | date:'MMM' }}</small>
@@ -248,7 +252,7 @@
 
           <div class="mascotas-grid">
             <article
-              *ngFor="let mascota of mascotasMostradas"
+              *ngFor="let mascota of mascotasMostradas; trackBy: trackByMascotaId"
               class="mascota-card"
               [class.selected]="obtenerMascotaId(mascotaSeleccionada) === obtenerMascotaId(mascota)"
               (click)="seleccionarMascota(mascota)"
@@ -377,7 +381,7 @@
           <ng-container *ngIf="mascotas.length > 0; else sinMascotas">
             <select id="mascotaId" formControlName="mascotaId" class="form-control">
               <option value="">— Selecciona una mascota —</option>
-              <option *ngFor="let m of mascotas" [value]="obtenerMascotaId(m)">
+              <option *ngFor="let m of mascotas; trackBy: trackByMascotaId" [value]="obtenerMascotaId(m)">
                 {{ m.nombre }} · {{ m.especie }}
               </option>
             </select>

@@ -4,6 +4,7 @@ import { FormsModule, ReactiveFormsModule, FormGroup, FormControl, Validators } 
 import { Router, RouterLink } from '@angular/router';
 import { InventarioService } from '../Core/Service/inventario.service';
 import { InventarioProducto } from '../Models/inventario.model';
+import { DataTableComponent } from '../shared/data-table/data-table.component';
 
 interface Stat {
   label: string;
@@ -22,13 +23,15 @@ const STOCK_BAJO_UMBRAL = 10;
     CommonModule,
     FormsModule,
     RouterLink,
-    ReactiveFormsModule
+    ReactiveFormsModule,
+    DataTableComponent
   ],
   templateUrl: './jefe-inventario.component.html',
   styleUrls: ['./jefe-inventario.component.scss']
 })
 export class JefeInventarioComponent implements OnInit {
   currentView: string = 'stats';
+  sidebarOpen = false;
   editingId: number | null = null;
   usuario: { nombre?: string; id?: number } | null = null;
   productos: InventarioProducto[] = [];
@@ -66,6 +69,7 @@ export class JefeInventarioComponent implements OnInit {
 
   setView(view: string): void {
     this.currentView = view;
+    this.sidebarOpen = false;
   }
 
   logout(): void {

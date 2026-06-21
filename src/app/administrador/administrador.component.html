@@ -1,7 +1,10 @@
 <div class="admin-layout">
 
+  <!-- OVERLAY MÓVIL -->
+  <div class="sidebar-overlay" [class.visible]="sidebarOpen" (click)="sidebarOpen = false"></div>
+
   <!-- SIDEBAR -->
-  <aside class="sidebar">
+  <aside class="sidebar" [class.open]="sidebarOpen">
     <div class="sidebar-brand">
       <i class="fa-solid fa-paw"></i>
       <span>VETAPP</span>
@@ -52,6 +55,9 @@
 
     <!-- HEADER -->
     <header class="page-header">
+      <button class="hamburger-btn" (click)="sidebarOpen = !sidebarOpen">
+        <i class="fa-solid fa-bars"></i>
+      </button>
       <div>
         <span class="header-kicker">Tu espacio de control</span>
         <h1>
@@ -94,33 +100,25 @@
 
       <!-- ── TABLA DE USUARIOS ── -->
       <section *ngIf="currentView === 'users'" class="section-fade content-card">
-        <div class="toolbar">
-          <input
-            type="search"
-            class="search-input"
-            placeholder="Buscar por nombre, correo o rol..."
-            (input)="filterText = $any($event.target).value"
-            aria-label="Buscar usuarios">
-          <button class="btn-primary" (click)="setView('create')">
-            <i class="fa-solid fa-plus"></i> Nuevo
-          </button>
-        </div>
-
         <div *ngIf="exito" class="alert success">{{ exito }}</div>
         <div *ngIf="error" class="alert error">{{ error }}</div>
 
-        <div *ngIf="cargandoUsuarios" class="empty-state">
-          <i class="fa-solid fa-spinner fa-spin"></i>
-          <p>Cargando personal...</p>
-        </div>
+        <app-data-table
+          [loading]="cargandoUsuarios"
+          [empty]="filteredUsuarios.length === 0"
+          [hasActions]="true"
+          searchPlaceholder="Buscar por nombre, correo o rol..."
+          loadingText="Cargando personal..."
+          emptyText="No se encontraron usuarios"
+          emptyIcon="fa-users-slash"
+          (searchChange)="filterText = $event">
 
-        <div *ngIf="!cargandoUsuarios && filteredUsuarios.length === 0" class="empty-state">
-          <i class="fa-solid fa-users-slash"></i>
-          <p>No se encontraron usuarios</p>
-          <button class="btn-primary" (click)="setView('create')">Registrar primero</button>
-        </div>
+          <button tableActions class="btn-primary" (click)="setView('create')">
+            <i class="fa-solid fa-plus"></i> Nuevo
+          </button>
 
-        <table *ngIf="!cargandoUsuarios && filteredUsuarios.length > 0" class="data-table">
+          <button emptyAction class="btn-primary" (click)="setView('create')">Registrar primero</button>
+
           <thead>
             <tr>
               <th>Nombre</th>
@@ -131,7 +129,7 @@
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let user of filteredUsuarios">
+            <tr *ngFor="let user of filteredUsuarios; trackBy: trackByUsuarioId">
               <td>
                 <div class="user-cell">
                   <div class="avatar-sm">{{ (user.nombre || '?').charAt(0).toUpperCase() }}</div>
@@ -155,22 +153,18 @@
               </td>
             </tr>
           </tbody>
-        </table>
+        </app-data-table>
       </section>
 
       <!-- ── CITAS (solo lectura, AC4) ── -->
       <section *ngIf="currentView === 'citas'" class="section-fade content-card">
-        <div *ngIf="cargandoCitas" class="empty-state">
-          <i class="fa-solid fa-spinner fa-spin"></i>
-          <p>Cargando citas...</p>
-        </div>
+        <app-data-table
+          [loading]="cargandoCitas"
+          [empty]="citas.length === 0"
+          loadingText="Cargando citas..."
+          emptyText="No hay citas registradas."
+          emptyIcon="fa-calendar-xmark">
 
-        <div *ngIf="!cargandoCitas && citas.length === 0" class="empty-state">
-          <i class="fa-solid fa-calendar-xmark"></i>
-          <p>No hay citas registradas.</p>
-        </div>
-
-        <table *ngIf="!cargandoCitas && citas.length > 0" class="data-table">
           <thead>
             <tr>
               <th>#</th>
@@ -183,7 +177,7 @@
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let cita of citas">
+            <tr *ngFor="let cita of citas; trackBy: trackByCitaId">
               <td>{{ cita.idCita }}</td>
               <td>{{ cita.fecha | date:'dd/MM/yyyy HH:mm' }}</td>
               <td>{{ cita.motivo }}</td>
@@ -195,7 +189,7 @@
               <td>{{ cita.recepcionista?.nombre || '—' }}</td>
             </tr>
           </tbody>
-        </table>
+        </app-data-table>
       </section>
 
       <!-- ── FORMULARIO ── -->

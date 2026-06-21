@@ -5,11 +5,12 @@ import { RouterModule, Router } from '@angular/router';
 import { AuthService, Usuario } from '../Core/Service/auth.service';
 import { CitaService } from '../Core/Service/cita.service';
 import { Cita } from '../Models/cita.model';
+import { DataTableComponent } from '../shared/data-table/data-table.component';
 
 @Component({
   selector: 'app-administrador',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterModule],
+  imports: [CommonModule, ReactiveFormsModule, RouterModule, DataTableComponent],
   templateUrl: './administrador.component.html',
   styleUrls: ['./administrador.component.scss']
 })
@@ -17,6 +18,7 @@ export class AdministradorComponent implements OnInit {
   usuario: Usuario | null = null;
   userForm: FormGroup;
   currentView: string = 'stats';
+  sidebarOpen = false;
   cargando = false;
   cargandoUsuarios = false;
   error: string | null = null;
@@ -79,6 +81,7 @@ export class AdministradorComponent implements OnInit {
 
   setView(view: string) {
     this.currentView = view;
+    this.sidebarOpen = false;
     this.error = null;
     this.exito = null;
     if (view === 'citas') this.cargarCitas();
@@ -211,6 +214,14 @@ export class AdministradorComponent implements OnInit {
     this.restorePasswordValidators();
     this.userForm.reset({ rol: 'RECEPCIONISTA' });
     this.setView('users');
+  }
+
+  trackByUsuarioId(_: number, user: Usuario): number {
+    return user.id ?? user.userId ?? 0;
+  }
+
+  trackByCitaId(_: number, cita: Cita): number {
+    return cita.idCita ?? 0;
   }
 
   logout(): void {

@@ -3,8 +3,9 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { PagoService } from '../Core/Service/pago.service';
 import { FacturaService } from '../Core/Service/factura.service';
-import { Usuario } from '../Core/Service/auth.service'; // Importamos la interfaz Usuario
-import { Mascota } from '../Models/mascota.model'; // Importamos la interfaz Mascota
+import { Usuario } from '../Core/Service/auth.service';
+import { Mascota } from '../Models/mascota.model';
+import { DataTableComponent } from '../shared/data-table/data-table.component';
 
 interface Pago {
   id: number;
@@ -20,7 +21,7 @@ interface Pago {
 @Component({
   selector: 'app-pagos-facturas',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, DataTableComponent],
   templateUrl: './pagos-facturas.component.html',
   styleUrls: ['./pagos-facturas.component.scss']
 })

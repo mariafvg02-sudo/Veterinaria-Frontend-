@@ -22,11 +22,19 @@ export class ClienteComponent implements OnInit {
   private router = inject(Router);
   private fb = inject(FormBuilder);
 
+  private static readonly dateFormatter = new Intl.DateTimeFormat('es-ES', {
+    day: '2-digit', month: 'short', year: 'numeric'
+  });
+  private static readonly dateTimeFormatter = new Intl.DateTimeFormat('es-ES', {
+    day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit'
+  });
+
   usuario: Usuario | null = null;
   mascotas: Mascota[] = [];
   citas: Cita[] = [];
   proximaCita: Cita | null = null;
   currentView: string = 'dashboard';
+  sidebarOpen = false;
   mascotaSeleccionada: Mascota | null = null;
   busquedaMascota = '';
   filtroEspecie = 'Todas';
@@ -187,6 +195,7 @@ export class ClienteComponent implements OnInit {
 
   setView(view: string): void {
     this.currentView = view;
+    this.sidebarOpen = false;
     if (view === 'nueva-mascota') {
       this.mascotaEditando = null;
       this.mascotaForm.reset({
@@ -514,25 +523,14 @@ export class ClienteComponent implements OnInit {
     if (!fecha) return 'Sin fecha';
     const date = new Date(fecha);
     if (Number.isNaN(date.getTime())) return fecha;
-    return new Intl.DateTimeFormat('es-ES', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric'
-    }).format(date);
+    return ClienteComponent.dateFormatter.format(date);
   }
 
   formatearFechaCita(fecha: string): string {
     if (!fecha) return 'Sin fecha';
     const date = new Date(fecha);
     if (Number.isNaN(date.getTime())) return fecha;
-
-    return new Intl.DateTimeFormat('es-ES', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    }).format(date);
+    return ClienteComponent.dateTimeFormatter.format(date);
   }
 
   getProximaCitaResumen(): string {
@@ -548,6 +546,14 @@ export class ClienteComponent implements OnInit {
     }
     return horarios;
   })();
+
+  trackByCitaId(_: number, cita: Cita): number {
+    return cita.idCita ?? 0;
+  }
+
+  trackByMascotaId = (_: number, mascota: Mascota): number => {
+    return this.obtenerMascotaId(mascota) ?? 0;
+  }
 
   logout(): void {
     this.authService.logout();

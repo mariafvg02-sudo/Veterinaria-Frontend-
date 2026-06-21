@@ -1,5 +1,6 @@
 <div class="admin-dashboard">
-  <aside class="sidebar">
+  <div class="sidebar-overlay" [class.visible]="sidebarOpen" (click)="sidebarOpen = false"></div>
+  <aside class="sidebar" [class.open]="sidebarOpen">
     <div class="sidebar-brand">
       <i class="fa-solid fa-paw"></i>
       <span>VETAPP</span>
@@ -37,6 +38,9 @@
 
   <main class="main-content view-container">
     <header class="content-header">
+      <button class="hamburger-btn" (click)="sidebarOpen = !sidebarOpen">
+        <i class="fa-solid fa-bars"></i>
+      </button>
       <h1>Bienvenido, Dr. Veterinario</h1>
     </header>
 
@@ -68,19 +72,19 @@
         </div>
       </div>
 
-      <div style="display:flex;gap:12px;align-items:center;margin-bottom:8px">
-        <input type="search" placeholder="Buscar por paciente, dueño o motivo"
-          (input)="filterText = $any($event.target).value" aria-label="Buscar citas">
-      </div>
-
-      <div *ngIf="loading" class="stat-card" style="margin-bottom: 12px;">
-        <p>Cargando citas...</p>
-      </div>
       <div *ngIf="error && !loading" class="stat-card" style="margin-bottom: 12px;">
         <p>{{ error }}</p>
       </div>
 
-      <table class="admin-table">
+      <app-data-table
+        [loading]="loading"
+        [empty]="filteredCitas.length === 0"
+        searchPlaceholder="Buscar por paciente, dueño o motivo"
+        loadingText="Cargando citas..."
+        emptyText="No hay citas que coincidan."
+        emptyIcon="fa-calendar-xmark"
+        (searchChange)="filterText = $event">
+
         <thead>
           <tr>
             <th>ID</th>
@@ -93,7 +97,7 @@
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let cita of filteredCitas">
+          <tr *ngFor="let cita of filteredCitas; trackBy: trackByCitaId">
             <td>{{ cita.idCita }}</td>
             <td>{{ cita.fecha }}</td>
             <td>{{ cita.paciente }}</td>
@@ -130,11 +134,8 @@
               <span *ngIf="cita.estado === 'Completada' || cita.estado === 'Cancelada'" class="text-muted">—</span>
             </td>
           </tr>
-          <tr *ngIf="filteredCitas.length === 0 && !loading">
-            <td colspan="7" style="text-align:center; padding:16px;">No hay citas que coincidan.</td>
-          </tr>
         </tbody>
-      </table>
+      </app-data-table>
     </section>
 
     <!-- ===== TAB: HISTORIAS CLÍNICAS ===== -->
@@ -142,13 +143,13 @@
 
       <div class="table-header"><h2>Pacientes atendidos</h2></div>
 
-      <div style="display:flex;gap:12px;align-items:center;margin-bottom:12px">
-        <input type="search" placeholder="Buscar por nombre de mascota"
-          (input)="historialFilterText = $any($event.target).value"
-          aria-label="Buscar por mascota">
-      </div>
+      <app-data-table
+        [empty]="historialCitas.length === 0"
+        searchPlaceholder="Buscar por nombre de mascota"
+        emptyText="Aún no hay consultas completadas para mostrar."
+        emptyIcon="fa-notes-medical"
+        (searchChange)="historialFilterText = $event">
 
-      <table class="admin-table" *ngIf="historialCitas.length > 0; else noPacientes">
         <thead>
           <tr>
             <th>Mascota</th>
@@ -159,28 +160,19 @@
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let cita of filteredHistorial">
+          <tr *ngFor="let cita of filteredHistorial; trackBy: trackByCitaId">
             <td>{{ cita.paciente }}</td>
             <td>{{ cita.dueno }}</td>
             <td>{{ cita.fecha }}</td>
             <td>{{ cita.motivo }}</td>
             <td>
-              <button class="btn-submit" style="padding:5px 12px;" (click)="verDetalleCita(cita)">
-                <i class="fa-solid fa-eye"></i> Ver detalle
+              <button class="btn-icon" (click)="verDetalleCita(cita)" title="Ver detalle">
+                <i class="fa-solid fa-eye"></i>
               </button>
             </td>
           </tr>
-          <tr *ngIf="filteredHistorial.length === 0">
-            <td colspan="5" style="text-align:center; padding:16px;">No hay resultados para "{{ historialFilterText }}".</td>
-          </tr>
         </tbody>
-      </table>
-
-      <ng-template #noPacientes>
-        <div class="stat-card">
-          <p>Aún no hay consultas completadas para mostrar.</p>
-        </div>
-      </ng-template>
+      </app-data-table>
     </section>
   </main>
 </div>

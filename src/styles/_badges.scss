@@ -1,0 +1,43 @@
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: capitalize;
+
+  &.pendiente { background: #fff6da; color: #b1851e; }
+  &.confirmada, &.asignada { background: #e5f6eb; color: #2d7d4d; }
+  &.completada, &.finalizada { background: #e7efff; color: #3358bb; }
+  &.cancelada { background: #fde6e6; color: #b14141; }
+}
+
+.role-badge {
+  display: inline-block;
+  padding: 3px 9px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+
+  &.administrador { background: #fef2f2; color: #b91c1c; }
+  &.recepcionista { background: #f0fdf4; color: #15803d; }
+  &.veterinario { background: #eff6ff; color: #1d4ed8; }
+  &.jefeinventario { background: #fefce8; color: #854d0e; }
+}
+
+.badge {
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+
+  &.badge-pendiente { background: #fdf6ec; color: #e67e22; }
+  &.badge-confirmada { background: #f0fdf4; color: #27ae60; }
+  &.badge-cancelada { background: #fef2f2; color: #d9534f; }
+  &.badge-completada { background: #eef2ff; color: #5b63c4; }
+}

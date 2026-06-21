@@ -1,4 +1,4 @@
-import { Component, HostListener, ElementRef, OnInit } from '@angular/core';
+import { Component, HostListener, ElementRef, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 
@@ -18,8 +18,9 @@ interface HomeSlide {
   templateUrl: './home.component.html',
   styleUrls: ['./home.component.scss']
 })
-export class HomeComponent implements OnInit {
-  // Variable para controlar el estado del menú desplegable
+export class HomeComponent implements OnInit, OnDestroy {
+  private autoPlayInterval: ReturnType<typeof setInterval> | null = null;
+
   isDropdownOpen: boolean = false;
   readonly currentYear = new Date().getFullYear();
 
@@ -81,9 +82,16 @@ export class HomeComponent implements OnInit {
     this.currentSlide = (this.currentSlide - 1 + this.slides.length) % this.slides.length;
   }
 
+  ngOnDestroy(): void {
+    if (this.autoPlayInterval) {
+      clearInterval(this.autoPlayInterval);
+      this.autoPlayInterval = null;
+    }
+  }
+
   private startAutoPlay(): void {
-    setInterval(() => {
+    this.autoPlayInterval = setInterval(() => {
       this.nextSlide();
-    }, 6000); // 6 segundos para permitir una lectura cómoda
+    }, 6000);
   }
 }

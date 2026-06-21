@@ -6,6 +6,7 @@ import { AuthService } from '../Core/Service/auth.service';
 import { CitaService } from '../Core/Service/cita.service';
 import { HistorialMedicoService } from '../Core/Service/historial-medico.service';
 import { Cita } from '../Models/cita.model';
+import { DataTableComponent } from '../shared/data-table/data-table.component';
 
 interface CitaRow {
   idCita?: number;
@@ -23,12 +24,13 @@ interface CitaRow {
 @Component({
   selector: 'app-veterinario',
   standalone: true,
-  imports: [CommonModule, RouterModule, ReactiveFormsModule],
+  imports: [CommonModule, RouterModule, ReactiveFormsModule, DataTableComponent],
   templateUrl: './veterinario.component.html',
   styleUrls: ['./veterinario.component.scss']
 })
 export class VeterinarioComponent implements OnInit {
   activeTab: string = 'agenda';
+  sidebarOpen = false;
 
   citasHoy: CitaRow[] = [];
   historialCitas: CitaRow[] = [];
@@ -97,6 +99,7 @@ export class VeterinarioComponent implements OnInit {
 
   setActiveTab(tab: string) {
     this.activeTab = tab;
+    this.sidebarOpen = false;
   }
 
   cargarCitas(): void {
@@ -265,6 +268,10 @@ export class VeterinarioComponent implements OnInit {
       case 'cancelada': return 'Cancelada';
       default: return 'Pendiente';
     }
+  }
+
+  trackByCitaId(_: number, cita: CitaRow): number {
+    return cita.idCita ?? 0;
   }
 
   logout(): void {
