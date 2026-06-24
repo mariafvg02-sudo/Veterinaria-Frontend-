@@ -35,7 +35,7 @@
       <button [class.active]="currentView === 'create'" (click)="setView('create')">
         <i class="fa-solid fa-user-plus"></i> Nuevo usuario
       </button>
-      <button routerLink="/jefe-inventario">
+      <button [class.active]="currentView === 'inventario'" (click)="setView('inventario')">
         <i class="fa-solid fa-boxes-stacked"></i> Inventario
       </button>
     </nav>
@@ -63,12 +63,14 @@
         <h1>
           {{ currentView === 'users' ? 'Personal' :
              currentView === 'citas' ? 'Citas' :
+             currentView === 'inventario' ? 'Inventario' :
              currentView === 'create' ? (editingUserId ? 'Editar usuario' : 'Nuevo usuario') :
              'Panel' }}
         </h1>
         <p class="page-subtitle">
           {{ currentView === 'users' ? (filteredUsuarios.length + ' registros encontrados') :
              currentView === 'citas' ? (citas.length + ' citas registradas — solo lectura') :
+             currentView === 'inventario' ? (filteredInventario.length + ' productos — solo lectura') :
              currentView === 'stats' ? 'Resumen del equipo' :
              (editingUserId ? 'Modifica los datos del usuario' : 'Completa el formulario para registrar personal') }}
         </p>
@@ -190,6 +192,79 @@
             </tr>
           </tbody>
         </app-data-table>
+      </section>
+
+      <!-- ── INVENTARIO (solo lectura) ── -->
+      <section *ngIf="currentView === 'inventario'" class="section-fade content-card">
+        <div class="inventario-filters">
+          <select
+            class="category-select"
+            [ngModel]="categoriaSeleccionada"
+            (ngModelChange)="categoriaSeleccionada = $event">
+            <option value="">Todas las categorías</option>
+            <option *ngFor="let cat of categoriasInventario" [value]="cat">{{ cat }}</option>
+          </select>
+        </div>
+
+        <app-data-table
+          [loading]="cargandoInventario"
+          [empty]="filteredInventario.length === 0"
+          searchPlaceholder="Buscar por nombre o categoría..."
+          loadingText="Cargando inventario..."
+          emptyText="No se encontraron productos."
+          emptyIcon="fa-boxes-stacked"
+          (searchChange)="filterInventario = $event">
+
+          <thead>
+            <tr>
+              <th>Producto</th>
+              <th>Categoría</th>
+              <th>Cantidad</th>
+              <th>Precio</th>
+              <th>Estado</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let p of filteredInventario; trackBy: trackByInventarioId">
+              <td>
+                <div class="user-cell">
+                  <div class="avatar-sm inv-avatar">
+                    <i class="fa-solid"
+                      [ngClass]="p.categoria === 'MEDICAMENTOS' ? 'fa-pills' :
+                                 p.categoria === 'ALIMENTOS' ? 'fa-bone' :
+                                 p.categoria === 'ACCESORIOS' ? 'fa-tag' :
+                                 p.categoria === 'HIGIENE' ? 'fa-pump-soap' : 'fa-box'">
+                    </i>
+                  </div>
+                  <span>{{ p.nombre }}</span>
+                </div>
+              </td>
+              <td>
+                <span class="role-badge" [ngClass]="(p.categoria || '').toLowerCase()">
+                  {{ p.categoria }}
+                </span>
+              </td>
+              <td>
+                <span [class.stock-bajo]="p.cantidad <= 10 && p.cantidad > 0"
+                      [class.stock-agotado]="p.cantidad === 0">
+                  {{ p.cantidad }}
+                </span>
+              </td>
+              <td class="text-muted">{{ p.precio | currency:'COP':'symbol-narrow':'1.0-0' }}</td>
+              <td>
+                <span class="stock-badge"
+                  [ngClass]="p.cantidad === 0 ? 'agotado' : p.cantidad <= 10 ? 'bajo' : 'disponible'">
+                  {{ p.cantidad === 0 ? 'Agotado' : p.cantidad <= 10 ? 'Stock bajo' : 'Disponible' }}
+                </span>
+              </td>
+            </tr>
+          </tbody>
+        </app-data-table>
+
+        <div class="hint-box">
+          <i class="fa-solid fa-circle-info"></i>
+          Vista de solo lectura. Para gestionar el inventario, contacte al Jefe de Inventario.
+        </div>
       </section>
 
       <!-- ── FORMULARIO ── -->

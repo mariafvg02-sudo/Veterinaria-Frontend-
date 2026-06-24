@@ -16,4 +16,12 @@ export class PagoService {
   obtenerPorId(id: number): Observable<any> {
     return this.http.get<any>(`${this.apiUrl}/${id}`);
   }
+
+  crearPago(pago: any): Observable<any> {
+    return this.http.post<any>(this.apiUrl, pago);
+  }
+
+  anularPago(id: number): Observable<any> {
+    return this.http.patch<any>(`${this.apiUrl}/${id}/anular`, {});
+  }
 }

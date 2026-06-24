@@ -13,8 +13,20 @@ export class FacturaService {
     return this.http.get<any[]>(this.apiUrl);
   }
 
+  obtenerPorId(id: number): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/${id}`);
+  }
+
+  obtenerPorCitaId(citaId: number): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/cita/${citaId}`);
+  }
+
   crearFactura(factura: any): Observable<any> {
     return this.http.post<any>(this.apiUrl, factura);
+  }
+
+  actualizarFactura(id: number, factura: any): Observable<any> {
+    return this.http.put<any>(`${this.apiUrl}/${id}`, factura);
   }
 
   descargarFacturaPdf(id: number): Observable<Blob> {

@@ -377,6 +377,89 @@
   margin: 0 0 12px;
 }
 
+/* ── CITAS ACCIONES ── */
+.actions-cell {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.vet-select {
+  padding: 6px 10px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--white);
+  color: var(--text-dark);
+  font-size: 0.85rem;
+  font-family: inherit;
+  max-width: 140px;
+  cursor: pointer;
+
+  &:focus {
+    outline: none;
+    border-color: var(--primary);
+  }
+}
+
+.text-muted {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+/* ── INVENTARIO ── */
+.inventario-filters {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 1rem;
+}
+
+.inv-search, .inv-select {
+  padding: 10px 14px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--white);
+  color: var(--text-dark);
+  font-size: 0.9rem;
+  font-family: inherit;
+  transition: border-color 0.15s;
+
+  &:focus { outline: none; border-color: var(--primary); }
+  &::placeholder { color: var(--text-muted); }
+}
+
+.inv-search { flex: 1; max-width: 320px; }
+.inv-select { min-width: 200px; cursor: pointer; }
+
+.cat-badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: capitalize;
+
+  &.medicamentos { background: #ede9fe; color: #7c3aed; }
+  &.alimentos { background: #fef3c7; color: #b45309; }
+  &.accesorios { background: #dbeafe; color: #2563eb; }
+  &.higiene { background: #d1fae5; color: #059669; }
+}
+
+.stock-bajo { color: #d97706; font-weight: 600; }
+.stock-agotado { color: #dc2626; font-weight: 600; }
+
+.stock-badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 700;
+
+  &.disponible { background: #ecfdf5; color: #059669; }
+  &.bajo { background: #fffbeb; color: #d97706; }
+  &.agotado { background: #fef2f2; color: #dc2626; }
+}
+
 /* ── MOBILE HEADER (hidden on desktop) ── */
 .mobile-header {
   display: none;
@@ -399,6 +482,12 @@
     color: var(--text-dark);
     text-transform: uppercase;
     letter-spacing: 0.08em;
+  }
+
+  .inventario-filters {
+    flex-direction: column;
+
+    .inv-search, .inv-select { width: 100%; min-height: 44px; }
   }
 
   .reception-dashboard {

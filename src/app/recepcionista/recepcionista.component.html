@@ -4,31 +4,34 @@
 
   <!-- SIDEBAR -->
   <aside class="sidebar" [class.open]="sidebarOpen">
-    <div class="sidebar-title-bar">
-      <span class="sidebar-section-title">Recepción</span>
+    <div class="sidebar-brand">
+      <i class="fa-solid fa-paw"></i>
+      <span>VETAPP</span>
     </div>
 
-    <ng-container *ngIf="usuario$ | async as usuario">
-      <div class="user-card">
-        <div class="user-avatar">{{ obtenerAvatarInicial(usuario?.nombre) }}</div>
-        <div class="user-details">
-          <strong class="user-fullname">{{ usuario.nombre || 'Maria Fernanda' }}</strong>
-          <span class="user-email">{{ obtenerCorreoRecepcion(usuario?.nombre) }}</span>
-        </div>
+    <div class="sidebar-subtitle">
+      <p>Panel de recepción</p>
+    </div>
+
+    <div class="sidebar-profile">
+      <span class="profile-avatar">{{ obtenerAvatarInicial(usuario?.nombre) }}</span>
+      <div>
+        <strong>{{ usuario?.nombre || 'Recepcionista' }}</strong>
+        <small>{{ usuario?.correo }}</small>
       </div>
-    </ng-container>
+    </div>
 
     <nav class="sidebar-nav">
-      <button type="button" class="menu-item" [class.active]="activeTab === 'citas'" (click)="setActiveTab('citas')">
+      <button type="button" [class.active]="activeTab === 'citas'" (click)="setActiveTab('citas')">
         <i class="fa-solid fa-calendar-check"></i> Citas del día
       </button>
-      <button type="button" class="menu-item" [class.active]="activeTab === 'registro'" (click)="setActiveTab('registro')">
+      <button type="button" [class.active]="activeTab === 'registro'" (click)="setActiveTab('registro')">
         <i class="fa-solid fa-plus"></i> Nueva cita
       </button>
-      <button type="button" class="menu-item" [class.active]="activeTab === 'pagos'" (click)="setActiveTab('pagos')">
+      <button type="button" [class.active]="activeTab === 'pagos'" (click)="setActiveTab('pagos')">
         <i class="fa-solid fa-receipt"></i> Pagos y facturas
       </button>
-      <button type="button" class="menu-item" [class.active]="activeTab === 'inventario'" (click)="setActiveTab('inventario')">
+      <button type="button" [class.active]="activeTab === 'inventario'" (click)="setActiveTab('inventario')">
         <i class="fa-solid fa-boxes-stacked"></i> Inventario
       </button>
     </nav>
@@ -37,7 +40,7 @@
       <button routerLink="/home" class="btn-sidebar-action">
         <i class="fa-solid fa-arrow-left"></i> Inicio
       </button>
-      <button type="button" (click)="logout()" class="btn-sidebar-action"> 
+      <button type="button" (click)="logout()" class="btn-sidebar-action danger">
         <i class="fa-solid fa-right-from-bracket"></i> Cerrar sesión
       </button>
     </div>
@@ -76,7 +79,7 @@
             <th>Cliente</th>
             <th>Motivo</th>
             <th>Estado</th>
-            <th>Veterinario / Asignar</th>
+            <th>Veterinario</th>
             <th>Acciones</th>
           </tr>
         </thead>
@@ -88,38 +91,27 @@
             <td>
               <span class="role-badge" [ngClass]="(cita.estado || '').toLowerCase()">{{ cita.estado }}</span>
             </td>
+            <td>{{ cita.veterinario?.nombre || 'Sin asignar' }}</td>
             <td>
-              <ng-container *ngIf="cita.estado === 'pendiente'">
-                <select (change)="vetSeleccionadoPorCita[cita.idCita!] = +$any($event.target).value" style="max-width:130px;">
-                  <option value="0">-- Veterinario --</option>
-                  <option *ngFor="let v of veterinarios" [value]="v.id ?? v.userId">{{ v.nombre }}</option>
-                </select>
-                <button type="button" class="btn-icon" style="margin-left:4px;"
-                  (click)="asignarVeterinario(cita)"
-                  [disabled]="!vetSeleccionadoPorCita[cita.idCita!]"
-                  title="Asignar">
-                  <i class="fa-solid fa-user-check"></i>
-                </button>
-              </ng-container>
-              <span *ngIf="cita.estado !== 'pendiente'">
-                {{ cita.veterinario?.nombre || 'Sin veterinario' }}
-              </span>
-            </td>
-            <td>
-              <div class="actions-cell">
-                <button class="btn-icon" type="button"
-                  (click)="actualizarEstado(cita, 'completada')"
-                  [disabled]="cita.estado === 'completada' || cita.estado === 'cancelada' || cita.estado === 'pendiente'"
-                  title="Finalizar">
-                  <i class="fa-solid fa-check"></i>
-                </button>
-                <button class="btn-icon danger" type="button"
-                  (click)="cancelarCita(cita)"
-                  [disabled]="cita.estado === 'cancelada' || cita.estado === 'completada'"
-                  title="Cancelar">
-                  <i class="fa-solid fa-xmark"></i>
+              <div class="actions-cell" *ngIf="cita.estado !== 'completada' && cita.estado !== 'cancelada'">
+                <ng-container *ngIf="cita.estado === 'pendiente'">
+                  <select class="vet-select"
+                    (change)="vetSeleccionadoPorCita[cita.idCita!] = +$any($event.target).value">
+                    <option value="0">-- Veterinario --</option>
+                    <option *ngFor="let v of veterinarios" [value]="v.id ?? v.userId">{{ v.nombre }}</option>
+                  </select>
+                  <button type="button" class="btn-icon" title="Asignar veterinario"
+                    (click)="asignarVeterinario(cita)"
+                    [disabled]="!vetSeleccionadoPorCita[cita.idCita!]">
+                    <i class="fa-solid fa-user-check"></i>
+                  </button>
+                </ng-container>
+                <button class="btn-icon danger" type="button" title="Cancelar cita"
+                  (click)="cancelarCita(cita)">
+                  <i class="fa-solid fa-ban"></i>
                 </button>
               </div>
+              <span *ngIf="cita.estado === 'completada' || cita.estado === 'cancelada'" class="text-muted">—</span>
             </td>
           </tr>
         </tbody>
@@ -281,19 +273,30 @@
       <app-pagos-facturas></app-pagos-facturas>
     </section>
 
-    <!-- Vista de Inventario (Consulta) -->
+    <!-- Vista de Inventario (Solo lectura) -->
     <section class="dashboard-view" *ngIf="activeTab === 'inventario'">
       <section class="dashboard-header">
         <div>
           <span class="subtitle">Consulta de Stock</span>
-          <h1>Inventario de Medicamentos</h1>
-          <p>Consulta la disponibilidad de suministros para informar a los clientes.</p>
+          <h1>Inventario de Productos</h1>
+          <p>Consulta la disponibilidad de suministros para informar a los clientes. Vista de solo lectura.</p>
         </div>
       </section>
 
+      <div class="inventario-filters">
+        <input type="text" class="inv-search" placeholder="Buscar por nombre..."
+               [(ngModel)]="filterInventario">
+        <select class="inv-select" [(ngModel)]="categoriaInventario">
+          <option value="">Todas las categorías</option>
+          <option *ngFor="let cat of categoriasInventario" [value]="cat">{{ cat }}</option>
+        </select>
+      </div>
+
       <app-data-table
-        [empty]="productos.length === 0"
-        emptyText="No hay productos en el inventario."
+        [loading]="loading"
+        [empty]="filteredInventario.length === 0"
+        loadingText="Cargando inventario..."
+        emptyText="No se encontraron productos."
         emptyIcon="fa-box-open">
 
         <thead>
@@ -302,18 +305,30 @@
             <th>Categoría</th>
             <th>Cantidad</th>
             <th>Precio Unit.</th>
+            <th>Estado</th>
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let prod of productos; trackBy: trackByProductoId">
+          <tr *ngFor="let prod of filteredInventario; trackBy: trackByProductoId">
             <td><strong>{{ prod.nombre }}</strong></td>
-            <td>{{ prod.categoria }}</td>
             <td>
-              <span class="role-badge" [ngClass]="prod.cantidad > 5 ? 'veterinario' : 'recepcionista'">
-                {{ prod.cantidad }} unidades
+              <span class="cat-badge" [ngClass]="(prod.categoria || '').toLowerCase()">
+                {{ prod.categoria }}
               </span>
             </td>
-            <td>{{ prod.precio | currency }}</td>
+            <td>
+              <span [class.stock-bajo]="prod.cantidad <= 10 && prod.cantidad > 0"
+                    [class.stock-agotado]="prod.cantidad === 0">
+                {{ prod.cantidad }}
+              </span>
+            </td>
+            <td>{{ prod.precio | currency:'COP':'symbol-narrow':'1.0-0' }}</td>
+            <td>
+              <span class="stock-badge"
+                [ngClass]="prod.cantidad === 0 ? 'agotado' : prod.cantidad <= 10 ? 'bajo' : 'disponible'">
+                {{ prod.cantidad === 0 ? 'Agotado' : prod.cantidad <= 10 ? 'Stock bajo' : 'Disponible' }}
+              </span>
+            </td>
           </tr>
         </tbody>
       </app-data-table>
