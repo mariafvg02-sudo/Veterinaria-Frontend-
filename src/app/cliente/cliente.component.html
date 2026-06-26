@@ -1,8 +1,12 @@
 <div class="cliente-container" *ngIf="usuario">
   <div class="sidebar-overlay" [class.visible]="sidebarOpen" (click)="sidebarOpen = false"></div>
   <aside class="sidebar" [class.open]="sidebarOpen">
-    <div class="sidebar-header">
-      <h1><i class="fa-solid fa-paw"></i> VETAPP</h1>
+    <div class="sidebar-brand">
+      <i class="fa-solid fa-paw"></i>
+      <span>VETAPP</span>
+    </div>
+
+    <div class="sidebar-subtitle">
       <p>Panel del cliente</p>
     </div>
 
@@ -14,17 +18,17 @@
       </div>
     </div>
 
-    <nav class="nav-menu">
-      <button type="button" (click)="setView('dashboard')" [class.active]="currentView === 'dashboard'" class="nav-btn">
+    <nav class="sidebar-nav">
+      <button type="button" (click)="setView('dashboard')" [class.active]="currentView === 'dashboard'">
         <i class="fa-solid fa-house"></i> Dashboard
       </button>
-      <button type="button" (click)="setView('citas')" [class.active]="currentView === 'citas'" class="nav-btn">
+      <button type="button" (click)="setView('citas')" [class.active]="currentView === 'citas'">
         <i class="fa-solid fa-calendar-days"></i> Mis Citas
       </button>
-      <button type="button" (click)="setView('mascotas')" [class.active]="currentView === 'mascotas'" class="nav-btn">
+      <button type="button" (click)="setView('mascotas')" [class.active]="currentView === 'mascotas'">
         <i class="fa-solid fa-paw"></i> Mis Mascotas
       </button>
-      <button type="button" (click)="setView('historial')" [class.active]="currentView === 'historial'" class="nav-btn">
+      <button type="button" (click)="setView('historial')" [class.active]="currentView === 'historial'">
         <i class="fa-solid fa-file-medical"></i> Historial Médico
       </button>
     </nav>
