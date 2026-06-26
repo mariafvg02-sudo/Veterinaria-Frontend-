@@ -72,6 +72,14 @@
         </div>
       </div>
 
+      <div class="filtro-estado" style="margin-bottom: 12px;">
+        <label>Filtrar por estado</label>
+        <select [(ngModel)]="filtroEstado">
+          <option value="">Todos los estados</option>
+          <option *ngFor="let estado of estadosDisponibles" [value]="estado">{{ estado }}</option>
+        </select>
+      </div>
+
       <div *ngIf="error && !loading" class="stat-card" style="margin-bottom: 12px;">
         <p>{{ error }}</p>
       </div>

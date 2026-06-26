@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
-import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { ReactiveFormsModule, FormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { AuthService } from '../Core/Service/auth.service';
 import { CitaService } from '../Core/Service/cita.service';
 import { HistorialMedicoService } from '../Core/Service/historial-medico.service';
@@ -24,7 +24,7 @@ interface CitaRow {
 @Component({
   selector: 'app-veterinario',
   standalone: true,
-  imports: [CommonModule, RouterModule, ReactiveFormsModule, DataTableComponent],
+  imports: [CommonModule, RouterModule, ReactiveFormsModule, FormsModule, DataTableComponent],
   templateUrl: './veterinario.component.html',
   styleUrls: ['./veterinario.component.scss']
 })
@@ -36,6 +36,7 @@ export class VeterinarioComponent implements OnInit {
   historialCitas: CitaRow[] = [];
 
   filterText: string = '';
+  filtroEstado: string = '';
   historialFilterText: string = '';
 
   loading = false;
@@ -50,12 +51,23 @@ export class VeterinarioComponent implements OnInit {
   mensajeExito: string | null = null;
 
   get filteredCitas() {
+    let resultado = this.citasHoy;
+
+    if (this.filtroEstado) {
+      resultado = resultado.filter(c => c.estado === this.filtroEstado);
+    }
+
     const q = (this.filterText || '').trim().toLowerCase();
-    if (!q) return this.citasHoy;
-    return this.citasHoy.filter(c =>
-      ((c.paciente || '') + ' ' + (c.dueno || '') + ' ' + (c.motivo || '')).toLowerCase().includes(q)
-    );
+    if (q) {
+      resultado = resultado.filter(c =>
+        ((c.paciente || '') + ' ' + (c.dueno || '') + ' ' + (c.motivo || '')).toLowerCase().includes(q)
+      );
+    }
+
+    return resultado;
   }
+
+  readonly estadosDisponibles: string[] = ['Pendiente', 'Asignada', 'Completada', 'Cancelada'];
 
   get filteredHistorial() {
     const q = (this.historialFilterText || '').trim().toLowerCase();
