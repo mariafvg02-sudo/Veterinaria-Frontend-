@@ -127,6 +127,7 @@
               <th>Correo</th>
               <th>Teléfono</th>
               <th>Rol</th>
+              <th>Estado</th>
               <th></th>
             </tr>
           </thead>
@@ -145,12 +146,19 @@
                   {{ user.rol }}
                 </span>
               </td>
+              <td>
+                <span class="status-badge" [ngClass]="user.activo === false ? 'inactivo' : 'activo'">
+                  {{ user.activo === false ? 'Inactivo' : 'Activo' }}
+                </span>
+              </td>
               <td class="actions-cell">
                 <button class="btn-icon" (click)="onEditUser(user)" title="Editar">
                   <i class="fa-solid fa-pen-to-square"></i>
                 </button>
-                <button class="btn-icon danger" (click)="onDeleteUser(user.id ?? user.userId ?? 0)" title="Eliminar">
-                  <i class="fa-solid fa-trash-can"></i>
+                <button class="btn-icon" [ngClass]="user.activo === false ? '' : 'danger'"
+                  (click)="onToggleActivo(user)"
+                  [title]="user.activo === false ? 'Activar usuario' : 'Desactivar usuario'">
+                  <i class="fa-solid" [ngClass]="user.activo === false ? 'fa-toggle-off' : 'fa-toggle-on'"></i>
                 </button>
               </td>
             </tr>

@@ -243,15 +243,21 @@ export class AdministradorComponent implements OnInit {
     ).toLowerCase().includes(q));
   }
 
-  onDeleteUser(id: number) {
-    if (!confirm('¿Eliminar usuario? Esta acción no se puede deshacer.')) return;
-    this.authService.eliminarUsuario(id).subscribe({
+  onToggleActivo(user: Usuario) {
+    const id = user.id ?? user.userId ?? 0;
+    if (!id) return;
+
+    const nuevoEstado = user.activo === false ? true : false;
+    const accion = nuevoEstado ? 'activar' : 'desactivar';
+    if (!confirm(`¿Deseas ${accion} al usuario ${user.nombre}?`)) return;
+
+    this.authService.actualizarUsuario(id, { activo: nuevoEstado }).subscribe({
       next: () => {
-        this.exito = 'Usuario eliminado.';
+        this.exito = `Usuario ${nuevoEstado ? 'activado' : 'desactivado'} correctamente.`;
         this.cargarUsuarios();
       },
       error: () => {
-        this.error = 'No se pudo eliminar el usuario.';
+        this.error = `No se pudo ${accion} el usuario.`;
       }
     });
   }
