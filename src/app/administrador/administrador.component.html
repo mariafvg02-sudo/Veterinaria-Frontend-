@@ -38,6 +38,9 @@
       <button [class.active]="currentView === 'inventario'" (click)="setView('inventario')">
         <i class="fa-solid fa-boxes-stacked"></i> Inventario
       </button>
+      <button [class.active]="currentView === 'pagos'" (click)="setView('pagos')">
+        <i class="fa-solid fa-file-invoice-dollar"></i> Pagos y Facturas
+      </button>
     </nav>
 
     <div class="sidebar-footer">
@@ -64,6 +67,7 @@
           {{ currentView === 'users' ? 'Personal' :
              currentView === 'citas' ? 'Citas' :
              currentView === 'inventario' ? 'Inventario' :
+             currentView === 'pagos' ? 'Pagos y Facturas' :
              currentView === 'create' ? (editingUserId ? 'Editar usuario' : 'Nuevo usuario') :
              'Panel' }}
         </h1>
@@ -71,6 +75,7 @@
           {{ currentView === 'users' ? (filteredUsuarios.length + ' registros encontrados') :
              currentView === 'citas' ? (citas.length + ' citas registradas — solo lectura') :
              currentView === 'inventario' ? (filteredInventario.length + ' productos — solo lectura') :
+             currentView === 'pagos' ? ((activeSubTabPagos === 'facturas' ? facturas.length : pagos.length) + ' registros — solo lectura') :
              currentView === 'stats' ? 'Resumen del equipo' :
              (editingUserId ? 'Modifica los datos del usuario' : 'Completa el formulario para registrar personal') }}
         </p>
@@ -272,6 +277,152 @@
         <div class="hint-box">
           <i class="fa-solid fa-circle-info"></i>
           Vista de solo lectura. Para gestionar el inventario, contacte al Jefe de Inventario.
+        </div>
+      </section>
+
+      <!-- ── PAGOS Y FACTURAS (solo lectura) ── -->
+      <section *ngIf="currentView === 'pagos'" class="section-fade content-card">
+        <div class="pagos-subtabs">
+          <button type="button" class="pagos-subtab-btn" [class.active]="activeSubTabPagos === 'facturas'"
+            (click)="setSubTabPagos('facturas')">
+            <i class="fa-solid fa-file-invoice"></i> Facturas
+          </button>
+          <button type="button" class="pagos-subtab-btn" [class.active]="activeSubTabPagos === 'pagos'"
+            (click)="setSubTabPagos('pagos')">
+            <i class="fa-solid fa-receipt"></i> Pagos
+          </button>
+        </div>
+
+        <!-- DETALLE DE FACTURA -->
+        <div *ngIf="activeSubTabPagos === 'facturas' && facturaDetalle" class="detalle-card">
+          <div class="detalle-header-row">
+            <h2><i class="fa-solid fa-file-invoice"></i> Factura #{{ facturaDetalle.idFactura }}</h2>
+            <button class="btn-ghost" (click)="cerrarDetalleFactura()">
+              <i class="fa-solid fa-xmark"></i> Cerrar
+            </button>
+          </div>
+          <div class="detalle-grid">
+            <div class="detalle-field">
+              <span class="detalle-label">Fecha</span>
+              <span>{{ facturaDetalle.fechaHora | date:'dd/MM/yyyy HH:mm' }}</span>
+            </div>
+            <div class="detalle-field">
+              <span class="detalle-label">Estado</span>
+              <span class="status-badge" [ngClass]="facturaDetalle.estado === 'pagada' ? 'activo' : (facturaDetalle.estado === 'anulada' ? 'inactivo' : '')">
+                {{ facturaDetalle.estado }}
+              </span>
+            </div>
+            <div class="detalle-field">
+              <span class="detalle-label">Total</span>
+              <span class="monto-destacado">{{ facturaDetalle.total | currency:'COP':'symbol-narrow':'1.0-0' }}</span>
+            </div>
+            <div class="detalle-field">
+              <span class="detalle-label">Cliente</span>
+              <span>{{ facturaDetalle.cita?.cliente?.nombre || 'N/A' }}</span>
+            </div>
+            <div class="detalle-field">
+              <span class="detalle-label">Mascota</span>
+              <span>{{ facturaDetalle.cita?.mascota?.nombre || 'N/A' }}</span>
+            </div>
+            <div class="detalle-field">
+              <span class="detalle-label">Veterinario</span>
+              <span>{{ facturaDetalle.cita?.veterinario?.nombre || 'N/A' }}</span>
+            </div>
+            <div class="detalle-field">
+              <span class="detalle-label">Motivo consulta</span>
+              <span>{{ facturaDetalle.cita?.motivo || 'N/A' }}</span>
+            </div>
+            <div class="detalle-field">
+              <span class="detalle-label">Fecha consulta</span>
+              <span>{{ facturaDetalle.cita?.fecha | date:'dd/MM/yyyy HH:mm' }}</span>
+            </div>
+          </div>
+          <div class="detalle-actions">
+            <button class="btn-primary" (click)="descargarFactura(facturaDetalle)">
+              <i class="fa-solid fa-download"></i> Descargar PDF
+            </button>
+          </div>
+        </div>
+
+        <app-data-table
+          *ngIf="activeSubTabPagos === 'facturas'"
+          [loading]="cargandoFacturas"
+          [empty]="facturas.length === 0"
+          loadingText="Cargando facturas..."
+          emptyText="No hay facturas registradas."
+          emptyIcon="fa-file-invoice">
+
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Fecha</th>
+              <th>Cliente</th>
+              <th>Mascota</th>
+              <th>Total</th>
+              <th>Estado</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let f of facturas">
+              <td>{{ f.idFactura }}</td>
+              <td>{{ f.fechaHora | date:'dd/MM/yyyy HH:mm' }}</td>
+              <td>{{ f.cita?.cliente?.nombre || 'N/D' }}</td>
+              <td>{{ f.cita?.mascota?.nombre || 'N/D' }}</td>
+              <td>{{ f.total | currency:'COP':'symbol-narrow':'1.0-0' }}</td>
+              <td>
+                <span class="status-badge" [ngClass]="f.estado === 'pagada' ? 'activo' : (f.estado === 'anulada' ? 'inactivo' : '')">
+                  {{ f.estado }}
+                </span>
+              </td>
+              <td class="actions-cell">
+                <button class="btn-icon" title="Ver detalle" (click)="verDetalleFactura(f)">
+                  <i class="fa-solid fa-eye"></i>
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </app-data-table>
+
+        <app-data-table
+          *ngIf="activeSubTabPagos === 'pagos'"
+          [loading]="cargandoPagos"
+          [empty]="pagos.length === 0"
+          loadingText="Cargando pagos..."
+          emptyText="No hay pagos registrados."
+          emptyIcon="fa-receipt">
+
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Fecha</th>
+              <th>Cliente</th>
+              <th>Factura</th>
+              <th>Método</th>
+              <th>Monto</th>
+              <th>Estado</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let p of pagos">
+              <td>{{ p.idPago }}</td>
+              <td>{{ p.fechaHora | date:'dd/MM/yyyy HH:mm' }}</td>
+              <td>{{ p.factura?.cita?.cliente?.nombre || 'N/D' }}</td>
+              <td>#{{ p.factura?.idFactura || 'N/D' }}</td>
+              <td>{{ p.metodo }}</td>
+              <td>{{ p.monto | currency:'COP':'symbol-narrow':'1.0-0' }}</td>
+              <td>
+                <span class="status-badge" [ngClass]="(p.estado || '').toUpperCase() === 'COMPLETADO' ? 'activo' : 'inactivo'">
+                  {{ p.estado }}
+                </span>
+              </td>
+            </tr>
+          </tbody>
+        </app-data-table>
+
+        <div class="hint-box">
+          <i class="fa-solid fa-circle-info"></i>
+          Vista de solo lectura. Para gestionar pagos y facturas, contacte a Recepción.
         </div>
       </section>
 

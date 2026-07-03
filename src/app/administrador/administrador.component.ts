@@ -5,6 +5,8 @@ import { RouterModule, Router } from '@angular/router';
 import { AuthService, Usuario } from '../Core/Service/auth.service';
 import { CitaService } from '../Core/Service/cita.service';
 import { InventarioService } from '../Core/Service/inventario.service';
+import { FacturaService } from '../Core/Service/factura.service';
+import { PagoService } from '../Core/Service/pago.service';
 import { Cita } from '../Models/cita.model';
 import { InventarioProducto } from '../Models/inventario.model';
 import { DataTableComponent } from '../shared/data-table/data-table.component';
@@ -37,11 +39,20 @@ export class AdministradorComponent implements OnInit {
   filterInventario: string = '';
   categoriaSeleccionada: string = '';
 
+  activeSubTabPagos: 'facturas' | 'pagos' = 'facturas';
+  facturas: any[] = [];
+  pagos: any[] = [];
+  cargandoFacturas = false;
+  cargandoPagos = false;
+  facturaDetalle: any = null;
+
   constructor(
     private fb: FormBuilder,
     private authService: AuthService,
     private citaService: CitaService,
     private inventarioService: InventarioService,
+    private facturaService: FacturaService,
+    private pagoService: PagoService,
     private router: Router
   ) {
     this.userForm = this.fb.group({
@@ -94,6 +105,52 @@ export class AdministradorComponent implements OnInit {
     this.exito = null;
     if (view === 'citas') this.cargarCitas();
     if (view === 'inventario') this.cargarInventario();
+    if (view === 'pagos') this.cargarFacturas();
+  }
+
+  setSubTabPagos(tab: 'facturas' | 'pagos'): void {
+    this.activeSubTabPagos = tab;
+    this.facturaDetalle = null;
+    if (tab === 'facturas' && this.facturas.length === 0) this.cargarFacturas();
+    if (tab === 'pagos' && this.pagos.length === 0) this.cargarPagos();
+  }
+
+  cargarFacturas(): void {
+    this.cargandoFacturas = true;
+    this.facturaService.listarFacturas().subscribe({
+      next: (data) => { this.facturas = data; this.cargandoFacturas = false; },
+      error: () => { this.cargandoFacturas = false; }
+    });
+  }
+
+  cargarPagos(): void {
+    this.cargandoPagos = true;
+    this.pagoService.listarPagos().subscribe({
+      next: (data) => { this.pagos = data; this.cargandoPagos = false; },
+      error: () => { this.cargandoPagos = false; }
+    });
+  }
+
+  verDetalleFactura(factura: any): void {
+    this.facturaDetalle = factura;
+  }
+
+  cerrarDetalleFactura(): void {
+    this.facturaDetalle = null;
+  }
+
+  descargarFactura(factura: any): void {
+    this.facturaService.descargarFacturaPdf(factura.idFactura).subscribe({
+      next: (blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `factura-${factura.idFactura}.pdf`;
+        a.click();
+        window.URL.revokeObjectURL(url);
+      },
+      error: () => { this.error = 'No se pudo descargar la factura.'; }
+    });
   }
 
   cargarCitas(): void {

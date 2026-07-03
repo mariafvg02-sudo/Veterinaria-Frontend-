@@ -13,6 +13,7 @@ export interface Cita {
   observacionCancelacion?: string;
   diagnostico?: string;
   tratamiento?: string;
+  costo?: number;
 
   // Objetos anidados — vienen del backend en las respuestas
   cliente?: CitaUsuario;

@@ -19,6 +19,7 @@ interface CitaRow {
   estado: 'Pendiente' | 'Asignada' | 'En consulta' | 'Completada' | 'Cancelada';
   estadoOriginal: string;
   veterinarioId?: number;
+  costo?: number;
 }
 
 @Component({
@@ -103,7 +104,8 @@ export class VeterinarioComponent implements OnInit {
 
     this.procesamientoForm = this.fb.group({
       diagnostico: ['', [Validators.required, Validators.minLength(1)]],
-      tratamiento: ['', [Validators.required, Validators.minLength(1)]]
+      tratamiento: ['', [Validators.required, Validators.minLength(1)]],
+      costo: ['', [Validators.required, Validators.min(0)]]
     });
     this.cargarCitas();
     this.cargarHistorial();
@@ -164,7 +166,8 @@ export class VeterinarioComponent implements OnInit {
       idCliente: cita.cliente?.id,
       estado: this.normalizarEstado(cita.estado),
       estadoOriginal: cita.estado,
-      veterinarioId: cita.veterinario?.id
+      veterinarioId: cita.veterinario?.id,
+      costo: cita.costo
     };
   }
 
@@ -210,7 +213,7 @@ export class VeterinarioComponent implements OnInit {
     if (!this.citaEnProceso?.idCita) return;
 
     this.guardando = true;
-    const { diagnostico, tratamiento } = this.procesamientoForm.value;
+    const { diagnostico, tratamiento, costo } = this.procesamientoForm.value;
 
     // 1. Preparamos el objeto para el Historial Médico
     const nuevoHistorial: any = {
@@ -218,6 +221,7 @@ export class VeterinarioComponent implements OnInit {
       motivo: this.citaEnProceso.motivo,
       diagnostico: diagnostico.trim(),
       tratamiento: tratamiento.trim(),
+      costo: Number(costo),
       mascota: { idMascota: this.citaEnProceso.idMascota },
       veterinario: { id: this.usuarioId },
       cliente: { id: this.citaEnProceso.idCliente },
@@ -231,7 +235,8 @@ export class VeterinarioComponent implements OnInit {
         const citaActualizada: any = {
           estado: 'completada',
           diagnostico: diagnostico.trim(),
-          tratamiento: tratamiento.trim()
+          tratamiento: tratamiento.trim(),
+          costo: Number(costo)
         };
 
         this.citaService.actualizarCita(this.citaEnProceso.idCita, citaActualizada).subscribe({

@@ -4,7 +4,8 @@ export interface HistorialMedico {
   motivo: string; // Faltaba este campo (length 400 en Java)
   diagnostico: string;
   tratamiento: string;
-  
+  costo?: number;
+
   // Relación @ManyToOne con Mascota
   mascota: {
     idMascota: number;
