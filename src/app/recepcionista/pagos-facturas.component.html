@@ -137,6 +137,10 @@
             <span class="detalle-label">Fecha consulta</span>
             <span>{{ citaSeleccionada.fecha | date:'dd/MM/yyyy HH:mm' }}</span>
           </div>
+          <div class="preview-row" *ngIf="citaSeleccionada.costo != null">
+            <span class="detalle-label">Costo registrado por el veterinario</span>
+            <span>{{ citaSeleccionada.costo | currency:'COP':'symbol-narrow':'1.0-0' }}</span>
+          </div>
         </div>
 
         <div *ngIf="citaSeleccionada" class="field">

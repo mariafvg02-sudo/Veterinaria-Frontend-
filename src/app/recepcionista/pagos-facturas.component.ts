@@ -157,7 +157,7 @@ export class PagosFacturasComponent implements OnInit {
 
   seleccionarCita(cita: Cita): void {
     this.citaSeleccionada = cita;
-    this.montoFactura = 0;
+    this.montoFactura = cita.costo || 0;
   }
 
   crearFactura(): void {
