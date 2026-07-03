@@ -145,7 +145,9 @@ export class PagosFacturasComponent implements OnInit {
         const idsConFactura = new Set(
           this.facturas.map(f => f.cita?.idCita).filter(Boolean)
         );
-        this.citasCompletadas = completadas.filter(c => !idsConFactura.has(c.idCita));
+        this.citasCompletadas = completadas
+          .filter(c => !idsConFactura.has(c.idCita))
+          .sort((a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime());
         this.loadingCitas = false;
       },
       error: () => {
@@ -265,9 +267,9 @@ export class PagosFacturasComponent implements OnInit {
     this.loadingFacturasPago = true;
     this.facturaService.listarFacturas().subscribe({
       next: (facturas) => {
-        this.facturasParaPago = facturas.filter(
-          (f: any) => (f.estado || '').toLowerCase() === 'emitida'
-        );
+        this.facturasParaPago = facturas
+          .filter((f: any) => (f.estado || '').toLowerCase() === 'emitida')
+          .sort((a: any, b: any) => new Date(b.fechaHora).getTime() - new Date(a.fechaHora).getTime());
         this.loadingFacturasPago = false;
       },
       error: () => {
